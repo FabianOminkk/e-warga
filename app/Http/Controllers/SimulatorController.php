@@ -10,10 +10,35 @@ use Illuminate\Http\Request;
 
 class SimulatorController extends Controller
 {
-    public function index()
+    private function getOrCreateDefaultGate()
     {
         $tenant = Tenant::first();
-        $smartGate = SmartGate::first();
+        if (!$tenant) {
+            $tenant = Tenant::create([
+                'name' => 'Cluster Melati Mas',
+                'slug' => 'cluster-melati-mas',
+                'rt_rw' => 'RT 05 / RW 12',
+                'is_active' => true,
+            ]);
+        }
+
+        $gate = SmartGate::first();
+        if (!$gate) {
+            $gate = SmartGate::create([
+                'tenant_id' => $tenant->id,
+                'name' => 'Gerbang Utama Pos Timur',
+                'device_uid' => 'ESP32-GATE-DEFAULT',
+                'status' => 'online',
+                'last_ping_at' => now(),
+            ]);
+        }
+
+        return [$tenant, $gate];
+    }
+
+    public function index()
+    {
+        [$tenant, $smartGate] = $this->getOrCreateDefaultGate();
         $recentLogs = GateLog::with(['user'])->latest('triggered_at')->take(10)->get();
         $wargaUsers = User::where('role', 'warga')->with('house')->get();
 
@@ -22,9 +47,8 @@ class SimulatorController extends Controller
 
     public function triggerSimulation(Request $request)
     {
-        $tenant = Tenant::first();
-        $smartGate = SmartGate::first();
-        $method = $request->input('method', 'mobile_button'); // 'mobile_button', 'rfid_card', 'satpam_manual', 'qr_code'
+        [$tenant, $smartGate] = $this->getOrCreateDefaultGate();
+        $method = $request->input('method', 'mobile_button');
         $userId = $request->input('user_id');
 
         $user = $userId ? User::find($userId) : User::where('role', 'warga')->first();
@@ -83,4 +107,3 @@ class SimulatorController extends Controller
         return response()->json(['logs' => $logs]);
     }
 }
-

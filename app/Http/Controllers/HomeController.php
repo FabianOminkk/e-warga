@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\CashBook;
 use App\Models\GateLog;
 use App\Models\House;
+use App\Models\SmartGate;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -36,14 +37,32 @@ class HomeController extends Controller
             'need_barrier_gate' => 'nullable|boolean',
         ]);
 
-        Tenant::create([
+        $baseSlug = Str::slug($validated['complex_name']);
+        $slug = $baseSlug;
+        $counter = 1;
+        while (Tenant::where('slug', $slug)->exists()) {
+            $slug = "{$baseSlug}-{$counter}";
+            $counter++;
+        }
+
+        $tenant = Tenant::create([
             'name' => $validated['complex_name'],
-            'slug' => Str::slug($validated['complex_name'] . '-' . rand(100, 999)),
+            'slug' => $slug,
             'rt_rw' => $validated['rt_rw'],
             'city' => $validated['city'],
             'subscription_plan' => 'starter',
             'is_active' => true,
         ]);
+
+        if (!empty($validated['need_barrier_gate'])) {
+            SmartGate::create([
+                'tenant_id' => $tenant->id,
+                'name' => 'Gerbang Utama - ' . $tenant->name,
+                'device_uid' => 'ESP32-' . strtoupper(Str::random(8)),
+                'status' => 'online',
+                'last_ping_at' => now(),
+            ]);
+        }
 
         return redirect()->back()->with('success', 'Pendaftaran komplek berhasil dikirim! Tim teknisi E-WARGA akan segera menghubungi Anda via WhatsApp.');
     }
@@ -61,7 +80,7 @@ class HomeController extends Controller
             return redirect()->route('dashboard');
         }
 
-        return redirect()->route('home')->with('error', 'Akun role tidak ditemukan.');
+        return redirect()->route('home')->with('error', "Akun percontohan untuk role '{$role}' tidak ditemukan.");
     }
 
     public function logout(Request $request)
@@ -73,4 +92,3 @@ class HomeController extends Controller
         return redirect()->route('home')->with('success', 'Anda telah keluar dari sistem.');
     }
 }
-

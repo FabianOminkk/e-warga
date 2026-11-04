@@ -13,3 +13,4 @@ echo ==============================================
 echo  Sync Berhasil! https://github.com/FabianOminkk/e-warga
 echo ==============================================
 pause
+

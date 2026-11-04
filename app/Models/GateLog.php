@@ -41,5 +41,9 @@ class GateLog extends Model
     {
         return $this->belongsTo(User::class);
     }
-}
 
+    public function visitor(): BelongsTo
+    {
+        return $this->belongsTo(Visitor::class);
+    }
+}

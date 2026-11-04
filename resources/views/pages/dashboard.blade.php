@@ -97,8 +97,8 @@
                     @foreach($pendingPayments as $p)
                         <div class="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div>
-                                <div class="text-sm font-bold text-slate-900">{{ $p->payer->name ?? 'Warga' }}</div>
-                                <div class="text-xs text-slate-500">{{ $p->billing->house->block_and_number ?? 'Rumah' }} • Tagihan: Rp {{ number_format($p->amount_paid, 0, ',', '.') }}</div>
+                                <div class="text-sm font-bold text-slate-900">{{ $p->payer?->name ?? 'Warga' }}</div>
+                                <div class="text-xs text-slate-500">{{ $p->billing?->house?->block_and_number ?? 'Unit Rumah' }} • Tagihan: Rp {{ number_format($p->amount_paid, 0, ',', '.') }}</div>
                                 <div class="text-[11px] text-slate-400 mt-0.5">Metode: {{ ucfirst($p->payment_method) }} • Diupload: {{ $p->created_at->diffForHumans() }}</div>
                             </div>
                             <div class="flex items-center gap-2">

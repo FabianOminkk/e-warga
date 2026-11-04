@@ -13,6 +13,7 @@ Dokumentasi teknis proyek **E-WARGA** telah dipisahkan secara mendalam agar rapi
 | 🖼️ **[README_PICTURE.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_PICTURE.md)** | **Brand & Visual Blueprint**: Logo resmi, App Icon mobile (1:1), filosofi visual, dan palet warna (Clean PropTech). |
 | 🧠 **[README_BACKEND.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_BACKEND.md)** | **Backend Blueprint**: Arsitektur Laravel 12, skema database lengkap (10 tabel), spesifikasi REST API, logika multi-tenancy, dan protokol komunikasi IoT palang pintu. |
 | 🎨 **[README_FRONTEND.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_FRONTEND.md)** | **Frontend & UX Blueprint**: Wireframe Web Desktop (Dashboard RT, Pos Satpam, Simulator Pintu), antarmuka Mobile, pedoman aksesibilitas lansia/gaptek, dan sistem tutorial interaktif (*Onboarding Tour*). |
+| 🛠️ **[README_PROBLEMSOLVING.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_PROBLEMSOLVING.md)** | **Problem Solving & Troubleshooting**: Katalog analisis bug, solusi pencegahan error, dan panduan teknis operasional lapangan. |
 
 ---
 

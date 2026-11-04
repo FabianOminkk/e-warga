@@ -76,7 +76,7 @@
                             <div class="p-3 rounded-xl bg-slate-900 border border-slate-700/60 flex items-center justify-between">
                                 <div>
                                     <div class="text-xs font-bold text-white">{{ $v->guest_name }} <span class="text-[10px] text-cyan-400 font-normal">({{ ucfirst($v->guest_type) }})</span></div>
-                                    <div class="text-[11px] text-slate-400">Tujuan: {{ $v->hostHouse->block_and_number ?? 'Warga' }} • Plat: {{ $v->vehicle_plate ?? 'Motor/Mobil' }}</div>
+                                    <div class="text-[11px] text-slate-400">Tujuan: {{ $v->hostHouse?->block_and_number ?? 'Pos Satpam' }} • Plat: {{ $v->vehicle_plate ?? 'Motor/Mobil' }}</div>
                                     <div class="text-[10px] font-mono text-slate-500 mt-0.5">Kode: <span class="text-emerald-400 font-bold">{{ $v->qr_token }}</span></div>
                                 </div>
                                 <form action="{{ route('satpam.checkin-visitor') }}" method="POST">

@@ -57,36 +57,42 @@ class DashboardController extends Controller
 
     public function verifyPayment(Request $request, $id)
     {
-        $payment = Payment::findOrFail($id);
+        $payment = Payment::with(['billing.house'])->findOrFail($id);
         $action = $request->input('action'); // 'approve' or 'reject'
+
+        $verifierId = Auth::id() ?? User::where('role', 'bendahara')->value('id') ?? User::first()?->id;
 
         if ($action === 'approve') {
             $payment->update([
-                'verified_by_user_id' => Auth::id() ?? 1,
+                'verified_by_user_id' => $verifierId,
                 'verified_at' => now(),
             ]);
 
-            $payment->billing->update([
-                'status' => 'paid',
-            ]);
+            if ($payment->billing) {
+                $payment->billing->update([
+                    'status' => 'paid',
+                ]);
 
-            // Catat otomatis ke buku kas umum
-            CashBook::create([
-                'tenant_id' => $payment->billing->tenant_id,
-                'created_by_user_id' => Auth::id() ?? 1,
-                'type' => 'income',
-                'category' => 'Iuran Warga',
-                'title' => 'Iuran Rumah ' . ($payment->billing->house->block_name . ' No. ' . $payment->billing->house->house_number),
-                'amount' => $payment->amount_paid,
-                'transaction_date' => now(),
-                'notes' => 'Pembayaran diverifikasi bendahara',
-            ]);
+                $houseInfo = $payment->billing->house?->block_and_number ?? 'Warga';
+
+                // Catat otomatis ke buku kas umum
+                CashBook::create([
+                    'tenant_id' => $payment->billing->tenant_id,
+                    'created_by_user_id' => $verifierId,
+                    'type' => 'income',
+                    'category' => 'Iuran Warga',
+                    'title' => 'Iuran Rumah ' . $houseInfo,
+                    'amount' => $payment->amount_paid,
+                    'transaction_date' => now(),
+                    'notes' => 'Pembayaran diverifikasi bendahara',
+                ]);
+            }
 
             return redirect()->back()->with('success', 'Pembayaran berhasil diverifikasi dan masuk ke kas RT.');
         } else {
             $payment->update([
-                'verified_by_user_id' => Auth::id() ?? 1,
-                'rejection_reason' => $request->input('reason', 'Bukti tidak sesuai / tidak terbaca'),
+                'verified_by_user_id' => $verifierId,
+                'rejection_reason' => $request->input('reason', 'Bukti transfer tidak sesuai / tidak terbaca.'),
             ]);
 
             return redirect()->back()->with('warning', 'Pembayaran ditolak.');
@@ -104,10 +110,15 @@ class DashboardController extends Controller
         ]);
 
         $tenant = Tenant::first();
+        if (!$tenant) {
+            return redirect()->back()->with('error', 'Data komplek belum tersedia.');
+        }
+
+        $userId = Auth::id() ?? User::where('role', 'bendahara')->value('id') ?? User::first()?->id;
 
         CashBook::create([
             'tenant_id' => $tenant->id,
-            'created_by_user_id' => Auth::id() ?? 1,
+            'created_by_user_id' => $userId,
             'type' => $validated['type'],
             'category' => $validated['category'],
             'title' => $validated['title'],
@@ -119,4 +130,3 @@ class DashboardController extends Controller
         return redirect()->back()->with('success', 'Transaksi kas berhasil dicatat!');
     }
 }
-

@@ -22,10 +22,15 @@ class WargaController extends Controller
         $smartGate = SmartGate::first();
 
         // Tagihan Warga
-        $billing = Billing::where('house_id', $user?->house_id)->latest('billing_period')->first();
+        $billing = null;
+        if ($user && $user->house_id) {
+            $billing = Billing::where('house_id', $user->house_id)->latest('billing_period')->first();
+        }
 
         // Tamu Aktif Warga Ini
-        $myVisitors = Visitor::where('invited_by_user_id', $user?->id)->latest()->take(5)->get();
+        $myVisitors = $user 
+            ? Visitor::where('invited_by_user_id', $user->id)->latest()->take(5)->get()
+            : collect();
 
         return view('pages.warga', compact('user', 'tenant', 'smartGate', 'billing', 'myVisitors'));
     }
@@ -33,11 +38,19 @@ class WargaController extends Controller
     public function triggerOpenGate(Request $request)
     {
         $user = Auth::user() ?? User::where('role', 'warga')->first();
+        if (!$user) {
+            return redirect()->back()->with('error', 'Silakan login terlebih dahulu.');
+        }
+
         $tenant = Tenant::first();
         $gate = SmartGate::first();
 
+        if (!$gate) {
+            return redirect()->back()->with('error', 'Perangkat palang gerbang tidak ditemukan atau sedang offline.');
+        }
+
         $log = GateLog::create([
-            'tenant_id' => $tenant->id,
+            'tenant_id' => $tenant?->id ?? $gate->tenant_id,
             'smart_gate_id' => $gate->id,
             'user_id' => $user->id,
             'access_method' => 'mobile_button',
@@ -69,15 +82,28 @@ class WargaController extends Controller
         ]);
 
         $user = Auth::user() ?? User::where('role', 'warga')->first();
+        if (!$user) {
+            return redirect()->back()->with('error', 'Sesi tidak valid.');
+        }
+
         $tenant = Tenant::first();
+        if (!$tenant) {
+            return redirect()->back()->with('error', 'Data komplek tidak ditemukan.');
+        }
+
+        // Cari atau pastikan ada rumah yang terikat
+        $hostHouseId = $user->house_id ?? $tenant->houses()->first()?->id;
+        if (!$hostHouseId) {
+            return redirect()->back()->with('error', 'Belum ada data unit rumah terdaftar. Hubungi pengurus RT.');
+        }
 
         $validFrom = now();
-        $validUntil = now()->addHours($validated['duration_hours']);
+        $validUntil = now()->addHours((int)$validated['duration_hours']);
         $qrToken = 'PASS-' . strtoupper(Str::random(10));
 
         $visitor = Visitor::create([
             'tenant_id' => $tenant->id,
-            'host_house_id' => $user->house_id ?? 1,
+            'host_house_id' => $hostHouseId,
             'invited_by_user_id' => $user->id,
             'guest_name' => $validated['guest_name'],
             'guest_type' => $validated['guest_type'],
@@ -94,9 +120,12 @@ class WargaController extends Controller
     public function panicAlert(Request $request)
     {
         $user = Auth::user() ?? User::where('role', 'warga')->first();
-        $houseNumber = $user->house ? $user->house->block_and_number : 'Lingkungan';
+        if (!$user) {
+            return redirect()->back()->with('error', 'Pengguna tidak ditemukan.');
+        }
+
+        $houseNumber = $user->house ? $user->house->block_and_number : 'Lingkungan Warga';
 
         return redirect()->back()->with('panic_sent', "TOMBOL DARURAT DIAKTIFKAN! Sinyal bahaya dari {$user->name} ({$houseNumber}) telah diteruskan ke Pos Satpam dan Pengurus RT.");
     }
 }
-

@@ -11,7 +11,7 @@
             </div>
             <div>
                 <h1 class="font-extrabold text-slate-900 text-base">{{ $user->name ?? 'Bpk. Bambang Pamungkas' }}</h1>
-                <p class="text-xs text-slate-500">{{ $tenant->name ?? 'Cluster Melati Mas' }} • <strong class="text-emerald-700">{{ $user->house->block_and_number ?? 'Blok C No. 12' }}</strong></p>
+                <p class="text-xs text-slate-500">{{ $tenant->name ?? 'Cluster Melati Mas' }} • <strong class="text-emerald-700">{{ $user?->house?->block_and_number ?? 'Unit Rumah Belum Terdata' }}</strong></p>
             </div>
         </div>
 
@@ -153,7 +153,7 @@
                 </div>
 
                 @php
-                    $waText = urlencode("Halo {$v->guest_name}, ini adalah izin masuk gerbang untuk ke rumah saya di Cluster Melati Mas (" . ($v->hostHouse->block_and_number ?? 'Rumah') . "). Tunjukkan kode ini di Pos Satpam: *{$v->qr_token}*");
+                    $waText = urlencode("Halo {$v->guest_name}, ini adalah izin masuk gerbang untuk ke rumah saya di " . ($tenant->name ?? 'Cluster Melati Mas') . " (" . ($v->hostHouse?->block_and_number ?? 'Rumah Warga') . "). Tunjukkan kode ini di Pos Satpam: *{$v->qr_token}*");
                     $waUrl = "https://wa.me/?text={$waText}";
                 @endphp
 
