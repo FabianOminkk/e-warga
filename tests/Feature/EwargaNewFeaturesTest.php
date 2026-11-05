@@ -30,6 +30,14 @@ class EwargaNewFeaturesTest extends TestCase
         $response->assertSee('Pak Slamet');
     }
 
+    public function test_theme_switcher_rendered_in_layout(): void
+    {
+        $response = $this->get('/');
+        $response->assertStatus(200);
+        $response->assertSee('localStorage.getItem(\'theme\')', false);
+        $response->assertSee('Toggle Dark / Light Theme');
+    }
+
     public function test_can_toggle_environment_mode(): void
     {
         $tenant = Tenant::first();

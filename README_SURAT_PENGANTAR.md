@@ -109,3 +109,4 @@ CREATE TABLE letter_requests (
 | `POST` | `/surat-pengantar/{id}/approve` | `LetterController@approve` | Persetujuan & penomoran otomatis |
 | `POST` | `/surat-pengantar/{id}/reject` | `LetterController@reject` | Tolak pengajuan dengan alasan |
 | `GET` | `/surat-pengantar/verifikasi/{code}`| `LetterController@verify` | Preview resmi dokumen & validasi QR |
+

@@ -99,3 +99,4 @@ Menyimpan riwayat pemeriksaan bulanan saat hari Posyandu:
 | `POST` | `/posyandu/members` | `PosyanduController@storeMember` | Form pendaftaran warga baru |
 | `DELETE` | `/posyandu/members/{id}` | `PosyanduController@destroyMember` | Hapus warga dari buku register |
 | `POST` | `/posyandu/records` | `PosyanduController@storeRecord` | Simpan hasil penimbangan / pemeriksaan |
+

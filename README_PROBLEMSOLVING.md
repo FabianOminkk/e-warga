@@ -148,16 +148,20 @@ Dokumen ini mencatat seluruh hasil audit mendalam terhadap basis kode **E-WARGA*
   Hardcoding fitur gerbang otomatis di setiap halaman.
 * **✅ Solusi yang Diterapkan:**
   Menambahkan kolom `environment_type` ('cluster' / 'kampung') di tabel `tenants` dengan toggle reaktif di UI. Logika di view dan controller secara otomatis menyesuaikan: menampilkan jadwal satpam untuk cluster, atau jadwal ronda malam siskamling untuk perkampungan.
+
+---
+
+### 🔴 Masalah 11: FOUC (Flash of Unstyled Content) & Sinkronisasi Live Chart pada Dark Mode
+* **Pemicu Masalah:**
+  1. Di Tailwind CSS v4, mode gelap tidak lagi menggunakan konfigurasi JSON `darkMode: 'class'`, melainkan `@custom-variant dark (&:where(.dark, .dark *));`. Tanpa sintaks ini, varian class `dark:...` tidak akan menghasilkan kode CSS saat di-build.
+  2. Saat pengguna beralih antara tema gelap dan terang, teks legend dan garis grid Chart.js tidak otomatis berubah warna, sehingga tulisan menjadi sulit dibaca (gelap di atas background gelap).
+  3. Layar sempat berkedip putih (*flash*) sesaat sebelum Javascript Alpine.js dimuat jika tema yang tersimpan di `localStorage` adalah mode gelap.
+* **Akar Masalah:**
+  Eksekusi penentuan tema yang terlambat setelah browser merender DOM awal, serta keterbatasan Chart.js canvas yang tidak reaktif terhadap class HTML secara default.
 * **✅ Solusi yang Diterapkan:**
-  1. Pada `DashboardController.php`, ditambahkan logika proteksi array kosong:
-     ```php
-     if (empty($chartExpenseLabels)) {
-         $chartExpenseLabels = ['Kas Belum Ada Pengeluaran'];
-         $chartExpenseTotals = [0];
-     }
-     ```
-  2. Chart.js dibundel secara lokal langsung melalui `npm install chart.js` ke dalam `resources/js/app.js`, sehingga visualisasi grafik **100% aman dan bekerja offline** tanpa bergantung pada CDN internet luar.
-  3. Format angka pada tooltip grafik diformat otomatis menggunakan standar mata uang Indonesia (`Intl.NumberFormat('id-ID')` dengan prefiks "Rp ").
+  1. Menambahkan `@custom-variant dark (&:where(.dark, .dark *));` pada `resources/css/app.css`.
+  2. Memasang skrip inline *Early Bootstrapper* langsung di dalam `<head>` sebelum `<body>` dirender untuk mengevaluasi `localStorage.getItem('theme')` atau `prefers-color-scheme`.
+  3. Memasang *event listener* `window.addEventListener('theme-changed', ...)` yang memicu fungsi `chart.update()` dengan warna teks `#CBD5E1` dan garis grid `#334155` secara real-time tanpa me-refresh halaman web.
 
 ---
 
@@ -176,8 +180,8 @@ Dokumen ini mencatat seluruh hasil audit mendalam terhadap basis kode **E-WARGA*
 ## 🧪 Jaminan Kualitas & Hasil Pengujian Otomatis
 
 Seluruh perbaikan di atas telah divalidasi menggunakan rangkaian pengujian otomatis (*Automated Feature Tests*):
-* **Jumlah Pengujian:** 13 Skenario Uji (*100% Passed*)
-* **Total Penegasan (*Assertions*):** 23 Poin Validasi
+* **Jumlah Pengujian:** 23 Skenario Uji (*100% Passed*)
+* **Total Penegasan (*Assertions*):** 56 Poin Validasi
 * **Waktu Eksekusi:** 923 milidetik
 * **Hasil:** 🟢 **ZERO BUG / ZERO REGRESSION**
 

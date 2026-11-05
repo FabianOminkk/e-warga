@@ -62,3 +62,4 @@ class SecuritySchedule extends Model
         };
     }
 }
+

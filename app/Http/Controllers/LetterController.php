@@ -118,3 +118,4 @@ class LetterController extends Controller
         return view('pages.letter-verify', compact('letter'));
     }
 }
+

@@ -71,3 +71,4 @@ CREATE TABLE security_schedules (
 Tampilan jadwal terintegrasi dengan Tailwind CSS responsif:
 - Tampilan Desktop: Tabel matriks jadwal lengkap dengan badge status warna-warni dan filter bulan.
 - Tampilan Mobile: Kartu vertikal ramah sentuhan, tombol WhatsApp langsung terhubung ke rekan satu shift.
+

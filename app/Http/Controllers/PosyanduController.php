@@ -195,3 +195,4 @@ class PosyanduController extends Controller
         return back()->with('success', "Data warga posyandu {$name} berhasil dihapus.");
     }
 }
+

@@ -4,18 +4,18 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8" x-data="gateSimulator()">
 
     <!-- Header Simulator -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-slate-200 gap-4">
+    <div class="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-slate-200 dark:border-slate-800 gap-4">
         <div>
             <div class="flex items-center gap-2">
                 <span class="w-3 h-3 rounded-full bg-cyan-500 animate-ping"></span>
-                <span class="text-xs font-bold text-cyan-600 uppercase tracking-widest">DEVELOPER ENVIRONMENT TOOL</span>
+                <span class="text-xs font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-widest">DEVELOPER ENVIRONMENT TOOL</span>
             </div>
-            <h1 class="text-3xl font-black text-slate-900 mt-1">Virtual Smart Gate Simulator</h1>
-            <p class="text-sm text-slate-500">Uji coba respon palang pintu otomatis secara lokal tanpa perlu menyambungkan hardware fisik.</p>
+            <h1 class="text-3xl font-black text-slate-900 dark:text-white mt-1">Virtual Smart Gate Simulator</h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Uji coba respon palang pintu otomatis secara lokal tanpa perlu menyambungkan hardware fisik.</p>
         </div>
 
         <div class="flex items-center gap-3">
-            <span class="px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-2" :class="isOpen ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'">
+            <span class="px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-2" :class="isOpen ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300' : 'bg-red-100 text-red-800 dark:bg-rose-950/70 dark:text-rose-300'">
                 <span class="w-2.5 h-2.5 rounded-full" :class="isOpen ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'"></span>
                 <span x-text="isOpen ? 'GERBANG TERBUKA (OPEN)' : 'GERBANG TERTUTUP (CLOSED)'"></span>
             </span>
@@ -142,13 +142,13 @@
     </div>
 
     <!-- Live Log Console -->
-    <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
-        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
             <div>
-                <h3 class="text-base font-extrabold text-slate-900">Console Log Simulator</h3>
-                <p class="text-xs text-slate-500">Respon data dari database ke simulator gerbang secara real-time.</p>
+                <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Console Log Simulator</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Respon data dari database ke simulator gerbang secara real-time.</p>
             </div>
-            <button @click="fetchLogs()" class="text-xs font-bold text-emerald-600 hover:underline">Refresh Log</button>
+            <button @click="fetchLogs()" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline">Refresh Log</button>
         </div>
 
         <div class="bg-slate-950 text-emerald-400 p-4 rounded-xl font-mono text-xs space-y-2 max-h-60 overflow-y-auto">
