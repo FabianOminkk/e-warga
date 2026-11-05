@@ -199,4 +199,24 @@ class EwargaNewFeaturesTest extends TestCase
         $response->assertSee('Saldo Kas RT Aktif');
         $response->assertDontSee('Daftarkan Lingkungan Anda Hari Ini');
     }
+
+    public function test_guest_sees_registration_form_on_landing_page(): void
+    {
+        $response = $this->get('/');
+        $response->assertStatus(200);
+        $response->assertSee('Daftarkan Lingkungan Anda Hari Ini');
+        $response->assertSee('KONSULTASI GRATIS & SURVEI PERANGKAT', false);
+    }
+
+    public function test_logged_in_user_does_not_see_registration_form_on_landing_page(): void
+    {
+        $user = User::where('role', 'super_admin')->first();
+        $this->assertNotNull($user);
+
+        $response = $this->actingAs($user)->get('/');
+        $response->assertStatus(200);
+        $response->assertDontSee('Daftarkan Lingkungan Anda Hari Ini');
+        $response->assertSee('Halo, ' . $user->name);
+        $response->assertSee('Buka Dashboard Utama');
+    }
 }

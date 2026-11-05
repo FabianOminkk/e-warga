@@ -27,12 +27,18 @@
                 <!-- Action Buttons CTA -->
                 <div class="flex flex-wrap items-center gap-4 pt-2">
                     <a href="{{ route('dashboard') }}" class="px-7 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-2xl shadow-xl shadow-emerald-600/30 text-sm transition-all transform hover:-translate-y-0.5 flex items-center gap-3">
-                        <span>Buka Dashboard Demo</span>
+                        <span>{{ Auth::check() ? 'Buka Dashboard Anda' : 'Buka Dashboard Demo' }}</span>
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                     </a>
-                    <a href="#daftar-komplek" class="px-7 py-4 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-extrabold rounded-2xl border border-slate-300 dark:border-slate-700 text-sm transition shadow-xs flex items-center gap-2">
-                        <span>Daftarkan Komplek / Survei</span>
-                    </a>
+                    @guest
+                        <a href="#daftar-komplek" class="px-7 py-4 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-extrabold rounded-2xl border border-slate-300 dark:border-slate-700 text-sm transition shadow-xs flex items-center gap-2">
+                            <span>Daftarkan Komplek / Survei</span>
+                        </a>
+                    @else
+                        <a href="{{ route('login') }}" class="px-7 py-4 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-extrabold rounded-2xl border border-slate-300 dark:border-slate-700 text-sm transition shadow-xs flex items-center gap-2">
+                            <span>Ganti Akun / Peran</span>
+                        </a>
+                    @endguest
                 </div>
 
                 <!-- Live Metrics Summary -->
@@ -405,60 +411,87 @@
     <!-- ========================================== -->
     <!-- 7. FORM PENDAFTARAN & KONSULTASI SURVEI     -->
     <!-- ========================================== -->
-    <section id="daftar-komplek" class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-8 sm:p-14 shadow-2xl space-y-8">
-            <div class="text-center max-w-2xl mx-auto space-y-2">
-                <span class="text-xs font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">KONSULTASI GRATIS & SURVEI PERANGKAT</span>
-                <h3 class="text-3xl font-black text-slate-900 dark:text-white">Daftarkan Lingkungan Anda Hari Ini</h3>
-                <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-                    Isi formulir di bawah ini. Tim konsultan teknisi E-WARGA akan menghubungi nomor WhatsApp Anda untuk penjadwalan survei titik gerbang dan aktivasi sistem.
-                </p>
+    @guest
+        <!-- HANYA DITAMPILKAN UNTUK PENGUNJUNG PUBLIK (BELUM LOGIN) -->
+        <section id="daftar-komplek" class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-8 sm:p-14 shadow-2xl space-y-8">
+                <div class="text-center max-w-2xl mx-auto space-y-2">
+                    <span class="text-xs font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">KONSULTASI GRATIS & SURVEI PERANGKAT</span>
+                    <h3 class="text-3xl font-black text-slate-900 dark:text-white">Daftarkan Lingkungan Anda Hari Ini</h3>
+                    <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                        Isi formulir di bawah ini. Tim konsultan teknisi E-WARGA akan menghubungi nomor WhatsApp Anda untuk penjadwalan survei titik gerbang dan aktivasi sistem.
+                    </p>
+                </div>
+
+                <form action="{{ route('tenant.register') }}" method="POST" class="space-y-6">
+                    @csrf
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-2">Nama Komplek / Perumahan / RT</label>
+                            <input type="text" name="complex_name" placeholder="Misal: Cluster Graha Asri Indah" required class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 text-sm outline-hidden transition">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-2">Nomor RT / RW</label>
+                            <input type="text" name="rt_rw" placeholder="Misal: RT 04 / RW 02" required class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 text-sm outline-hidden transition">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-2">Kota / Kabupaten</label>
+                            <input type="text" name="city" placeholder="Misal: Bekasi / Bandung / Surabaya" required class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 text-sm outline-hidden transition">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-2">Estimasi Jumlah Rumah / KK</label>
+                            <input type="number" name="estimated_houses" placeholder="Misal: 150" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 text-sm outline-hidden transition">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-2">Nama Pengurus / Penanggung Jawab</label>
+                            <input type="text" name="contact_name" placeholder="Nama Anda (Ketua RT / RW / Pengurus)" required class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 text-sm outline-hidden transition">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-2">Nomor WhatsApp Aktif</label>
+                            <input type="tel" name="contact_phone" placeholder="08xxxxxxxxxx" required class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 text-sm outline-hidden transition">
+                        </div>
+                    </div>
+
+                    <div class="p-4 bg-emerald-50 dark:bg-emerald-950/40 rounded-2xl border border-emerald-100 dark:border-emerald-900 flex items-center gap-3">
+                        <input type="checkbox" name="need_barrier_gate" id="need_barrier_gate" value="1" checked class="w-5 h-5 text-emerald-600 rounded-md border-slate-300 dark:border-slate-700 focus:ring-emerald-500">
+                        <label for="need_barrier_gate" class="text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200">
+                            Lingkungan kami berminat memasang <strong>Palang Pintu Otomatis (Smart Gate) & Kunjungan Teknisi Lapangan</strong>
+                        </label>
+                    </div>
+
+                    <div class="text-center pt-2">
+                        <button type="submit" class="w-full sm:w-auto px-12 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl shadow-xl shadow-emerald-600/30 text-sm sm:text-base transition-all transform hover:-translate-y-0.5 cursor-pointer">
+                            Kirim Registrasi & Jadwalkan Survei
+                        </button>
+                    </div>
+                </form>
             </div>
-
-            <form action="{{ route('tenant.register') }}" method="POST" class="space-y-6">
-                @csrf
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-2">Nama Komplek / Perumahan / RT</label>
-                        <input type="text" name="complex_name" placeholder="Misal: Cluster Graha Asri Indah" required class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 text-sm outline-hidden transition">
+        </section>
+    @else
+        <!-- KETIKA SUDAH LOGIN: FORM PENDAFTARAN TIDAK MUNCUL! GANTI DENGAN PANEL STATUS & TOMBOL DASHBOARD -->
+        <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="bg-gradient-to-r from-emerald-600 via-teal-700 to-[#1B365D] rounded-3xl p-8 sm:p-12 text-white shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6 border border-emerald-400/20">
+                <div class="space-y-3 text-center md:text-left">
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/20 text-xs font-black uppercase tracking-wider backdrop-blur-xs">
+                        <span class="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
+                        <span>Sesi Aktif: {{ Auth::user()->role_label }}</span>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-2">Nomor RT / RW</label>
-                        <input type="text" name="rt_rw" placeholder="Misal: RT 04 / RW 02" required class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 text-sm outline-hidden transition">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-2">Kota / Kabupaten</label>
-                        <input type="text" name="city" placeholder="Misal: Bekasi / Bandung / Surabaya" required class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 text-sm outline-hidden transition">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-2">Estimasi Jumlah Rumah / KK</label>
-                        <input type="number" name="estimated_houses" placeholder="Misal: 150" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 text-sm outline-hidden transition">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-2">Nama Pengurus / Penanggung Jawab</label>
-                        <input type="text" name="contact_name" placeholder="Nama Anda (Ketua RT / RW / Pengurus)" required class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 text-sm outline-hidden transition">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-2">Nomor WhatsApp Aktif</label>
-                        <input type="tel" name="contact_phone" placeholder="08xxxxxxxxxx" required class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 text-sm outline-hidden transition">
-                    </div>
+                    <h3 class="text-2xl sm:text-3xl font-black">
+                        Halo, {{ Auth::user()->name }}!
+                    </h3>
+                    <p class="text-xs sm:text-sm text-emerald-100 max-w-xl leading-relaxed">
+                        Lingkungan Anda telah terdaftar dan aktif di sistem E-WARGA. Anda sedang login dengan hak akses <strong>{{ Auth::user()->role_label }}</strong>. Silakan kembali ke panel dashboard untuk mengelola kas, palang pintu, dan pelayanan warga.
+                    </p>
                 </div>
-
-                <div class="p-4 bg-emerald-50 dark:bg-emerald-950/40 rounded-2xl border border-emerald-100 dark:border-emerald-900 flex items-center gap-3">
-                    <input type="checkbox" name="need_barrier_gate" id="need_barrier_gate" value="1" checked class="w-5 h-5 text-emerald-600 rounded-md border-slate-300 dark:border-slate-700 focus:ring-emerald-500">
-                    <label for="need_barrier_gate" class="text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200">
-                        Lingkungan kami berminat memasang <strong>Palang Pintu Otomatis (Smart Gate) & Kunjungan Teknisi Lapangan</strong>
-                    </label>
+                <div class="shrink-0">
+                    <a href="{{ route('dashboard') }}" class="px-8 py-4 bg-white text-emerald-950 hover:bg-emerald-50 font-black rounded-2xl shadow-xl transition transform hover:scale-105 active:scale-95 text-sm flex items-center gap-2">
+                        <span>Buka Dashboard Utama</span>
+                        <span>➔</span>
+                    </a>
                 </div>
-
-                <div class="text-center pt-2">
-                    <button type="submit" class="w-full sm:w-auto px-12 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl shadow-xl shadow-emerald-600/30 text-sm sm:text-base transition-all transform hover:-translate-y-0.5">
-                        Kirim Registrasi & Jadwalkan Survei
-                    </button>
-                </div>
-            </form>
-        </div>
-    </section>
+            </div>
+        </section>
+    @endguest
 
 </div>
 @endsection

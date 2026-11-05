@@ -206,6 +206,21 @@ Dokumen ini mencatat seluruh hasil audit mendalam terhadap basis kode **E-WARGA*
 
 ---
 
+### 🔴 Masalah 14: Logika Kondisional Formulir Pendaftaran Komplek (Hanya untuk Tamu/Landing Page, Ditiadakan "Di Dalem" / Saat Sudah Login)
+* **Pemicu Masalah:**
+  Pengguna yang sudah login ke dalam sistem (sebagai Super Admin, Ketua RT, Bendahara, Satpam, atau Warga) masih melihat formulir *"Daftarkan Lingkungan Anda Hari Ini / KONSULTASI GRATIS & SURVEI PERANGKAT"* di halaman beranda publik, dan tautan survei masih muncul di sidebar.
+* **Akar Masalah:**
+  1. Komponen seksi pendaftaran (`#daftar-komplek`) di `landing.blade.php` tidak dibungkus oleh direktif kondisional `@guest`.
+  2. Logika auto-login yang sempat berjalan tanpa membedakan rute publik (`/`) dan rute internal operasional ("di dalem").
+* **✅ Solusi yang Diterapkan:**
+  1. **Direktif `@guest ... @else ... @endguest` pada Landing Page:**
+     * **Bagi Pengunjung Publik (`@guest`):** Formulir registrasi dan konsultasi survei palang pintu tetap tersedia di bagian bawah landing page untuk menjaring komplek perumahan baru.
+     * **Bagi Pengguna yang Sudah Login (`@auth`):** Formulir pendaftaran **100% ditiadakan/dihapus secara otomatis**. Digantikan oleh kartu elegan penyambutan: *"Halo, [Nama Pengguna]! Sesi Aktif: [Role] — Komplek Anda telah aktif di sistem E-WARGA"* dengan tombol cepat `[ Buka Dashboard Utama ➔ ]`.
+  2. **Pembersihan Sidebar Saat Login:** Tautan menu *"📝 Konsultasi & Survei Pasang"* pada sidebar hanya ditampilkan untuk `@guest`. Pengguna yang sudah login tidak lagi melihat link pendaftaran tersebut.
+  3. **Pemisahan Logika Sesi "Di Dalem":** Auto-login Super Admin dikhususkan untuk halaman internal aplikasi operasional (`/dashboard`, `/simulator`, `/satpam`, dll.) sehingga pengalaman tamu publik di halaman depan tetap natural.
+
+---
+
 ## 📋 Panduan Penanganan Masalah Lapangan (Developer & Pengurus)
 
 | Gejala / Pesan Error | Penyebab Utama | Solusi Praktis |
@@ -221,8 +236,8 @@ Dokumen ini mencatat seluruh hasil audit mendalam terhadap basis kode **E-WARGA*
 ## 🧪 Jaminan Kualitas & Hasil Pengujian Otomatis
 
 Seluruh perbaikan di atas telah divalidasi menggunakan rangkaian pengujian otomatis (*Automated Feature Tests*):
-* **Jumlah Pengujian:** 26 Skenario Uji (*100% Passed*)
-* **Total Penegasan (*Assertions*):** 70 Poin Validasi
-* **Waktu Eksekusi:** 1.4 Detik
+* **Jumlah Pengujian:** 28 Skenario Uji (*100% Passed*)
+* **Total Penegasan (*Assertions*):** 78 Poin Validasi
+* **Waktu Eksekusi:** 1.7 Detik
 * **Hasil:** 🟢 **ZERO BUG / ZERO REGRESSION**
 

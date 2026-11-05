@@ -53,16 +53,17 @@
 >
 
 @php
-    // Default authentication: Pastikan pengguna terotentikasi sebagai Super Admin jika belum login
-    if (!\Illuminate\Support\Facades\Auth::check()) {
+    $isLanding = request()->routeIs('home');
+    $isLogin = request()->routeIs('login');
+
+    // Jika masuk ke area internal aplikasi ("di dalem"), pastikan otomatis login sebagai Super Admin jika belum ada sesi
+    if (!$isLanding && !$isLogin && !\Illuminate\Support\Facades\Auth::check()) {
         $defaultAdmin = \App\Models\User::where('role', 'super_admin')->first();
         if ($defaultAdmin) {
             \Illuminate\Support\Facades\Auth::login($defaultAdmin);
         }
     }
 
-    $isLanding = request()->routeIs('home');
-    $isLogin = request()->routeIs('login');
     $activeTenant = \App\Models\Tenant::first();
     $pendingLettersCount = \App\Models\LetterRequest::where('status', 'pending')->count();
     $currentUser = \Illuminate\Support\Facades\Auth::user();
@@ -182,10 +183,12 @@
                                 <span class="text-base">💬</span>
                                 <span>Testimoni Pengurus & Warga</span>
                             </a>
-                            <a href="#daftar-komplek" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-slate-800 dark:hover:text-emerald-400 transition">
-                                <span class="text-base">📝</span>
-                                <span>Konsultasi & Survei Pasang</span>
-                            </a>
+                            @guest
+                                <a href="#daftar-komplek" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-slate-800 dark:hover:text-emerald-400 transition">
+                                    <span class="text-base">📝</span>
+                                    <span>Konsultasi & Survei Pasang</span>
+                                </a>
+                            @endguest
                         </div>
                     </div>
 
@@ -473,6 +476,15 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                         </button>
                     </form>
+                </div>
+            @else
+                <div class="pt-2 border-t border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between">
+                    <div class="text-[11px] text-slate-500 dark:text-slate-400">
+                        Status: <strong class="text-slate-700 dark:text-slate-300">Pengunjung Publik</strong>
+                    </div>
+                    <a href="{{ route('login') }}" class="px-3 py-1.5 rounded-xl bg-emerald-600 text-white font-extrabold text-[11px] hover:bg-emerald-500 transition">
+                        Masuk ➔
+                    </a>
                 </div>
             @endauth
         </div>
