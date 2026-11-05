@@ -2,7 +2,10 @@
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\LetterController;
+use App\Http\Controllers\PosyanduController;
 use App\Http\Controllers\SatpamController;
+use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\SimulatorController;
 use App\Http\Controllers\WargaController;
 use Illuminate\Support\Facades\Route;
@@ -12,6 +15,7 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::post('/register-tenant', [HomeController::class, 'registerTenant'])->name('tenant.register');
 Route::get('/quick-login/{role}', [HomeController::class, 'quickLogin'])->name('quick.login');
 Route::post('/logout', [HomeController::class, 'logout'])->name('logout');
+Route::post('/toggle-mode', [ScheduleController::class, 'toggleEnvironmentMode'])->name('environment.toggle');
 
 // Dashboard Pengurus RT & Bendahara
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -33,3 +37,22 @@ Route::get('/warga', [WargaController::class, 'index'])->name('warga.index');
 Route::post('/warga/open-gate', [WargaController::class, 'triggerOpenGate'])->name('warga.open-gate');
 Route::post('/warga/create-visitor', [WargaController::class, 'createVisitorPass'])->name('warga.create-visitor');
 Route::post('/warga/panic', [WargaController::class, 'panicAlert'])->name('warga.panic');
+
+// Modul Jadwal Keamanan (Satpam & Ronda Warga Bulan Ini)
+Route::get('/jadwal-keamanan', [ScheduleController::class, 'index'])->name('schedules.index');
+Route::post('/jadwal-keamanan', [ScheduleController::class, 'store'])->name('schedules.store');
+Route::post('/jadwal-keamanan/{id}/checkin', [ScheduleController::class, 'checkIn'])->name('schedules.checkin');
+Route::post('/jadwal-keamanan/{id}/tukar', [ScheduleController::class, 'requestSwap'])->name('schedules.swap');
+
+// Modul Posyandu Digital (Tracking Balita, Anak, Ibu Hamil, Ibu, Lansia & Deteksi Stunting)
+Route::get('/posyandu', [PosyanduController::class, 'index'])->name('posyandu.index');
+Route::post('/posyandu/members', [PosyanduController::class, 'storeMember'])->name('posyandu.members.store');
+Route::delete('/posyandu/members/{id}', [PosyanduController::class, 'destroyMember'])->name('posyandu.members.destroy');
+Route::post('/posyandu/records', [PosyanduController::class, 'storeRecord'])->name('posyandu.records.store');
+
+// Layanan Surat Pengantar RT Online
+Route::get('/surat-pengantar', [LetterController::class, 'index'])->name('letters.index');
+Route::post('/surat-pengantar', [LetterController::class, 'store'])->name('letters.store');
+Route::post('/surat-pengantar/{id}/approve', [LetterController::class, 'approve'])->name('letters.approve');
+Route::post('/surat-pengantar/{id}/reject', [LetterController::class, 'reject'])->name('letters.reject');
+Route::get('/surat-pengantar/verifikasi/{code}', [LetterController::class, 'verify'])->name('letters.verify');

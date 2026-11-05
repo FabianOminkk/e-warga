@@ -19,6 +19,7 @@ class Tenant extends Model
         'district',
         'postal_code',
         'subscription_plan',
+        'environment_type',
         'is_active',
     ];
 
@@ -49,6 +50,36 @@ class Tenant extends Model
     public function billings(): HasMany
     {
         return $this->hasMany(Billing::class);
+    }
+
+    public function isCluster(): bool
+    {
+        return ($this->environment_type ?? 'cluster') === 'cluster';
+    }
+
+    public function isKampung(): bool
+    {
+        return ($this->environment_type ?? 'cluster') === 'kampung';
+    }
+
+    public function securitySchedules(): HasMany
+    {
+        return $this->hasMany(SecuritySchedule::class);
+    }
+
+    public function posyanduMembers(): HasMany
+    {
+        return $this->hasMany(PosyanduMember::class);
+    }
+
+    public function posyanduRecords(): HasMany
+    {
+        return $this->hasMany(PosyanduRecord::class);
+    }
+
+    public function letterRequests(): HasMany
+    {
+        return $this->hasMany(LetterRequest::class);
     }
 }
 

@@ -6,7 +6,11 @@ use App\Models\Billing;
 use App\Models\CashBook;
 use App\Models\GateLog;
 use App\Models\House;
+use App\Models\LetterRequest;
 use App\Models\Payment;
+use App\Models\PosyanduMember;
+use App\Models\PosyanduRecord;
+use App\Models\SecuritySchedule;
 use App\Models\SmartGate;
 use App\Models\Tenant;
 use App\Models\User;
@@ -267,6 +271,226 @@ class DatabaseSeeder extends Seeder
             'valid_from' => Carbon::now()->subHour(),
             'valid_until' => Carbon::now()->addHours(3),
             'is_used' => false,
+        ]);
+
+        // 12. Jadwal Keamanan Bulan Ini (Satpam & Ronda Warga)
+        SecuritySchedule::create([
+            'tenant_id' => $tenant->id,
+            'user_id' => $satpam->id,
+            'schedule_type' => 'satpam_shift',
+            'duty_date' => Carbon::today(),
+            'shift_name' => 'Shift Siang (15:00 - 23:00)',
+            'start_time' => '15:00:00',
+            'end_time' => '23:00:00',
+            'status' => 'present',
+            'checked_in_at' => Carbon::today()->setHour(14)->setMinute(55),
+            'notes' => 'Pos Gerbang Utama Barat & Timur',
+        ]);
+
+        SecuritySchedule::create([
+            'tenant_id' => $tenant->id,
+            'user_id' => $satpam->id,
+            'schedule_type' => 'satpam_shift',
+            'duty_date' => Carbon::tomorrow(),
+            'shift_name' => 'Shift Pagi (07:00 - 15:00)',
+            'start_time' => '07:00:00',
+            'end_time' => '15:00:00',
+            'status' => 'scheduled',
+            'notes' => 'Patroli lingkungan pukul 10:00 WIB',
+        ]);
+
+        SecuritySchedule::create([
+            'tenant_id' => $tenant->id,
+            'user_id' => $wargaBambang->id,
+            'schedule_type' => 'ronda_warga',
+            'duty_date' => Carbon::today(),
+            'shift_name' => 'Regu Ronda Malam Kamis (Blok C)',
+            'start_time' => '22:00:00',
+            'end_time' => '04:00:00',
+            'status' => 'scheduled',
+            'notes' => 'Membawa senter & keliling lingkungan',
+        ]);
+
+        // 13. Data Warga Posyandu Digital (Tracking Balita, Anak, Ibu Hamil, Ibu-ibu, Lansia)
+        $balitaRayyan = PosyanduMember::create([
+            'tenant_id' => $tenant->id,
+            'user_id' => $wargaBambang->id,
+            'family_card_number' => '3216012903820001',
+            'nik' => '3216010505240003',
+            'name' => 'Rayyan Al-Fatih',
+            'gender' => 'L',
+            'birth_date' => Carbon::now()->subMonths(18), // 18 bulan
+            'category' => 'balita',
+            'parent_name' => 'Bambang Pamungkas & Dewi Lestari',
+            'address' => 'Blok C No. 12',
+            'phone' => '081234567890',
+            'notes' => 'Alergi dingin ringan',
+        ]);
+
+        $balitaAlya = PosyanduMember::create([
+            'tenant_id' => $tenant->id,
+            'user_id' => null,
+            'family_card_number' => '3216012903820002',
+            'nik' => '3216011210230005',
+            'name' => 'Alya Putri Salsabila',
+            'gender' => 'P',
+            'birth_date' => Carbon::now()->subMonths(24), // 24 bulan
+            'category' => 'balita',
+            'parent_name' => 'Budi Santoso & Siti Aminah',
+            'address' => 'Blok B No. 04',
+            'phone' => '081298765432',
+            'notes' => 'Pemantauan tinggi badan rutin',
+        ]);
+
+        $anakKenzo = PosyanduMember::create([
+            'tenant_id' => $tenant->id,
+            'user_id' => $wargaBambang->id,
+            'family_card_number' => '3216012903820001',
+            'nik' => '3216011508180002',
+            'name' => 'Kenzo Putra Pratama',
+            'gender' => 'L',
+            'birth_date' => Carbon::now()->subYears(7), // 7 tahun
+            'category' => 'anak',
+            'parent_name' => 'Bambang Pamungkas',
+            'address' => 'Blok C No. 12',
+            'phone' => '081234567890',
+            'notes' => 'Kelas 2 SD, aktif olahraga',
+        ]);
+
+        $ibuHamilSiti = PosyanduMember::create([
+            'tenant_id' => $tenant->id,
+            'user_id' => null,
+            'family_card_number' => '3216012903820003',
+            'nik' => '3216014506950007',
+            'name' => 'Ny. Siti Nurhaliza',
+            'gender' => 'P',
+            'birth_date' => Carbon::now()->subYears(28),
+            'category' => 'ibu_hamil',
+            'parent_name' => 'Suami: Rahmat Hidayat',
+            'address' => 'Blok A No. 07',
+            'phone' => '081377889900',
+            'notes' => 'HPL: 20 Desember 2026, Trimester 3',
+        ]);
+
+        $ibuKaderRina = PosyanduMember::create([
+            'tenant_id' => $tenant->id,
+            'user_id' => null,
+            'family_card_number' => '3216012903820004',
+            'nik' => '3216015509880008',
+            'name' => 'Ibu Rina Marlina (Ketua Kader Posyandu)',
+            'gender' => 'P',
+            'birth_date' => Carbon::now()->subYears(36),
+            'category' => 'ibu',
+            'parent_name' => 'Suami: Deden Kurniawan',
+            'address' => 'Blok D No. 02',
+            'phone' => '081566778899',
+            'notes' => 'Kader Aktif PKK & Posyandu Melati',
+        ]);
+
+        $lansiaMbahSastro = PosyanduMember::create([
+            'tenant_id' => $tenant->id,
+            'user_id' => null,
+            'family_card_number' => '3216012903820005',
+            'nik' => '3216010101560009',
+            'name' => 'Opa Sastro Wardoyo',
+            'gender' => 'L',
+            'birth_date' => Carbon::now()->subYears(70),
+            'category' => 'lansia',
+            'parent_name' => 'Keluarga Bpk. Joko Wardoyo',
+            'address' => 'Blok B No. 05',
+            'phone' => '08110000004',
+            'notes' => 'Riwayat hipertensi ringan',
+        ]);
+
+        // Catatan Pemeriksaan Posyandu Bulanan
+        PosyanduRecord::create([
+            'tenant_id' => $tenant->id,
+            'posyandu_member_id' => $balitaRayyan->id,
+            'checkup_date' => Carbon::now()->subDays(5),
+            'weight_kg' => 11.2,
+            'height_cm' => 84.5,
+            'head_circumference_cm' => 47.0,
+            'arm_circumference_cm' => 15.0,
+            'nutrition_status' => 'gizi_baik',
+            'vitamins_or_vaccines' => 'Vitamin A Merah kapsul, DPT Booster',
+            'examiner_name' => 'Bidan Nina Kurnia, S.Tr.Keb',
+            'action_plan' => 'Tumbuh kembang sangat baik sesuai kurva WHO KMS.',
+        ]);
+
+        PosyanduRecord::create([
+            'tenant_id' => $tenant->id,
+            'posyandu_member_id' => $balitaAlya->id,
+            'checkup_date' => Carbon::now()->subDays(5),
+            'weight_kg' => 9.4,
+            'height_cm' => 77.0,
+            'head_circumference_cm' => 45.2,
+            'arm_circumference_cm' => 13.5,
+            'nutrition_status' => 'risiko_stunting',
+            'vitamins_or_vaccines' => 'Vitamin A, PMT Biskuit Balita',
+            'examiner_name' => 'Bidan Nina Kurnia, S.Tr.Keb',
+            'action_plan' => 'Diberikan PMT pemulihan & konseling gizi protein hewani telur.',
+        ]);
+
+        PosyanduRecord::create([
+            'tenant_id' => $tenant->id,
+            'posyandu_member_id' => $ibuHamilSiti->id,
+            'checkup_date' => Carbon::now()->subDays(5),
+            'weight_kg' => 64.0,
+            'height_cm' => 158.0,
+            'arm_circumference_cm' => 25.5,
+            'blood_pressure' => '115/75',
+            'gestational_age_weeks' => '32 Minggu',
+            'nutrition_status' => 'normal',
+            'vitamins_or_vaccines' => 'Tablet Tambah Darah (TTD) 30 butir, Kalsium',
+            'examiner_name' => 'Bidan Nina Kurnia, S.Tr.Keb',
+            'action_plan' => 'Kondisi janin dan ibu sehat optimal.',
+        ]);
+
+        PosyanduRecord::create([
+            'tenant_id' => $tenant->id,
+            'posyandu_member_id' => $lansiaMbahSastro->id,
+            'checkup_date' => Carbon::now()->subDays(5),
+            'weight_kg' => 62.0,
+            'height_cm' => 165.0,
+            'blood_pressure' => '145/90',
+            'blood_sugar' => 125,
+            'cholesterol' => 190,
+            'uric_acid' => 6.2,
+            'nutrition_status' => 'hipertensi',
+            'vitamins_or_vaccines' => 'Vitamin B Kompleks & Amlodipine 5mg',
+            'examiner_name' => 'dr. Hendra Pratama (Puskesmas)',
+            'action_plan' => 'Kurangi asupan garam, perbanyak jalan santai pagi.',
+        ]);
+
+        // 14. Data Pengajuan Surat Pengantar RT Online
+        LetterRequest::create([
+            'tenant_id' => $tenant->id,
+            'user_id' => $wargaBambang->id,
+            'letter_type' => 'domisili',
+            'letter_number' => '470/001/RT.04/RW.02/XI/2026',
+            'applicant_name' => 'Bambang Pamungkas',
+            'nik' => '3216012903820001',
+            'house_block' => 'Blok C No. 12',
+            'purpose' => 'Persyaratan pembukaan rekening bank syariah & pengurusan paspor',
+            'supporting_data' => 'KTP terlampir, lunas iuran IPL tahun berjalan',
+            'status' => 'approved',
+            'qr_verification_code' => 'QR-SURAT-DOMISILI-001',
+            'signed_at' => Carbon::now()->subDays(2),
+            'signed_by' => $ketuaRt->id,
+        ]);
+
+        LetterRequest::create([
+            'tenant_id' => $tenant->id,
+            'user_id' => $wargaBambang->id,
+            'letter_type' => 'pengantar_ktp',
+            'letter_number' => null,
+            'applicant_name' => 'Bambang Pamungkas',
+            'nik' => '3216012903820001',
+            'house_block' => 'Blok C No. 12',
+            'purpose' => 'Perpanjangan e-KTP hilang ke Kantor Kelurahan',
+            'supporting_data' => 'Surat laporan kehilangan polsek terlampir',
+            'status' => 'pending',
+            'qr_verification_code' => null,
         ]);
     }
 }

@@ -59,6 +59,21 @@ class User extends Authenticatable
         return $this->hasMany(GateLog::class);
     }
 
+    public function securitySchedules(): HasMany
+    {
+        return $this->hasMany(SecuritySchedule::class);
+    }
+
+    public function letterRequests(): HasMany
+    {
+        return $this->hasMany(LetterRequest::class);
+    }
+
+    public function posyanduMembers(): HasMany
+    {
+        return $this->hasMany(PosyanduMember::class);
+    }
+
     public function isSuperAdmin(): bool
     {
         return $this->role === 'super_admin';

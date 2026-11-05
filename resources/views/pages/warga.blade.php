@@ -62,6 +62,22 @@
         </div>
     </div>
 
+    <!-- Card Jadwal Jaga Pos / Ronda Hari Ini -->
+    <a href="{{ route('schedules.index') }}" class="block bg-white rounded-2xl border border-slate-200 p-4 shadow-xs mb-6 hover:border-emerald-500 transition group">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <span class="w-10 h-10 rounded-xl bg-cyan-50 text-cyan-700 flex items-center justify-center text-xl font-bold">
+                    🛡️
+                </span>
+                <div>
+                    <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Jadwal Keamanan Hari Ini</div>
+                    <div class="text-sm font-extrabold text-slate-900 group-hover:text-emerald-700">Lihat Siapa yang Jaga Pos / Ronda &rarr;</div>
+                </div>
+            </div>
+            <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg">Cek Jadwal</span>
+        </div>
+    </a>
+
     <!-- Pengumuman RT Terkini -->
     <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs mb-6">
         <div class="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">

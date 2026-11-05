@@ -9,11 +9,15 @@ Dokumentasi teknis proyek **E-WARGA** telah dipisahkan secara mendalam agar rapi
 
 | Dokumen | Deskripsi & Isi Utama |
 | :--- | :--- |
-| 📘 **[README.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README.md)** *(File Ini)* | **Master Blueprint**: Visi bisnis, struktur role (RBAC), roadmap pengembangan, dan katalog sensor IoT *Coming Soon*. |
+| 📘 **[README.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README.md)** *(File Ini)* | **Master Blueprint**: Visi bisnis, struktur role (RBAC), roadmap pengembangan, dan arsitektur ekosistem. |
+| 🏘️ **[README_DUAL_MODE.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_DUAL_MODE.md)** | **Dual-Mode Lingkungan**: Mode Perumahan / Cluster modern vs Mode Perkampungan / Desa / RT tradisional. |
+| 🛡️ **[README_JADWAL_KEAMANAN.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_JADWAL_KEAMANAN.md)** | **Modul Jadwal Keamanan**: Penugasan Satpam bulanan, presensi check-in, tukar shift, dan Siskamling Ronda Malam Warga. |
+| 🩺 **[README_POSYANDU.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_POSYANDU.md)** | **Modul Posyandu Digital**: Tracking demografi 5 kategori (balita, anak, ibu hamil, ibu/kader, lansia) & deteksi dini stunting. |
+| 📜 **[README_SURAT_PENGANTAR.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_SURAT_PENGANTAR.md)** | **Surat Pengantar RT Online**: Pengajuan digital, persetujuan RT 1-klik, penomoran resmi, QR Code verifikasi anti-pemalsuan & cetak. |
 | 🖼️ **[README_PICTURE.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_PICTURE.md)** | **Brand & Visual Blueprint**: Logo resmi, App Icon mobile (1:1), filosofi visual, dan palet warna (Clean PropTech). |
-| 🧠 **[README_BACKEND.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_BACKEND.md)** | **Backend Blueprint**: Arsitektur Laravel 12, skema database lengkap (10 tabel), spesifikasi REST API, logika multi-tenancy, dan protokol komunikasi IoT palang pintu. |
-| 🎨 **[README_FRONTEND.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_FRONTEND.md)** | **Frontend & UX Blueprint**: Wireframe Web Desktop (Dashboard RT, Pos Satpam, Simulator Pintu), antarmuka Mobile, pedoman aksesibilitas lansia/gaptek, dan sistem tutorial interaktif (*Onboarding Tour*). |
-| 🛠️ **[README_PROBLEMSOLVING.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_PROBLEMSOLVING.md)** | **Problem Solving & Troubleshooting**: Katalog analisis bug, solusi pencegahan error, dan panduan teknis operasional lapangan. |
+| 🧠 **[README_BACKEND.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_BACKEND.md)** | **Backend Blueprint**: Arsitektur Laravel 12, skema database lengkap, spesifikasi REST API, logika multi-tenancy, dan IoT gate protocol. |
+| 🎨 **[README_FRONTEND.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_FRONTEND.md)** | **Frontend & UX Blueprint**: Wireframe Web Desktop, antarmuka Mobile, visualisasi Chart.js keuangan, dan sistem tutorial (*Onboarding Tour*). |
+| 🛠️ **[README_PROBLEMSOLVING.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_PROBLEMSOLVING.md)** | **Problem Solving & Troubleshooting**: Katalog analisis bug, solusi pencegahan error, dan panduan teknis operasional. |
 
 ---
 

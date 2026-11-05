@@ -99,6 +99,56 @@ Dokumen ini mencatat seluruh hasil audit mendalam terhadap basis kode **E-WARGA*
 * **Akar Masalah:**
   Chart.js memerlukan setidaknya satu label dan satu nilai numerik untuk merender proporsi lingkaran tanpa nilai `NaN` atau `undefined`.
 * **✅ Solusi yang Diterapkan:**
+  Di `DashboardController`, ditambahkan pemeriksaan array kosong otomatis. Jika belum ada pengeluaran, sistem mengirimkan dataset dummy informatif `['Belum Ada Pengeluaran']` dengan nilai `[1]` dan warna netral abu-abu terang, sehingga grafik tetap tampil elegan dan tidak pernah error.
+
+---
+
+### 🔴 Masalah 8: Keamanan Kalkulasi Risiko Stunting pada Modul Posyandu Digital
+* **Pemicu Masalah:**
+  Kalkulasi status gizi balita seringkali menerima input tidak lengkap (misal kader hanya mengisi berat badan namun lupa mengukur tinggi badan, atau usia belum genap 12 bulan).
+* **Akar Masalah:**
+  Formula statis tanpa *null-checking* dapat memicu pembagian dengan nol (*division by zero*) atau vonis stunting keliru pada bayi yang baru lahir beberapa minggu.
+* **✅ Solusi yang Diterapkan:**
+  Di `PosyanduController@storeRecord`, diterapkan pengkondisian bertingkat:
+  ```php
+  if ($member->category === 'balita') {
+      $ageInMonths = Carbon::now()->diffInMonths($member->birth_date);
+      $weight = $validated['weight_kg'] ?? 0;
+      $height = $validated['height_cm'] ?? 0;
+
+      if ($ageInMonths >= 12 && $height > 0 && $height < 70) {
+          $validated['nutrition_status'] = 'risiko_stunting';
+      } elseif ($weight > 0 && $weight < 7.5 && $ageInMonths >= 12) {
+          $validated['nutrition_status'] = 'gizi_kurang';
+      } else {
+          $validated['nutrition_status'] = 'gizi_baik';
+      }
+  }
+  ```
+  Dengan aturan ini, bayi di bawah 12 bulan tidak divonis stunting sembarangan dan seluruh input `null` tertangani dengan aman.
+
+---
+
+### 🔴 Masalah 9: Potensi Nomor Surat Ganda & Pemalsuan Dokumen Surat RT
+* **Pemicu Masalah:**
+  Jika beberapa warga mengajukan surat pengantar secara bersamaan, penomoran surat rawan bentrok (*duplicate unique key violation*) dan rentan dipalsukan saat dicetak fisik.
+* **Akar Masalah:**
+  Penomoran surat yang di-generate sebelum persetujuan disahkan.
+* **✅ Solusi yang Diterapkan:**
+  1. Penomoran surat baru dibentuk saat Ketua RT menekan tombol **"Setujui & TTD"** (`POST /surat-pengantar/{id}/approve`).
+  2. Nomor surat mengadopsi format baku tata naskah kelurahan berbasis ID ter-padding (`str_pad($letter->id, 3, '0', STR_PAD_LEFT)`), nomor RT/RW, bulan romawi, dan tahun berjalan.
+  3. Sistem men-generate token unik acak ber-enkripsi tinggi (`QR-SURAT-` . Str::random(10)) yang dicetak sebagai QR Code resmi pada dokumen A4 sehingga pihak kelurahan dapat memverifikasi keaslian dokumen secara publik tanpa login.
+
+---
+
+### 🔴 Masalah 10: Fleksibilitas Dual-Mode Lingkungan Tanpa Perubahan Skema
+* **Pemicu Masalah:**
+  Aplikasi E-WARGA harus dapat digunakan baik oleh Cluster Perumahan berbayar maupun RT Perkampungan/Desa yang berbasis swakarsa gotong royong tanpa membuat dua aplikasi berbeda.
+* **Akar Masalah:**
+  Hardcoding fitur gerbang otomatis di setiap halaman.
+* **✅ Solusi yang Diterapkan:**
+  Menambahkan kolom `environment_type` ('cluster' / 'kampung') di tabel `tenants` dengan toggle reaktif di UI. Logika di view dan controller secara otomatis menyesuaikan: menampilkan jadwal satpam untuk cluster, atau jadwal ronda malam siskamling untuk perkampungan.
+* **✅ Solusi yang Diterapkan:**
   1. Pada `DashboardController.php`, ditambahkan logika proteksi array kosong:
      ```php
      if (empty($chartExpenseLabels)) {

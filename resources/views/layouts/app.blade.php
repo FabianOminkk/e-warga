@@ -37,15 +37,18 @@
                 </div>
 
                 <!-- Navigation Links -->
-                <nav class="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-600">
+                <nav class="hidden lg:flex items-center gap-5 text-sm font-semibold text-slate-600">
                     <a href="{{ route('home') }}" class="hover:text-emerald-600 transition {{ request()->routeIs('home') ? 'text-emerald-600 font-bold' : '' }}">Beranda</a>
                     <a href="{{ route('dashboard') }}" class="hover:text-emerald-600 transition {{ request()->routeIs('dashboard') ? 'text-emerald-600 font-bold' : '' }}">Dashboard RT</a>
                     <a href="{{ route('satpam.console') }}" class="hover:text-emerald-600 transition {{ request()->routeIs('satpam.console') ? 'text-emerald-600 font-bold' : '' }}">Pos Satpam</a>
+                    <a href="{{ route('schedules.index') }}" class="hover:text-emerald-600 transition {{ request()->routeIs('schedules.*') ? 'text-emerald-600 font-bold' : '' }}">Jadwal & Ronda</a>
+                    <a href="{{ route('posyandu.index') }}" class="hover:text-pink-600 transition {{ request()->routeIs('posyandu.*') ? 'text-pink-600 font-bold' : '' }}">Posyandu Digital</a>
+                    <a href="{{ route('letters.index') }}" class="hover:text-blue-600 transition {{ request()->routeIs('letters.*') ? 'text-blue-600 font-bold' : '' }}">Surat Pengantar</a>
                     <a href="{{ route('simulator') }}" class="hover:text-emerald-600 transition flex items-center gap-1.5 {{ request()->routeIs('simulator') ? 'text-emerald-600 font-bold' : '' }}">
                         <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                        Simulator Gerbang
+                        Simulator
                     </a>
-                    <a href="{{ route('warga.index') }}" class="hover:text-emerald-600 transition {{ request()->routeIs('warga.index') ? 'text-emerald-600 font-bold' : '' }}">Akses Warga (HP)</a>
+                    <a href="{{ route('warga.index') }}" class="hover:text-emerald-600 transition {{ request()->routeIs('warga.index') ? 'text-emerald-600 font-bold' : '' }}">Akses Warga</a>
                 </nav>
 
                 <!-- Role Switcher & User Profile -->
