@@ -159,4 +159,44 @@ class EwargaNewFeaturesTest extends TestCase
         $verifyResponse->assertSee($letter->letter_number);
         $verifyResponse->assertSee('RUKUN TETANGGA 04 / RUKUN WARGA 02');
     }
+
+    public function test_login_page_renders_promotional_highlights_and_super_admin(): void
+    {
+        $response = $this->get('/login');
+        $response->assertStatus(200);
+        $response->assertSee('Transformasi Digital Lingkungan RT/RW');
+        $response->assertSee('Smart Barrier Gate');
+        $response->assertSee('Fabian (Super Admin Platform)');
+    }
+
+    public function test_registration_form_redirects_to_login_with_promo_credentials(): void
+    {
+        $complexName = 'Perumahan Grand Galaxy ' . rand(100, 999);
+        $response = $this->post('/register-tenant', [
+            'complex_name' => $complexName,
+            'rt_rw' => 'RT 01 / RW 09',
+            'city' => 'Bekasi',
+            'contact_name' => 'Bpk. Hendra Gunawan',
+            'contact_phone' => '081299887766',
+            'estimated_houses' => 120,
+            'need_barrier_gate' => 1,
+        ]);
+
+        $response->assertRedirect(route('login'));
+        $this->assertDatabaseHas('tenants', ['name' => $complexName]);
+        $this->assertDatabaseHas('users', ['phone_number' => '081299887766', 'role' => 'ketua_rt']);
+
+        $loginResponse = $this->followRedirects($response);
+        $loginResponse->assertStatus(200);
+        $loginResponse->assertSee('Pendaftaran komplek');
+    }
+
+    public function test_dashboard_is_pure_operational_without_promo_registration(): void
+    {
+        $response = $this->get('/dashboard');
+        $response->assertStatus(200);
+        $response->assertSee('Dashboard Pengurus Lingkungan');
+        $response->assertSee('Saldo Kas RT Aktif');
+        $response->assertDontSee('Daftarkan Lingkungan Anda Hari Ini');
+    }
 }

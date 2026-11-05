@@ -181,6 +181,31 @@ Dokumen ini mencatat seluruh hasil audit mendalam terhadap basis kode **E-WARGA*
 
 ---
 
+### 🔴 Masalah 13: UI/UX Sidebar (Scrollbar Kasar, Menu Role Terpotong), Pemisahan Zona Promosi, & Default Super Admin
+* **Pemicu Masalah:**
+  1. Pada mode gelap, scrollbar default browser terlihat tebal dan berwarna putih kontras yang merusak estetika antarmuka.
+  2. Saat tombol "Role ▼" di footer sidebar diklik, popover peran melompat ke atas dan terpotong (*clipped*) pada sisi kanan sidebar karena posisi absolut yang melampaui lebar container.
+  3. Header dan footer sidebar sempat ikut ter-scroll saat pengguna menelusuri menu, sehingga logo brand dan tombol profil hilang dari pandangan.
+  4. Belum adanya pemisahan tegas antara konten promosi (Landing Page & Login Page) dan lingkungan operasional (Dashboard).
+  5. Pengguna memerlukan status hak akses tertinggi platform (**Super Admin**) secara instan tanpa harus berpindah-pindah login.
+* **Akar Masalah:**
+  1. Kontainer sidebar menggunakan `overflow-y-auto` tunggal tanpa pemisahan zona `shrink-0` (header/footer) dan `flex-1` (konten menu).
+  2. Dropdown peran menggunakan `left-0` dengan lebar `w-56` pada tombol di sisi kanan footer.
+  3. Tidak adanya halaman login resmi (`/login`) dengan showcase promosi B2B.
+* **✅ Solusi yang Diterapkan:**
+  1. **Struktur 3 Zona Sidebar:**
+     * **Header Laci (`shrink-0`):** Logo brand, nama E-WARGA, tombol tutup laci `[ ◀ ]`, dan toggle lingkungan selalu menetap di atas.
+     * **Menu Tengah (`flex-1 overflow-y-auto custom-sidebar-scroll`):** Hanya area menu yang dapat di-scroll, dengan scrollbar transparan tipis khusus (*custom sleek scrollbar*).
+     * **Footer Laci (`shrink-0`):** Mode gelap, tombol role, dan kartu profil pengguna selalu menetap di bawah.
+  2. **Role Popover Anti-Clipping:** Mengubah posisi popover menjadi `right-0 w-64` dengan tata letak rapi di dalam batas sidebar sehingga tidak pernah terpotong.
+  3. **Pemisahan Zona Promosi vs Dashboard Bersih:**
+     * **Landing Page (`/`):** Memuat form registrasi komplek yang jika disubmit akan otomatis membuat akun pengurus dan mengarahkan ke halaman login.
+     * **Login Page (`/login`):** Dibuat dengan arsitektur split-screen berkelas dunia, memuat promosi fitur IoT palang pintu, kas transparan, dan posyandu di sisi kiri, serta form login dan tombol cepat 1-klik peran di sisi kanan.
+     * **Dashboard (`/dashboard`):** 100% murni ruang kerja operasional pengurus tanpa banner iklan, form pendaftaran komplek, atau materi promosi.
+  4. **Otentikasi Default Super Admin:** Menetapkan akun **Fabian (Super Admin Platform)** sebagai sesi default sistem dengan lencana emas/emerald `⚡ Super Admin` dan akses menyeluruh ke seluruh modul.
+
+---
+
 ## 📋 Panduan Penanganan Masalah Lapangan (Developer & Pengurus)
 
 | Gejala / Pesan Error | Penyebab Utama | Solusi Praktis |
@@ -196,8 +221,8 @@ Dokumen ini mencatat seluruh hasil audit mendalam terhadap basis kode **E-WARGA*
 ## 🧪 Jaminan Kualitas & Hasil Pengujian Otomatis
 
 Seluruh perbaikan di atas telah divalidasi menggunakan rangkaian pengujian otomatis (*Automated Feature Tests*):
-* **Jumlah Pengujian:** 23 Skenario Uji (*100% Passed*)
-* **Total Penegasan (*Assertions*):** 56 Poin Validasi
-* **Waktu Eksekusi:** 923 milidetik
+* **Jumlah Pengujian:** 26 Skenario Uji (*100% Passed*)
+* **Total Penegasan (*Assertions*):** 70 Poin Validasi
+* **Waktu Eksekusi:** 1.4 Detik
 * **Hasil:** 🟢 **ZERO BUG / ZERO REGRESSION**
 

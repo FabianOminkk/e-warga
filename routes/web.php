@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Route;
 
 // Public Landing & Info
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/login', [HomeController::class, 'showLogin'])->name('login');
+Route::post('/login', [HomeController::class, 'processLogin'])->name('login.post');
 Route::post('/register-tenant', [HomeController::class, 'registerTenant'])->name('tenant.register');
 Route::get('/quick-login/{role}', [HomeController::class, 'quickLogin'])->name('quick.login');
 Route::post('/logout', [HomeController::class, 'logout'])->name('logout');

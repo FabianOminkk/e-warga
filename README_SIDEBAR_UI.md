@@ -25,29 +25,27 @@ Laci navigasi dirancang dengan animasi geser halus (*silky slide-over / push tra
 
 ```text
 ┌─────────────────────────────────────────────────────────┐
-│ 🏢 E-WARGA Cloud           [ ◀ Dorong Tutup Laci ]      │
-│ Smart Community OS                                      │
+│ 🏢 E-WARGA Cloud           [ ◀ Dorong Tutup Laci ]      │  <- [ZONA 1: FIXED HEADER]
+│ Smart Community OS                                      │     (Selalu menetap di atas)
 ├─────────────────────────────────────────────────────────┤
 │ 🔄 MODE LINGKUNGAN:                                     │
 │ [ 🏢 Cluster Perumahan ]   (1-klik beralih ke Kampung)  │
 ├─────────────────────────────────────────────────────────┤
-│ [JIKA DI LANDING PAGE]:                                 │
-│ 🏷️ SEKSI LANDING PAGE                                   │
-│  ├─ 🏠 Beranda & Hero                                   │
+│ [JIKA DI LANDING PAGE (ZONA PROMOSI)]:                  │  <- [ZONA 2: MENU TENGAH]
+│ 🏷️ SEKSI LANDING PAGE                                   │     (Scrollable halus,
+│  ├─ 🏠 Beranda & Hero                                   │      scrollbar transparan)
 │  ├─ ⭐ Fitur Unggulan                                   │
 │  ├─ 🚪 IoT Smart Barrier Gate                           │
 │  ├─ 🩺 Posyandu & Stunting                              │
 │  ├─ ⚖️ Sebelum vs Sesudah                               │
 │  ├─ 💬 Testimoni Pengurus & Warga                       │
-│  └─ 📝 Konsultasi & Survei Pasang                       │
+│  └─ 📝 Konsultasi & Survei Pasang (Redirect ke Login)   │
 │                                                         │
 │ 🚀 AKSES CEPAT MODUL SISTEM                             │
 │  ├─ 📊 Buka Dashboard RT (Tombol Gradien Emerald)       │
-│  ├─ 🧪 Simulator Palang Pintu                           │
-│  ├─ 🔦 Jadwal Satpam & Ronda                            │
-│  └─ 🩺 Posyandu Digital KMS                             │
+│  └─ 🔐 Halaman Login B2B (Promosi + Form Auth)          │
 ├─────────────────────────────────────────────────────────┤
-│ [JIKA DI HALAMAN INTERNAL DASHBOARD]:                   │
+│ [JIKA DI DASHBOARD (ZONA OPERASIONAL MURNI)]:           │
 │ 📌 MANAJEMEN UTAMA                                      │
 │  ├─ 📊 Dashboard RT & Kas                               │
 │  └─ 📱 Akses Warga (Mobile View)                        │
@@ -58,13 +56,14 @@ Laci navigasi dirancang dengan animasi geser halus (*silky slide-over / push tra
 │ 📋 PELAYANAN WARGA                                      │
 │  ├─ 🩺 Posyandu Digital RT/RW                           │
 │  └─ 📜 Surat Pengantar RT [Badge: Pending Counter]      │
-│ 📢 PORTAL INFORMASI                                     │
-│  └─ 🌐 Lihat Landing Page Klien                         │
+│ 📢 PORTAL PUBLIK                                        │
+│  └─ 🌐 Lihat Beranda Publik                             │
 ├─────────────────────────────────────────────────────────┤
-│ 🌓 Ganti Tema: [ ☀️ Terang ] / [ 🌙 Gelap ]            │
-│ 🎭 Ganti Peran Demo: [ Ketua RT | Bendahara | Satpam ]  │
+│ 🌓 Ganti Tema: [ ☀️ Terang ] / [ 🌙 Gelap ]            │  <- [ZONA 3: FIXED FOOTER]
+│ 🎭 Ganti Peran: [ Role ▼ ] (Anti-clipping card)         │     (Selalu menetap di bawah)
 ├─────────────────────────────────────────────────────────┤
-│ 👤 Doni Pratama (Ketua RT)        [ 🚪 Keluar ]         │
+│ ⚡ Fabian (Super Admin)            [ 🚪 Keluar ]         │
+│ Super Admin Platform • Akses Penuh                      │
 └─────────────────────────────────────────────────────────┘
 ```
 

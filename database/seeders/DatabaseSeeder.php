@@ -32,7 +32,7 @@ class DatabaseSeeder extends Seeder
         User::create([
             'tenant_id' => null,
             'house_id' => null,
-            'name' => 'Super Admin E-WARGA',
+            'name' => 'Fabian (Super Admin)',
             'phone_number' => '08110000001',
             'email' => 'superadmin@ewarga.id',
             'password' => $defaultStaffPassword,

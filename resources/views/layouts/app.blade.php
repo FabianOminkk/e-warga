@@ -53,9 +53,19 @@
 >
 
 @php
+    // Default authentication: Pastikan pengguna terotentikasi sebagai Super Admin jika belum login
+    if (!\Illuminate\Support\Facades\Auth::check()) {
+        $defaultAdmin = \App\Models\User::where('role', 'super_admin')->first();
+        if ($defaultAdmin) {
+            \Illuminate\Support\Facades\Auth::login($defaultAdmin);
+        }
+    }
+
     $isLanding = request()->routeIs('home');
+    $isLogin = request()->routeIs('login');
     $activeTenant = \App\Models\Tenant::first();
     $pendingLettersCount = \App\Models\LetterRequest::where('status', 'pending')->count();
+    $currentUser = \Illuminate\Support\Facades\Auth::user();
 @endphp
 
     <!-- ======================================================== -->
@@ -93,11 +103,11 @@
     <!-- ======================================================== -->
     <aside 
         :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-        class="fixed top-0 left-0 z-50 h-screen w-80 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between shadow-2xl transition-transform duration-300 ease-in-out shrink-0 overflow-y-auto"
+        class="fixed top-0 left-0 z-50 h-screen w-80 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between shadow-2xl transition-transform duration-300 ease-in-out shrink-0"
     >
-        <div class="p-5 space-y-5">
-            <!-- Header Laci: Brand & Tombol Dorong Tutup Laci -->
-            <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
+        <!-- 1. HEADER LACI (FIXED / SHRINK-0: TIDAK AKAN HILANG SAAT DI-SCROLL) -->
+        <div class="p-5 pb-4 border-b border-slate-100 dark:border-slate-800 shrink-0 space-y-4">
+            <div class="flex items-center justify-between">
                 <a href="{{ route('home') }}" class="flex items-center gap-3 group">
                     <img src="{{ asset('images/logo.jpg') }}" alt="Logo E-WARGA" class="h-10 w-auto object-contain">
                     <div>
@@ -110,7 +120,7 @@
                 <button 
                     @click="closeDrawer()" 
                     type="button"
-                    class="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center justify-center gap-1 group"
+                    class="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center justify-center cursor-pointer group"
                     title="Dorong / Tutup Laci Menu"
                 >
                     <svg class="w-5 h-5 text-slate-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -120,33 +130,32 @@
             </div>
 
             <!-- Kartu Status Lingkungan Aktif (Cluster vs Kampung) -->
-            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 space-y-2">
+            <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 space-y-1.5">
                 <div class="flex items-center justify-between">
                     <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Mode Lingkungan:</span>
                     <form action="{{ route('environment.toggle') }}" method="POST" class="inline">
                         @csrf
-                        <button type="submit" class="text-[10px] font-bold px-2 py-0.5 rounded-md transition {{ ($activeTenant?->environment_type ?? 'cluster') === 'cluster' ? 'bg-blue-100 dark:bg-blue-950/80 text-blue-800 dark:text-blue-300 hover:bg-blue-200' : 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-200' }}" title="Klik untuk beralih mode Cluster / Kampung">
-                            {{ ($activeTenant?->environment_type ?? 'cluster') === 'cluster' ? '🏢 Cluster Perumahan' : '🌾 Perkampungan' }}
+                        <button type="submit" class="text-[10px] font-bold px-2 py-0.5 rounded-md transition cursor-pointer {{ ($activeTenant?->environment_type ?? 'cluster') === 'cluster' ? 'bg-blue-100 dark:bg-blue-950/80 text-blue-800 dark:text-blue-300 hover:bg-blue-200' : 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-200' }}" title="Klik untuk beralih mode Cluster / Kampung">
+                            {{ ($activeTenant?->environment_type ?? 'cluster') === 'cluster' ? '🏢 Cluster' : '🌾 Kampung' }}
                         </button>
                     </form>
                 </div>
                 <div class="font-extrabold text-xs text-slate-800 dark:text-slate-100 truncate">
                     {{ $activeTenant?->name ?? 'Graha Asri Residence' }}
                 </div>
-                <div class="text-[11px] text-slate-500 dark:text-slate-400">
-                    {{ $activeTenant?->rt_rw ?? 'RT 04 / RW 02' }} &bull; {{ $activeTenant?->city ?? 'Bekasi' }}
-                </div>
             </div>
+        </div>
 
-            <!-- Menu Navigasi di Dalam Laci Samping -->
+        <!-- 2. KONTEN MENU NAVIGASI (FLEX-1 & SCROLLABLE DENGAN CUSTOM SLEEK SCROLLBAR) -->
+        <div class="flex-1 overflow-y-auto px-5 py-4 space-y-6 custom-sidebar-scroll">
             <nav class="space-y-6 text-xs font-semibold">
                 
                 @if($isLanding)
-                    <!-- KELOMPOK KHUSUS LANDING PAGE (SEKSI HALAMAN PROMOSI) -->
+                    <!-- KELOMPOK KHUSUS LANDING PAGE: SEKSI PROMOSI KLIEN & FORM SURVEI -->
                     <div>
                         <div class="px-3 pb-2 text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center justify-between">
                             <span>Seksi Landing Page</span>
-                            <span class="text-[9px] text-emerald-600 dark:text-emerald-400 font-bold">KLIEN</span>
+                            <span class="text-[9px] text-emerald-600 dark:text-emerald-400 font-bold">PROMOSI</span>
                         </div>
                         <div class="space-y-1">
                             <a href="#hero" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-slate-800 dark:hover:text-emerald-400 transition">
@@ -180,7 +189,7 @@
                         </div>
                     </div>
 
-                    <!-- PINTASAN LANGSUNG KE APLIKASI OPERASIONAL -->
+                    <!-- PINTASAN DEMO APLIKASI UNTUK CALON KLIEN -->
                     <div>
                         <div class="px-3 pb-2 text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
                             Akses Cepat Modul Sistem
@@ -193,26 +202,37 @@
                                 </div>
                                 <span>➔</span>
                             </a>
-                            <a href="{{ route('simulator') }}" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
-                                <div class="flex items-center gap-3">
-                                    <span class="text-base">🧪</span>
-                                    <span>Simulator Palang Pintu</span>
-                                </div>
-                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                            <a href="{{ route('login') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                                <span class="text-base">🔐</span>
+                                <span>Halaman Login</span>
                             </a>
-                            <a href="{{ route('schedules.index') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
-                                <span class="text-base">🔦</span>
-                                <span>Jadwal Satpam & Ronda</span>
+                        </div>
+                    </div>
+
+                @elseif($isLogin)
+                    <!-- KELOMPOK KHUSUS HALAMAN LOGIN -->
+                    <div>
+                        <div class="px-3 pb-2 text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                            Navigasi Login
+                        </div>
+                        <div class="space-y-1">
+                            <a href="{{ route('home') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                                <span class="text-base">🏠</span>
+                                <span>Kembali ke Beranda Utama</span>
                             </a>
-                            <a href="{{ route('posyandu.index') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
-                                <span class="text-base">🩺</span>
-                                <span>Posyandu Digital KMS</span>
+                            <a href="{{ route('home') }}#daftar-komplek" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                                <span class="text-base">📝</span>
+                                <span>Pendaftaran Komplek Baru</span>
+                            </a>
+                            <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-emerald-600 dark:text-emerald-400 font-bold hover:bg-emerald-50 dark:hover:bg-slate-800 transition">
+                                <span class="text-base">📊</span>
+                                <span>Langsung Buka Dashboard</span>
                             </a>
                         </div>
                     </div>
 
                 @else
-                    <!-- KELOMPOK UNTUK HALAMAN INTERNAL OPERASIONAL -->
+                    <!-- KELOMPOK KHUSUS OPERASIONAL (DASHBOARD & INTERNAL APP: BERSIH DARI IKLAN/PROMOSI) -->
                     <!-- Kelompok 1: Manajemen Utama -->
                     <div>
                         <div class="px-3 pb-2 text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
@@ -301,15 +321,15 @@
                         </div>
                     </div>
 
-                    <!-- Kelompok 4: Portal & Informasi -->
+                    <!-- Kelompok 4: Navigasi Luar -->
                     <div>
                         <div class="px-3 pb-2 text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                            Portal Informasi
+                            Portal Publik
                         </div>
                         <div class="space-y-1">
                             <a href="{{ route('home') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
                                 <span class="text-base">🌐</span>
-                                <span>Lihat Landing Page Klien</span>
+                                <span>Lihat Beranda Publik</span>
                             </a>
                         </div>
                     </div>
@@ -318,9 +338,10 @@
             </nav>
         </div>
 
-        <!-- Bagian Bawah Laci: Mode Gelap, Switcher Role, & User Profile -->
-        <div class="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/70 space-y-3">
-            <!-- Dark / Light Mode Toggle & Role Quick Switcher -->
+        <!-- 3. FOOTER LACI (FIXED / SHRINK-0: TIDAK AKAN HILANG & BEBAS CLIPPING) -->
+        <div class="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/95 shrink-0 space-y-3 relative">
+            
+            <!-- CONTROLS: DARK MODE TOGGLE & ROLE SWITCHER -->
             <div class="flex items-center justify-between gap-2">
                 <!-- Dark / Light Mode Toggle -->
                 <div x-data="{
@@ -351,33 +372,99 @@
                     </button>
                 </div>
 
-                <!-- Role Switcher Trigger -->
+                <!-- Role Switcher Trigger (Dengan Popover Luas Anti-Clipping) -->
                 <div x-data="{ openRole: false }" class="relative">
-                    <button @click="openRole = !openRole" type="button" class="py-2 px-3 bg-[#1B365D] hover:bg-slate-800 text-white rounded-xl text-xs font-bold shadow-xs transition flex items-center gap-1.5 cursor-pointer" title="Ganti Peran Pengujian">
+                    <button 
+                        @click="openRole = !openRole" 
+                        type="button" 
+                        class="py-2 px-3 bg-[#1B365D] hover:bg-slate-800 text-white rounded-xl text-xs font-bold shadow-xs transition flex items-center gap-1.5 cursor-pointer" 
+                        title="Ganti Peran Pengujian"
+                    >
                         <span>Role</span>
-                        <span class="text-[10px]">▼</span>
+                        <span class="text-[10px]" x-text="openRole ? '▲' : '▼'"></span>
                     </button>
-                    <div x-show="openRole" @click.away="openRole = false" x-cloak class="absolute bottom-full left-0 mb-2 w-56 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 py-2 z-50 text-xs">
-                        <div class="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Switch Peran Demo:</div>
-                        <a href="{{ route('quick.login', 'ketua_rt') }}" class="block px-3 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 font-semibold">👔 Ketua RT (Approver)</a>
-                        <a href="{{ route('quick.login', 'bendahara') }}" class="block px-3 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 font-semibold">💰 Bendahara (Kas)</a>
-                        <a href="{{ route('quick.login', 'satpam') }}" class="block px-3 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 font-semibold">🛡️ Satpam (Pos Jaga)</a>
-                        <a href="{{ route('quick.login', 'warga') }}" class="block px-3 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 font-semibold">🏡 Warga (Buka Pintu)</a>
-                        <a href="{{ route('quick.login', 'super_admin') }}" class="block px-3 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 font-semibold">⚡ Super Admin</a>
+
+                    <!-- Popover Dropdown Luas yang Tidak Akan Terpotong -->
+                    <div 
+                        x-show="openRole" 
+                        @click.away="openRole = false" 
+                        x-cloak 
+                        class="absolute bottom-full right-0 mb-3 w-64 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 p-2.5 z-50 text-xs space-y-1.5"
+                    >
+                        <div class="px-2 py-1 text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-1.5">
+                            <span>Ganti Peran Pengujian:</span>
+                            <span class="text-emerald-600 dark:text-emerald-400 font-bold">1-Klik</span>
+                        </div>
+
+                        <!-- Super Admin Platform (Utama) -->
+                        <a href="{{ route('quick.login', 'super_admin') }}" class="flex items-center justify-between px-2.5 py-2 rounded-xl {{ ($currentUser?->role ?? '') === 'super_admin' ? 'bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-300 dark:border-emerald-700 text-emerald-900 dark:text-emerald-200 font-bold' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                            <div class="flex items-center gap-2">
+                                <span class="text-amber-500 font-bold">⚡</span>
+                                <div>
+                                    <div class="font-bold">Fabian (Super Admin)</div>
+                                    <div class="text-[9px] text-slate-400">Akses Penuh Seluruh Sistem</div>
+                                </div>
+                            </div>
+                            @if(($currentUser?->role ?? '') === 'super_admin')
+                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            @endif
+                        </a>
+
+                        <a href="{{ route('quick.login', 'ketua_rt') }}" class="flex items-center justify-between px-2.5 py-2 rounded-xl {{ ($currentUser?->role ?? '') === 'ketua_rt' ? 'bg-blue-50 dark:bg-blue-950/70 text-blue-900 dark:text-blue-200 font-bold' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                            <div class="flex items-center gap-2">
+                                <span>👔</span>
+                                <span>Ketua RT (Bpk. H. Sutrisno)</span>
+                            </div>
+                            @if(($currentUser?->role ?? '') === 'ketua_rt')
+                                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                            @endif
+                        </a>
+
+                        <a href="{{ route('quick.login', 'bendahara') }}" class="flex items-center justify-between px-2.5 py-2 rounded-xl {{ ($currentUser?->role ?? '') === 'bendahara' ? 'bg-amber-50 dark:bg-amber-950/70 text-amber-900 dark:text-amber-200 font-bold' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                            <div class="flex items-center gap-2">
+                                <span>💰</span>
+                                <span>Bendahara RT (Bpk. Joko)</span>
+                            </div>
+                            @if(($currentUser?->role ?? '') === 'bendahara')
+                                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                            @endif
+                        </a>
+
+                        <a href="{{ route('quick.login', 'satpam') }}" class="flex items-center justify-between px-2.5 py-2 rounded-xl {{ ($currentUser?->role ?? '') === 'satpam' ? 'bg-cyan-50 dark:bg-cyan-950/70 text-cyan-900 dark:text-cyan-200 font-bold' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                            <div class="flex items-center gap-2">
+                                <span>🛡️</span>
+                                <span>Satpam (Pak Slamet)</span>
+                            </div>
+                            @if(($currentUser?->role ?? '') === 'satpam')
+                                <span class="w-2 h-2 rounded-full bg-cyan-500"></span>
+                            @endif
+                        </a>
+
+                        <a href="{{ route('quick.login', 'warga') }}" class="flex items-center justify-between px-2.5 py-2 rounded-xl {{ ($currentUser?->role ?? '') === 'warga' ? 'bg-emerald-50 dark:bg-emerald-950/70 text-emerald-900 dark:text-emerald-200 font-bold' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                            <div class="flex items-center gap-2">
+                                <span>🏡</span>
+                                <span>Warga (Bpk. Bambang)</span>
+                            </div>
+                            @if(($currentUser?->role ?? '') === 'warga')
+                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            @endif
+                        </a>
                     </div>
                 </div>
             </div>
 
-            <!-- Info Profil Akun yang Sedang Aktif -->
+            <!-- PROFIL PENGGUNA YANG SEDANG AKTIF (DEFAULT: SUPER ADMIN FABIAN) -->
             @auth
                 <div class="flex items-center justify-between pt-2 border-t border-slate-200/80 dark:border-slate-800/80">
                     <div class="flex items-center gap-2.5 truncate">
-                        <div class="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-black text-xs shrink-0">
-                            {{ substr(Auth::user()->name, 0, 1) }}
+                        <div class="w-8 h-8 rounded-full {{ $currentUser->isSuperAdmin() ? 'bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-700' : 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300' }} flex items-center justify-center font-black text-xs shrink-0">
+                            {{ $currentUser->isSuperAdmin() ? '⚡' : substr($currentUser->name, 0, 1) }}
                         </div>
                         <div class="truncate">
-                            <div class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">{{ Auth::user()->name }}</div>
-                            <div class="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">{{ Auth::user()->role_label }}</div>
+                            <div class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">{{ $currentUser->name }}</div>
+                            <div class="text-[10px] {{ $currentUser->isSuperAdmin() ? 'text-amber-600 dark:text-amber-400 font-extrabold' : 'text-emerald-600 dark:text-emerald-400 font-semibold' }}">
+                                {{ $currentUser->role_label }}
+                            </div>
                         </div>
                     </div>
                     <form action="{{ route('logout') }}" method="POST" class="inline shrink-0">
@@ -399,8 +486,8 @@
         class="flex-1 flex flex-col min-w-0 min-h-screen transition-all duration-300 ease-in-out"
     >
         
-        <!-- PADA HALAMAN INTERNAL: TOPBAR TOOLBAR TIPIS (TANPA NAVBAR BESAR DI ATAS) -->
-        @if(!$isLanding)
+        <!-- PADA HALAMAN INTERNAL DASHBOARD: TOPBAR TOOLBAR TIPIS (TANPA IKLAN & PROMOSI) -->
+        @if(!$isLanding && !$isLogin)
             <header class="h-16 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 px-6 flex items-center justify-between gap-4 transition-colors duration-200">
                 <!-- Kiri: Tombol Laci & Breadcrumb -->
                 <div class="flex items-center gap-3">
@@ -439,7 +526,7 @@
         @endif
 
         <!-- Area Notifikasi Flash Message -->
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 {{ $isLanding ? 'pt-6' : 'mt-4' }} w-full">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 {{ ($isLanding || $isLogin) ? 'pt-6' : 'mt-4' }} w-full">
             @if(session('success'))
                 <div class="bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-medium shadow-xs mb-4">
                     <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
@@ -466,7 +553,7 @@
         </div>
 
         <!-- Area Konten Halaman Aktif -->
-        <main class="flex-1 {{ $isLanding ? '' : 'p-4 sm:p-6 lg:p-8' }}">
+        <main class="flex-1 {{ ($isLanding || $isLogin) ? '' : 'p-4 sm:p-6 lg:p-8' }}">
             @yield('content')
         </main>
 
@@ -500,7 +587,7 @@
                                 <li><a href="{{ route('letters.index') }}" class="hover:text-emerald-600 transition">Surat Pengantar RT Online</a></li>
                                 <li><a href="{{ route('warga.index') }}" class="hover:text-emerald-600 transition">Aplikasi HP Buka Gerbang</a></li>
                                 <li><a href="{{ route('satpam.console') }}" class="hover:text-emerald-600 transition">Console Pos Satpam</a></li>
-                                <li><a href="#daftar-komplek" class="hover:text-emerald-600 transition">Pemasangan Komplek Baru</a></li>
+                                <li><a href="{{ route('login') }}" class="hover:text-emerald-600 transition">Masuk ke Sistem (Login)</a></li>
                             </ul>
                         </div>
                         <div>
@@ -522,8 +609,8 @@
                     </div>
                 </div>
             </footer>
-        @else
-            <!-- Footer Halaman Internal Aplikasi -->
+        @elseif(!$isLogin)
+            <!-- Footer Halaman Internal Operasional -->
             <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-6 px-6 text-center text-xs text-slate-400 transition-colors duration-200">
                 <div class="flex flex-col sm:flex-row justify-between items-center gap-2">
                     <div>

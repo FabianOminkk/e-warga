@@ -10,6 +10,7 @@ use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 class HomeController extends Controller
@@ -23,6 +24,40 @@ class HomeController extends Controller
         $totalCash = CashBook::where('type', 'income')->sum('amount') - CashBook::where('type', 'expense')->sum('amount');
 
         return view('pages.landing', compact('tenant', 'totalHouses', 'totalUsers', 'totalGateLogs', 'totalCash'));
+    }
+
+    public function showLogin()
+    {
+        $tenant = Tenant::first();
+        $totalHouses = House::count();
+        $totalUsers = User::count();
+        $totalCash = CashBook::where('type', 'income')->sum('amount') - CashBook::where('type', 'expense')->sum('amount');
+
+        return view('pages.login', compact('tenant', 'totalHouses', 'totalUsers', 'totalCash'));
+    }
+
+    public function processLogin(Request $request)
+    {
+        $credentials = $request->validate([
+            'login' => 'required|string',
+            'password' => 'required|string',
+        ]);
+
+        $user = User::where('email', $credentials['login'])
+            ->orWhere('phone_number', $credentials['login'])
+            ->first();
+
+        if ($user && Hash::check($credentials['password'], $user->password)) {
+            Auth::login($user, $request->boolean('remember'));
+            if ($user->role === 'satpam') {
+                return redirect()->route('satpam.console')->with('success', "Selamat bertugas, {$user->name}!");
+            } elseif ($user->role === 'warga') {
+                return redirect()->route('warga.index')->with('success', "Selamat datang, {$user->name}!");
+            }
+            return redirect()->route('dashboard')->with('success', "Selamat datang di Dashboard E-WARGA, {$user->name}!");
+        }
+
+        return redirect()->back()->withInput()->with('error', 'Email/No. WhatsApp atau password yang Anda masukkan salah. (Password demo: admin123)');
     }
 
     public function registerTenant(Request $request)
@@ -64,7 +99,20 @@ class HomeController extends Controller
             ]);
         }
 
-        return redirect()->back()->with('success', 'Pendaftaran komplek berhasil dikirim! Tim teknisi E-WARGA akan segera menghubungi Anda via WhatsApp.');
+        // Buat akun Ketua RT untuk pendaftar
+        $adminEmail = Str::slug($validated['contact_name']) . '@' . $slug . '.ewarga.id';
+        User::create([
+            'tenant_id' => $tenant->id,
+            'name' => $validated['contact_name'],
+            'email' => $adminEmail,
+            'phone_number' => $validated['contact_phone'],
+            'password' => Hash::make('admin123'),
+            'role' => 'ketua_rt',
+            'is_family_head' => true,
+            'status' => 'active',
+        ]);
+
+        return redirect()->route('login')->with('success', "Pendaftaran komplek '{$tenant->name}' berhasil dikirim! Akun Ketua RT telah siap (No HP: {$validated['contact_phone']}, Password: admin123). Tim teknisi kami akan segera menghubungi Anda untuk survei palang pintu.");
     }
 
     public function quickLogin($role)
