@@ -165,18 +165,19 @@ Dokumen ini mencatat seluruh hasil audit mendalam terhadap basis kode **E-WARGA*
 
 ---
 
-### 🔴 Masalah 12: Keterbatasan Navigasi Topbar pada Layar Desktop & Kebutuhan Konversi Klien
+### 🔴 Masalah 12: Keterbatasan Navigasi Topbar pada Layar Desktop & Kebutuhan Laci Samping Kiri ("Ngelaci")
 * **Pemicu Masalah:**
-  1. Menu fitur aplikasi yang terus bertambah (Kas, Palang Pintu, Posyandu, Surat Pengantar, Jadwal Satpam/Ronda, Pengumuman) menyebabkan *Top Navigation Bar* berjejal, memakan ruang vertikal monitor, dan memotong tabel data keuangan.
-  2. Halaman depan publik (`/`) dan dashboard internal sempat memakai layout yang sama, sehingga calon pengurus komplek atau developer perumahan yang mengunjungi web tidak disuguhi pesan promosi dan demonstrasi produk yang persuasif.
+  1. Menu navigasi yang menempel di bagian atas (*sticky top navbar*) menutupi area pandang vertikal, memotong estetika halaman landing page, dan berjejal saat jumlah modul bertambah.
+  2. Pengguna mengharapkan sistem navigasi di sebelah kiri yang fleksibel seperti laci (*slide-out drawer* / "ngelaci"), yang dapat dibuka-tutup untuk memaksimalkan ruang kerja monitor desktop.
 * **Akar Masalah:**
-  Penggunaan navigasi horizontal satu arah untuk aplikasi yang memiliki kompleksitas operasional tingkat enterprise.
+  Penggunaan navigasi bar horizontal atas statis yang mengurangi area vertikal layar.
 * **✅ Solusi yang Diterapkan:**
-  1. Mengimplementasikan arsitektur *Dual Layout* pada `resources/views/layouts/app.blade.php`:
-     * Halaman Publik (`/`): Layout marketing berlayar penuh (*full-width hero*) dengan navigasi transparan, metrik sosial, uji coba demo peran instan (`admin123`), komparasi "Sebelum vs Sesudah", dan formulir survei penawaran harga.
-     * Halaman Internal Aplikasi (`/dashboard`, dll.): Menggunakan *Fixed Desktop Sidebar* (`w-72` / 288px) yang sticky di kiri, dengan pengelompokan menu (Manajemen Utama, Keamanan & Hardware, Pelayanan Warga, Portal Informasi), badge counter surat pending, switcher lingkungan 1-klik, dan profil pengguna.
-  2. Area konten utama dibungkus `flex-1 min-w-0 min-h-screen` sehingga tabel data yang lebar (buku kas, jadwal ronda, data posyandu) tetap bisa discroll horizontal tanpa menggeser sidebar navigasi.
-  3. Menyediakan topbar desktop tipis berfitur breadcrumbs hierarkis dan penanggalan live Indonesia.
+  1. Menghapus seluruh *Top Navigation Bar* statis dari layout utama (`layouts/app.blade.php`).
+  2. Mengimplementasikan sistem **Laci Navigasi Samping Kiri (*Left Drawer Sidebar*)** selebar `w-80` (320px) dengan animasi transisi geser mulus (*smooth slide transform*):
+     * Saat laci dibuka (`sidebarOpen = true`): Sisi kiri menampilkan seluruh navigasi terkelompok (Seksi Landing Page & Akses Cepat Modul jika di halaman depan; Manajemen Utama, Keamanan, Posyandu, & Surat jika di internal app). Pada desktop (`lg:`), area konten otomatis bergeser (`lg:pl-80`) sehingga tidak ada elemen yang tertutup.
+     * Saat laci ditutup (`sidebarOpen = false`): Laci meluncur ke dinding kiri (`-translate-x-full`), konten otomatis melebar 100% (*full-width*), dan muncul tombol melayang anggun di pojok kiri atas: `[ ☰ Laci Menu E-WARGA ▶ ]` untuk menarik keluar laci kapan saja.
+     * Status laci disimpan secara persisten di `localStorage` (`ewarga_drawer_open`).
+  3. Menambahkan tombol dorong laci (`[ ◀ ]`) di dalam header sidebar untuk memudahkan pengguna meminimalkan navigasi dengan satu klik.
 
 ---
 

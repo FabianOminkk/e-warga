@@ -6,7 +6,7 @@
     <!-- ========================================== -->
     <!-- 1. HERO SECTION                            -->
     <!-- ========================================== -->
-    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="hero" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             
             <!-- Left Hero Content -->
@@ -360,7 +360,7 @@
     <!-- ========================================== -->
     <!-- 6. TESTIMONI KLIEN & KETUA RT              -->
     <!-- ========================================== -->
-    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="testimoni" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center max-w-3xl mx-auto mb-12">
             <span class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Suara Pengurus Lingkungan</span>
             <h2 class="text-3xl font-black text-slate-900 dark:text-white mt-1">Apa Kata Pengurus RT & Warga?</h2>
