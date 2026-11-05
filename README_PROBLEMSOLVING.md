@@ -165,6 +165,21 @@ Dokumen ini mencatat seluruh hasil audit mendalam terhadap basis kode **E-WARGA*
 
 ---
 
+### 🔴 Masalah 12: Keterbatasan Navigasi Topbar pada Layar Desktop & Kebutuhan Konversi Klien
+* **Pemicu Masalah:**
+  1. Menu fitur aplikasi yang terus bertambah (Kas, Palang Pintu, Posyandu, Surat Pengantar, Jadwal Satpam/Ronda, Pengumuman) menyebabkan *Top Navigation Bar* berjejal, memakan ruang vertikal monitor, dan memotong tabel data keuangan.
+  2. Halaman depan publik (`/`) dan dashboard internal sempat memakai layout yang sama, sehingga calon pengurus komplek atau developer perumahan yang mengunjungi web tidak disuguhi pesan promosi dan demonstrasi produk yang persuasif.
+* **Akar Masalah:**
+  Penggunaan navigasi horizontal satu arah untuk aplikasi yang memiliki kompleksitas operasional tingkat enterprise.
+* **✅ Solusi yang Diterapkan:**
+  1. Mengimplementasikan arsitektur *Dual Layout* pada `resources/views/layouts/app.blade.php`:
+     * Halaman Publik (`/`): Layout marketing berlayar penuh (*full-width hero*) dengan navigasi transparan, metrik sosial, uji coba demo peran instan (`admin123`), komparasi "Sebelum vs Sesudah", dan formulir survei penawaran harga.
+     * Halaman Internal Aplikasi (`/dashboard`, dll.): Menggunakan *Fixed Desktop Sidebar* (`w-72` / 288px) yang sticky di kiri, dengan pengelompokan menu (Manajemen Utama, Keamanan & Hardware, Pelayanan Warga, Portal Informasi), badge counter surat pending, switcher lingkungan 1-klik, dan profil pengguna.
+  2. Area konten utama dibungkus `flex-1 min-w-0 min-h-screen` sehingga tabel data yang lebar (buku kas, jadwal ronda, data posyandu) tetap bisa discroll horizontal tanpa menggeser sidebar navigasi.
+  3. Menyediakan topbar desktop tipis berfitur breadcrumbs hierarkis dan penanggalan live Indonesia.
+
+---
+
 ## 📋 Panduan Penanganan Masalah Lapangan (Developer & Pengurus)
 
 | Gejala / Pesan Error | Penyebab Utama | Solusi Praktis |

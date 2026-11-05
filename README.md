@@ -147,4 +147,23 @@ Dokumentasi teknis proyek **E-WARGA** telah dipisahkan secara mendalam agar rapi
 * **Target Mobile (Fase 3):** Flutter (Dart) untuk Android & iOS
 
 ---
-*Silakan baca [README_BACKEND.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_BACKEND.md) dan [README_FRONTEND.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_FRONTEND.md) untuk detail arsitektur masing-masing layer.*
+
+## 📚 6. Daftar Dokumentasi Teknis & Panduan Modul (.md)
+
+Setiap fitur dan subsistem pada E-WARGA didokumentasikan dalam file markdown khusus:
+
+| Dokumen | Topik / Modul | Deskripsi |
+| :--- | :--- | :--- |
+| [README_SIDEBAR_UI.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_SIDEBAR_UI.md) | **Desktop Sidebar & Landing Page** | Arsitektur UI/UX desktop-first (`w-72`), navigasi terkelompok, dan landing page konversi B2B/klien. |
+| [README_FRONTEND.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_FRONTEND.md) | **Frontend & UI/UX Dasar** | Filosofi gaptek-friendly, palet warna, tipografi, dan wireframe awal. |
+| [README_BACKEND.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_BACKEND.md) | **Backend Architecture & Database** | ERD skema relasi, arsitektur multi-tenancy, dan integrasi hardware smart gate. |
+| [README_DARK_MODE.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_DARK_MODE.md) | **Dark & Light Mode Engine** | Spesifikasi tema kontras tinggi, anti-FOUC, dan integrasi reaktif Chart.js. |
+| [README_DUAL_MODE.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_DUAL_MODE.md) | **Dual Environment (Cluster vs Guyub)** | Toggle 1-klik komplek perumahan modern vs rukun warga perkampungan. |
+| [README_POSYANDU.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_POSYANDU.md) | **Posyandu & Stunting Tracking** | Pencatatan balita, ibu hamil, lansia, imunisasi, dan deteksi dini stunting. |
+| [README_SURAT_PENGANTAR.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_SURAT_PENGANTAR.md) | **Surat Pengantar RT Online** | Alur permohonan digital, verifikasi TTD Ketua RT, dan verifikasi QR publik. |
+| [README_JADWAL_KEAMANAN.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_JADWAL_KEAMANAN.md) | **Jadwal Keamanan & Siskamling** | Shift satpam komplek vs regu ronda malam warga perkampungan. |
+| [README_PROBLEMSOLVING.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_PROBLEMSOLVING.md) | **Problem Solving & Troubleshooting** | 12 log audit bug/masalah, solusi perbaikan kode, dan panduan teknis operasional. |
+| [README_PICTURE.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_PICTURE.md) | **Brand & Visual Assets** | Spesifikasi visual, logo aplikasi, favicon, dan maskot "Bang Warga". |
+
+---
+*Silakan baca dokumen di atas sesuai modul yang sedang dipelajari atau dikembangkan.*

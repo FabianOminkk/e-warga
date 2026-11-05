@@ -86,3 +86,4 @@ window.addEventListener('theme-changed', function () {
 | **Aksen Hijau / Sukses** | `text-emerald-600` / `bg-emerald-50` | `text-emerald-400` / `bg-emerald-950/70` |
 | **Aksen Biru / Formal** | `text-blue-600` / `bg-blue-50` | `text-blue-400` / `bg-blue-950/70` |
 | **Aksen Amber / Perhatian** | `text-amber-600` / `bg-amber-50` | `text-amber-400` / `bg-amber-950/70` |
+
