@@ -30,6 +30,35 @@ class DashboardController extends Controller
         $unpaidBillings = Billing::where('status', 'unpaid')->count();
         $pendingPayments = Payment::whereNull('verified_at')->with(['billing.house', 'payer'])->get();
 
+        // Data Grafik 1: Proporsi Pengeluaran per Kategori (Pie Chart)
+        $expenseByCategory = CashBook::where('type', 'expense')
+            ->selectRaw('category, SUM(amount) as total')
+            ->groupBy('category')
+            ->orderByDesc('total')
+            ->pluck('total', 'category');
+
+        $chartExpenseLabels = $expenseByCategory->keys()->toArray();
+        $chartExpenseTotals = $expenseByCategory->values()->map(fn($v) => (float)$v)->toArray();
+
+        if (empty($chartExpenseLabels)) {
+            $chartExpenseLabels = ['Kas Belum Ada Pengeluaran'];
+            $chartExpenseTotals = [0];
+        }
+
+        // Data Grafik 2: Kepatuhan Pembayaran Iuran (Donut Chart)
+        $chartBillingStatus = [
+            'Lunas' => $paidBillings,
+            'Belum Bayar' => $unpaidBillings,
+            'Menunggu Verifikasi' => $pendingPayments->count(),
+        ];
+
+        // Data Grafik 3: Perbandingan Pemasukan vs Pengeluaran (Bar Chart)
+        $chartCashflow = [
+            'Pemasukan' => (float)$totalIncome,
+            'Pengeluaran' => (float)$totalExpense,
+            'Saldo Bersih' => (float)max(0, $saldoKas),
+        ];
+
         // Log Pintu Terkini
         $recentGateLogs = GateLog::with(['user', 'smartGate'])->latest('triggered_at')->take(6)->get();
 
@@ -49,6 +78,10 @@ class DashboardController extends Controller
             'paidBillings',
             'unpaidBillings',
             'pendingPayments',
+            'chartExpenseLabels',
+            'chartExpenseTotals',
+            'chartBillingStatus',
+            'chartCashflow',
             'recentGateLogs',
             'houses',
             'recentCashBooks'

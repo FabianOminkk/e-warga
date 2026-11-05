@@ -93,6 +93,24 @@ Dokumen ini mencatat seluruh hasil audit mendalam terhadap basis kode **E-WARGA*
 
 ---
 
+### 🔴 Masalah 7: Potensi Error Chart.js Canvas Saat Data Kategori Pengeluaran Kosong
+* **Pemicu Masalah:**
+  Saat komplek baru pertama kali dibuat atau pada awal bulan ketika belum ada satupun transaksi pengeluaran (`CashBook` tipe `expense` = 0), inisialisasi Pie Chart dengan array data kosong `[]` menyebabkan canvas Chart.js merender tampilan rusak (*broken layout*) atau melempar error konsol Javascript.
+* **Akar Masalah:**
+  Chart.js memerlukan setidaknya satu label dan satu nilai numerik untuk merender proporsi lingkaran tanpa nilai `NaN` atau `undefined`.
+* **✅ Solusi yang Diterapkan:**
+  1. Pada `DashboardController.php`, ditambahkan logika proteksi array kosong:
+     ```php
+     if (empty($chartExpenseLabels)) {
+         $chartExpenseLabels = ['Kas Belum Ada Pengeluaran'];
+         $chartExpenseTotals = [0];
+     }
+     ```
+  2. Chart.js dibundel secara lokal langsung melalui `npm install chart.js` ke dalam `resources/js/app.js`, sehingga visualisasi grafik **100% aman dan bekerja offline** tanpa bergantung pada CDN internet luar.
+  3. Format angka pada tooltip grafik diformat otomatis menggunakan standar mata uang Indonesia (`Intl.NumberFormat('id-ID')` dengan prefiks "Rp ").
+
+---
+
 ## 📋 Panduan Penanganan Masalah Lapangan (Developer & Pengurus)
 
 | Gejala / Pesan Error | Penyebab Utama | Solusi Praktis |
@@ -112,3 +130,4 @@ Seluruh perbaikan di atas telah divalidasi menggunakan rangkaian pengujian otoma
 * **Total Penegasan (*Assertions*):** 23 Poin Validasi
 * **Waktu Eksekusi:** 923 milidetik
 * **Hasil:** 🟢 **ZERO BUG / ZERO REGRESSION**
+

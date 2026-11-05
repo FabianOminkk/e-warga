@@ -12,7 +12,7 @@
                 <span>{{ $tenant->rt_rw ?? 'RT 05 / RW 12' }}</span>
             </div>
             <h1 class="text-3xl font-extrabold text-slate-900 mt-1">Dashboard Pengurus Lingkungan</h1>
-            <p class="text-sm text-slate-500">Pusat kendali keuangan kas, persetujuan iuran warga, dan pantauan keamanan.</p>
+            <p class="text-sm text-slate-500">Pusat kendali keuangan kas, persetujuan iuran warga, dan analisis grafik keuangan.</p>
         </div>
 
         <div class="flex items-center gap-3">
@@ -69,6 +69,87 @@
             <div class="text-[11px] text-amber-600 font-semibold mt-1">
                 {{ $unpaidBillings }} Rumah belum melunasi iuran
             </div>
+        </div>
+    </div>
+
+    <!-- SEKSI GRAFIK & ANALISIS VISUAL KEUANGAN (PIE CHART, DONUT CHART, & CASHFLOW) -->
+    <div class="bg-white rounded-3xl border border-slate-200 p-6 lg:p-8 shadow-xs space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[11px] font-extrabold uppercase tracking-wide">
+                        Visualisasi Data Keuangan
+                    </span>
+                    @if($saldoKas >= 0)
+                        <span class="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-extrabold flex items-center gap-1">
+                            <span>●</span> Keuangan Sehat (Surplus)
+                        </span>
+                    @else
+                        <span class="px-2.5 py-0.5 rounded-full bg-red-50 text-red-700 text-[11px] font-extrabold flex items-center gap-1">
+                            <span>●</span> Peringatan: Defisit Kas
+                        </span>
+                    @endif
+                </div>
+                <h2 class="text-xl font-extrabold text-slate-900 mt-1">Analisis Akurat Aliran Kas & Kepatuhan Iuran</h2>
+                <p class="text-xs text-slate-500">Membantu bendahara dan ketua RT membaca tren pengeluaran dan akurasi keuangan dalam sekejap.</p>
+            </div>
+            
+            <div class="text-xs text-slate-400 font-medium">
+                Pembaruan: <span class="font-bold text-slate-700">{{ now()->format('d M Y, H:i') }} WIB</span>
+            </div>
+        </div>
+
+        <!-- Grid 3 Grafik Finansial -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+            
+            <!-- Grafik 1: Proporsi Pengeluaran per Kategori (Pie Chart) -->
+            <div class="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/80 flex flex-col items-center">
+                <div class="w-full text-left mb-3">
+                    <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Distribusi Pengeluaran</div>
+                    <div class="text-sm font-extrabold text-slate-900">Proporsi Kategori Biaya</div>
+                </div>
+                <div class="relative w-full aspect-square max-w-[240px] flex items-center justify-center">
+                    <canvas id="expensePieChart"></canvas>
+                </div>
+                <p class="text-[11px] text-slate-500 text-center mt-3">
+                    Memantau pos anggaran terbesar (Gaji Satpam, Listrik, Kebersihan).
+                </p>
+            </div>
+
+            <!-- Grafik 2: Kepatuhan Pembayaran Iuran (Donut Chart) -->
+            <div class="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/80 flex flex-col items-center">
+                <div class="w-full text-left mb-3">
+                    <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Kepatuhan Warga</div>
+                    <div class="text-sm font-extrabold text-slate-900">Status Pembayaran Iuran</div>
+                </div>
+                <div class="relative w-full aspect-square max-w-[240px] flex items-center justify-center">
+                    <canvas id="billingDonutChart"></canvas>
+                </div>
+                <div class="text-center mt-3">
+                    @php
+                        $totalB = $paidBillings + $unpaidBillings;
+                        $pct = $totalB > 0 ? round(($paidBillings / $totalB) * 100) : 0;
+                    @endphp
+                    <span class="inline-block text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                        {{ $pct }}% Tingkat Pelunasan
+                    </span>
+                </div>
+            </div>
+
+            <!-- Grafik 3: Arus Kas Finansial (Bar Chart) -->
+            <div class="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/80 flex flex-col items-center">
+                <div class="w-full text-left mb-3">
+                    <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Arus Kas Masuk vs Keluar</div>
+                    <div class="text-sm font-extrabold text-slate-900">Komparasi Finansial RT</div>
+                </div>
+                <div class="relative w-full aspect-square max-w-[240px] flex items-center justify-center">
+                    <canvas id="cashflowBarChart"></canvas>
+                </div>
+                <p class="text-[11px] text-slate-500 text-center mt-3">
+                    Memastikan pemasukan selalu lebih besar daripada pengeluaran bulanan.
+                </p>
+            </div>
+
         </div>
     </div>
 
@@ -213,7 +294,7 @@
                         <div class="flex items-center gap-3">
                             <span class="w-2.5 h-2.5 rounded-full {{ $gl->status === 'granted' ? 'bg-emerald-500' : 'bg-red-500' }}"></span>
                             <div>
-                                <div class="text-xs font-bold text-slate-800">{{ $gl->user->name ?? 'Tamu / Satpam' }}</div>
+                                <div class="text-xs font-bold text-slate-800">{{ $gl->user?->name ?? 'Tamu / Satpam' }}</div>
                                 <div class="text-[11px] text-slate-500">{{ $gl->reason }}</div>
                             </div>
                         </div>
@@ -224,5 +305,152 @@
         </div>
     </div>
 </div>
-@endsection
 
+<!-- INISIALISASI GRAFIK CHART.JS -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const formatRupiah = (val) => 'Rp ' + new Intl.NumberFormat('id-ID').format(val);
+
+    // 1. Pie Chart: Proporsi Pengeluaran per Kategori
+    const expenseCtx = document.getElementById('expensePieChart');
+    if (expenseCtx && window.Chart) {
+        new window.Chart(expenseCtx, {
+            type: 'pie',
+            data: {
+                labels: {!! json_encode($chartExpenseLabels) !!},
+                datasets: [{
+                    data: {!! json_encode($chartExpenseTotals) !!},
+                    backgroundColor: [
+                        '#1B365D', // Navy Primer
+                        '#0D9488', // Teal
+                        '#38BDF8', // Cyan
+                        '#F59E0B', // Amber
+                        '#EF4444', // Red
+                        '#64748B'  // Slate
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#ffffff',
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 12,
+                            font: { size: 10, family: 'Plus Jakarta Sans' },
+                            padding: 10
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                return ' ' + context.label + ': ' + formatRupiah(context.raw);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // 2. Donut Chart: Status Kepatuhan Pembayaran Iuran
+    const billingCtx = document.getElementById('billingDonutChart');
+    if (billingCtx && window.Chart) {
+        new window.Chart(billingCtx, {
+            type: 'doughnut',
+            data: {
+                labels: {!! json_encode(array_keys($chartBillingStatus)) !!},
+                datasets: [{
+                    data: {!! json_encode(array_values($chartBillingStatus)) !!},
+                    backgroundColor: [
+                        '#10B981', // Hijau Lunas
+                        '#EF4444', // Merah Belum Bayar
+                        '#F59E0B'  // Kuning Menunggu Verifikasi
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#ffffff',
+                    cutout: '65%'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 12,
+                            font: { size: 10, family: 'Plus Jakarta Sans' },
+                            padding: 10
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                return ' ' + context.label + ': ' + context.raw + ' Rumah';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // 3. Bar Chart: Komparasi Arus Kas (Pemasukan, Pengeluaran, Saldo Bersih)
+    const cashflowCtx = document.getElementById('cashflowBarChart');
+    if (cashflowCtx && window.Chart) {
+        new window.Chart(cashflowCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Masuk', 'Keluar', 'Saldo'],
+                datasets: [{
+                    label: 'Nominal Kas RT',
+                    data: {!! json_encode(array_values($chartCashflow)) !!},
+                    backgroundColor: [
+                        '#10B981', // Hijau Masuk
+                        '#EF4444', // Merah Keluar
+                        '#1B365D'  // Navy Saldo
+                    ],
+                    borderRadius: 8,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                return ' ' + formatRupiah(context.raw);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        ticks: {
+                            callback: function (value) {
+                                if (value >= 1000000) {
+                                    return (value / 1000000) + ' Jt';
+                                }
+                                return value;
+                            },
+                            font: { size: 9, family: 'Plus Jakarta Sans' }
+                        },
+                        grid: { color: '#F1F5F9' }
+                    },
+                    x: {
+                        ticks: { font: { size: 10, weight: 'bold', family: 'Plus Jakarta Sans' } },
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+@endsection
