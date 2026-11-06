@@ -122,6 +122,8 @@ class HomeController extends Controller
             Auth::login($user);
             if ($user->role === 'super_admin') {
                 return redirect()->route('superadmin.index');
+            } elseif ($user->role === 'ketua_rw') {
+                return redirect()->route('dashboard')->with('success', "Selamat datang, {$user->name}. Anda login sebagai Ketua RW dengan hak supervisi & pembinaan seluruh RT di lingkungan RW.");
             } elseif ($user->role === 'satpam') {
                 return redirect()->route('satpam.console');
             } elseif ($user->role === 'warga') {

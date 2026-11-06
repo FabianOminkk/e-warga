@@ -272,4 +272,24 @@ class EwargaNewFeaturesTest extends TestCase
         $response->assertSee('sales@ewarga.id');
         $response->assertSee('+62 812-3456-7890');
     }
+
+    public function test_ketua_rw_has_higher_supervisory_access_to_dashboard_and_letters(): void
+    {
+        $ketuaRw = User::where('role', 'ketua_rw')->first();
+        $this->assertNotNull($ketuaRw, 'Akun Ketua RW harus ada di seeder');
+
+        // Test Quick Login Ketua RW
+        $quickResponse = $this->get('/quick-login/ketua_rw');
+        $quickResponse->assertRedirect(route('dashboard'));
+
+        // Test Dashboard Access
+        $dashboardResponse = $this->actingAs($ketuaRw)->get('/dashboard');
+        $dashboardResponse->assertStatus(200);
+        $dashboardResponse->assertSee('Dashboard Supervisi Wilayah RW');
+        $dashboardResponse->assertSee('SUPERVISI SELURUH RT');
+
+        // Test Letters Access
+        $lettersResponse = $this->actingAs($ketuaRw)->get('/surat-pengantar');
+        $lettersResponse->assertStatus(200);
+    }
 }

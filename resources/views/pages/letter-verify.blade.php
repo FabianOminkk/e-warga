@@ -93,12 +93,29 @@
             </p>
         </div>
 
-        <!-- Tanda Tangan & QR Code Autentikasi -->
-        <div class="grid grid-cols-2 pt-6 font-sans">
-            <div>
-                <!-- Authentic QR Code Seal -->
-                <div class="p-4 rounded-xl border border-dashed border-slate-300 w-fit bg-slate-50">
-                    <div class="w-24 h-24 bg-white border border-slate-200 flex items-center justify-center p-2 mb-2">
+        <!-- Tanda Tangan Berjenjang (Ketua RW & Ketua RT) & QR Code Autentikasi -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 font-sans items-center border-t border-slate-200">
+            <!-- Sisi Kiri: Mengetahui & Mengesahkan Ketua RW (Tingkat Lebih Tinggi) -->
+            <div class="text-left space-y-1">
+                <div class="text-xs text-slate-500 font-semibold">Mengetahui & Menyetujui:</div>
+                <div class="text-sm font-bold text-slate-900">Ketua RW 02</div>
+                <div class="my-3">
+                    <span class="inline-block px-2.5 py-1 border border-indigo-500 rounded text-[10px] font-bold text-indigo-700 bg-indigo-50">
+                        ✓ DILEGALISASI KETUA RW
+                    </span>
+                </div>
+                <div class="text-sm font-bold underline text-slate-900">
+                    Bpk. H. Rahmat Hidayat
+                </div>
+                <div class="text-[11px] text-slate-500 font-mono">
+                    Reg RW: RW02-LEGAL-2026
+                </div>
+            </div>
+
+            <!-- Bagian Tengah: QR Code Autentikasi Sistem Terpadu -->
+            <div class="flex flex-col items-center justify-center">
+                <div class="p-3 rounded-xl border border-dashed border-slate-300 bg-slate-50 flex flex-col items-center">
+                    <div class="w-20 h-20 bg-white border border-slate-200 flex items-center justify-center p-1.5 mb-1.5">
                         <!-- SVG QR Representation -->
                         <svg class="w-full h-full text-slate-900" viewBox="0 0 100 100" fill="currentColor">
                             <rect x="0" y="0" width="30" height="30"/>
@@ -121,34 +138,33 @@
                             <rect x="75" y="80" width="15" height="15"/>
                         </svg>
                     </div>
-                    <div class="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider text-center">
+                    <div class="text-[9px] font-mono text-slate-600 font-bold uppercase tracking-wider text-center">
                         {{ $letter->qr_verification_code }}
                     </div>
-                    <div class="text-[9px] text-emerald-600 font-semibold text-center mt-0.5">
-                        Dokumen Asli Bersertifikat
+                    <div class="text-[8px] text-emerald-600 font-bold text-center mt-0.5">
+                        Otentikasi Digital Resmi
                     </div>
                 </div>
             </div>
 
-            <div class="text-right">
-                <div class="text-sm text-slate-600">
+            <!-- Sisi Kanan: Penandatangan Utama Ketua RT -->
+            <div class="text-right space-y-1">
+                <div class="text-xs text-slate-500">
                     Bekasi, {{ $letter->signed_at?->translatedFormat('d F Y') ?? date('d F Y') }}
                 </div>
-                <div class="text-sm font-bold text-slate-900 mt-1">
+                <div class="text-sm font-bold text-slate-900">
                     Ketua RT 04 / RW 02
                 </div>
-                
-                <div class="my-6">
-                    <span class="inline-block px-3 py-1 border border-emerald-500 rounded text-[11px] font-bold text-emerald-700 bg-emerald-50">
-                        ✓ TERTANDA SECARA ELEKTRONIK
+                <div class="my-3">
+                    <span class="inline-block px-2.5 py-1 border border-emerald-500 rounded text-[10px] font-bold text-emerald-700 bg-emerald-50">
+                        ✓ TERTANDA ELEKTRONIK RT
                     </span>
                 </div>
-
                 <div class="text-sm font-bold underline text-slate-900">
-                    {{ $letter->signer?->name ?? 'Bpk. Ahmad Subarjo' }}
+                    {{ $letter->signer?->name ?? 'Bpk. H. Sutrisno' }}
                 </div>
-                <div class="text-xs text-slate-500">
-                    NIP / Register: RT04-2026-001
+                <div class="text-[11px] text-slate-500 font-mono">
+                    Reg RT: RT04-2026-001
                 </div>
             </div>
         </div>

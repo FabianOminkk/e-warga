@@ -197,6 +197,18 @@
                         <span class="text-xs font-black text-amber-600 dark:text-amber-400">Masuk Hub ➔</span>
                     </a>
 
+                    <!-- Ketua RW (Rukun Warga - Jabatan Lebih Tinggi dari RT) -->
+                    <a href="{{ route('quick.login', 'ketua_rw') }}" class="sm:col-span-2 flex items-center justify-between p-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-300 dark:border-indigo-700/80 hover:bg-indigo-100/60 transition group">
+                        <div class="flex items-center gap-3">
+                            <span class="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-black text-sm shadow-xs">🏛️</span>
+                            <div>
+                                <div class="text-xs font-black text-slate-900 dark:text-white group-hover:text-indigo-600">Bpk. H. Rahmat Hidayat (Ketua RW 02)</div>
+                                <div class="text-[10px] text-slate-500 dark:text-slate-400">Pembina Wilayah, Supervisi Seluruh RT, & Rekomendasi RW</div>
+                            </div>
+                        </div>
+                        <span class="text-xs font-black text-indigo-600 dark:text-indigo-400">Masuk RW ➔</span>
+                    </a>
+
                     <!-- Ketua RT -->
                     <a href="{{ route('quick.login', 'ketua_rt') }}" class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-blue-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition">
                         <span class="text-base">👔</span>

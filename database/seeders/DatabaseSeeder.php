@@ -87,11 +87,23 @@ class DatabaseSeeder extends Seeder
             'occupancy_status' => 'occupied',
         ]);
 
-        // 4. Pengurus Lingkungan RT (Password: admin123)
+        // 4. Pengurus Lingkungan RW & RT (Password: admin123)
+        $ketuaRw = User::create([
+            'tenant_id' => $tenant->id,
+            'house_id' => $houseA1->id,
+            'name' => 'Bpk. H. Rahmat Hidayat (Ketua RW 02)',
+            'phone_number' => '08110000008',
+            'email' => 'ketuarw@ewarga.id',
+            'password' => $defaultStaffPassword,
+            'role' => 'ketua_rw',
+            'is_family_head' => true,
+            'status' => 'active',
+        ]);
+
         $ketuaRt = User::create([
             'tenant_id' => $tenant->id,
             'house_id' => $houseA1->id,
-            'name' => 'Bpk. H. Sutrisno (Ketua RT)',
+            'name' => 'Bpk. H. Sutrisno (Ketua RT 04)',
             'phone_number' => '08110000002',
             'email' => 'ketuart@ewarga.id',
             'password' => $defaultStaffPassword,

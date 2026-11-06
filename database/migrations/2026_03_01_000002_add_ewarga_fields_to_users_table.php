@@ -14,6 +14,7 @@ return new class extends Migration
             $table->string('phone_number', 25)->nullable()->unique()->after('name');
             $table->enum('role', [
                 'super_admin',
+                'ketua_rw',
                 'ketua_rt',
                 'sekretaris',
                 'bendahara',

@@ -79,6 +79,11 @@ class User extends Authenticatable
         return $this->role === 'super_admin';
     }
 
+    public function isKetuaRw(): bool
+    {
+        return $this->role === 'ketua_rw';
+    }
+
     public function isKetuaRt(): bool
     {
         return $this->role === 'ketua_rt';
@@ -106,16 +111,17 @@ class User extends Authenticatable
 
     public function isPengurus(): bool
     {
-        return in_array($this->role, ['super_admin', 'ketua_rt', 'sekretaris', 'bendahara']);
+        return in_array($this->role, ['super_admin', 'ketua_rw', 'ketua_rt', 'sekretaris', 'bendahara']);
     }
 
     public function getRoleLabelAttribute(): string
     {
         return match ($this->role) {
             'super_admin' => 'Super Admin Platform',
-            'ketua_rt' => 'Ketua RT',
-            'sekretaris' => 'Sekretaris RT',
-            'bendahara' => 'Bendahara RT',
+            'ketua_rw' => 'Ketua RW (Rukun Warga)',
+            'ketua_rt' => 'Ketua RT (Rukun Tetangga)',
+            'sekretaris' => 'Sekretaris RT/RW',
+            'bendahara' => 'Bendahara RT/RW',
             'satpam' => 'Petugas Satpam',
             'warga' => $this->is_family_head ? 'Kepala Keluarga' : 'Warga Penghuni',
             default => 'Warga',

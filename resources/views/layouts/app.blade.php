@@ -382,8 +382,8 @@
                 </div>
             @endif
 
-            <!-- MENU OPERASIONAL RT / LINGKUNGAN (DIBAWAH SUPER ADMIN, KETUA RT, BENDAHARA) -->
-            @if(in_array($currentUser?->role ?? '', ['super_admin', 'ketua_rt', 'bendahara']))
+            <!-- MENU OPERASIONAL RT & RW / LINGKUNGAN -->
+            @if(in_array($currentUser?->role ?? '', ['super_admin', 'ketua_rw', 'ketua_rt', 'bendahara']))
                 <div>
                     <div class="px-3 pb-2 text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
                         Manajemen Lingkungan
@@ -392,18 +392,18 @@
                         <a href="{{ route('dashboard') }}" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition {{ request()->routeIs('dashboard') ? 'bg-emerald-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
                             <div class="flex items-center gap-2.5">
                                 <span class="text-base">📊</span>
-                                <span>Dashboard Utama RT & Kas</span>
+                                <span>{{ ($currentUser?->role ?? '') === 'ketua_rw' ? 'Dashboard Supervisi RW & Kas' : 'Dashboard Utama RT & Kas' }}</span>
                             </div>
                             @if(request()->routeIs('dashboard'))
                                 <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
                             @endif
                         </a>
 
-                        @if(in_array($currentUser?->role ?? '', ['super_admin', 'ketua_rt']))
+                        @if(in_array($currentUser?->role ?? '', ['super_admin', 'ketua_rw', 'ketua_rt']))
                             <a href="{{ route('letters.index') }}" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition {{ request()->routeIs('letters.*') ? 'bg-blue-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
                                 <div class="flex items-center gap-2.5">
                                     <span class="text-base">📜</span>
-                                    <span>Surat Pengantar RT</span>
+                                    <span>{{ ($currentUser?->role ?? '') === 'ketua_rw' ? 'Legalisasi Surat RW & RT' : 'Surat Pengantar RT' }}</span>
                                 </div>
                                 @if($pendingLettersCount > 0)
                                     <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500 text-white font-black animate-pulse">
@@ -424,8 +424,8 @@
                 </div>
             @endif
 
-            <!-- MENU KEAMANAN & HARDWARE (SUPER ADMIN, KETUA RT, SATPAM) -->
-            @if(in_array($currentUser?->role ?? '', ['super_admin', 'ketua_rt', 'satpam']))
+            <!-- MENU KEAMANAN & HARDWARE (SUPER ADMIN, KETUA RW, KETUA RT, SATPAM) -->
+            @if(in_array($currentUser?->role ?? '', ['super_admin', 'ketua_rw', 'ketua_rt', 'satpam']))
                 <div>
                     <div class="px-3 pb-2 text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
                         Keamanan & Pos Jaga
@@ -571,6 +571,21 @@
                             @endif
                         </a>
 
+                        <!-- Ketua RW (Rukun Warga - Jabatan Lebih Tinggi dari RT) -->
+                        <a href="{{ route('quick.login', 'ketua_rw') }}" class="flex items-center justify-between px-2.5 py-2 rounded-xl {{ ($currentUser?->role ?? '') === 'ketua_rw' ? 'bg-indigo-50 dark:bg-indigo-950/70 text-indigo-900 dark:text-indigo-200 font-bold border border-indigo-300 dark:border-indigo-700' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                            <div class="flex items-center gap-2">
+                                <span class="text-base">🏛️</span>
+                                <div>
+                                    <div class="font-bold">Ketua RW (Bpk. H. Rahmat H.)</div>
+                                    <div class="text-[9px] text-slate-400">Supervisi Seluruh RT & Legalisir RW</div>
+                                </div>
+                            </div>
+                            @if(($currentUser?->role ?? '') === 'ketua_rw')
+                                <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                            @endif
+                        </a>
+
+                        <!-- Ketua RT -->
                         <a href="{{ route('quick.login', 'ketua_rt') }}" class="flex items-center justify-between px-2.5 py-2 rounded-xl {{ ($currentUser?->role ?? '') === 'ketua_rt' ? 'bg-blue-50 dark:bg-blue-950/70 text-blue-900 dark:text-blue-200 font-bold' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
                             <div class="flex items-center gap-2">
                                 <span>👔</span>

@@ -284,6 +284,30 @@ Dokumen ini mencatat seluruh hasil audit mendalam terhadap basis kode **E-WARGA*
 
 ---
 
+### 🔴 Masalah 18: Penyesuaian Hierarki Ketatanegaraan: Integrasi Peran Ketua RW (Rukun Warga) di Atas Ketua RT (Rukun Tetangga)
+* **Pemicu Masalah:**
+  Dalam tatanan administrasi kemasyarakatan di Indonesia, jika ada **Ketua RT (Rukun Tetangga)** maka secara logis wajib ada **Ketua RW (Rukun Warga)** yang memiliki tingkatan jabatan lebih tinggi (*supervisi teritorial* yang membawahi beberapa RT, misal RT 01 s/d RT 05). Sebelumnya, sistem hanya memiliki peran Ketua RT tanpa adanya entitas Ketua RW.
+* **Akar Masalah:**
+  Skema database pengguna, seeder, model `User`, dan kontrol akses belum mencakup peran `ketua_rw` serta alur legalitas berjenjang antara RT dan RW.
+* **✅ Solusi yang Diterapkan:**
+  1. **Penambahan Enum & Relasi Model (`User.php` & Migrasi):**
+     * Menambahkan `ketua_rw` ke dalam kolom enum `role` pada tabel `users`.
+     * Menambahkan helper method `isKetuaRw(): bool` dan memperbarui `isPengurus(): bool` serta label peran resmi: `Ketua RW (Rukun Warga)`.
+  2. **Akun Seeder Resmi Ketua RW:**
+     * Menambahkan akun default: **Bpk. H. Rahmat Hidayat (Ketua RW 02)** dengan email `ketuarw@ewarga.id`, nomor telepon `08110000008`, dan password default staf `admin123`.
+  3. **Hierarki Akses & Dashboard Supervisi RW:**
+     * **Ketua RW** diposisikan tepat di bawah Super Admin dan di atas Ketua RT pada popover role switcher, halaman landing page, dan halaman login.
+     * Ketika login sebagai Ketua RW, dashboard menampilkan lencana kehormatan: *"🏛️ TINGKAT JABATAN: KETUA RW (LEBIH TINGGI DARI RT) • SUPERVISI SELURUH RT"*, dengan akses terhadap koordinasi seluruh RT, kas agregat lingkungan, dan legalisasi surat RW.
+  4. **Pengesahan Surat Resmi Berjenjang (`letter-verify.blade.php`):**
+     * Dokumen surat pengantar resmi kini mencantumkan legalitas ganda berstandar administrasi sipil Indonesia:
+       - **Sisi Kiri:** Mengetahui & Menyetujui: **Ketua RW 02 (Bpk. H. Rahmat Hidayat)**
+       - **Bagian Tengah:** Stempel Barcode Otentikasi Digital Sistem E-WARGA
+       - **Sisi Kanan:** Penandatangan Utama: **Ketua RT 04 (Bpk. H. Sutrisno)**
+  5. **Quick Login & Navigasi:**
+     * `quick.login` route mendukung instan login untuk `ketua_rw` dengan pesan sambutan hak supervisi wilayah RW.
+
+---
+
 ## 📋 Panduan Penanganan Masalah Lapangan (Developer & Pengurus)
 
 | Gejala / Pesan Error | Penyebab Utama | Solusi Praktis |
@@ -299,8 +323,8 @@ Dokumen ini mencatat seluruh hasil audit mendalam terhadap basis kode **E-WARGA*
 ## 🧪 Jaminan Kualitas & Hasil Pengujian Otomatis
 
 Seluruh perbaikan di atas telah divalidasi menggunakan rangkaian pengujian otomatis (*Automated Feature Tests*):
-* **Jumlah Pengujian:** 31 Skenario Uji (*100% Passed*)
-* **Total Penegasan (*Assertions*):** 104 Poin Validasi
-* **Waktu Eksekusi:** 1.5 Detik
+* **Jumlah Pengujian:** 32 Skenario Uji (*100% Passed*)
+* **Total Penegasan (*Assertions*):** 111 Poin Validasi
+* **Waktu Eksekusi:** 2.1 Detik
 * **Hasil:** 🟢 **ZERO BUG / ZERO REGRESSION**
 

@@ -92,6 +92,18 @@
                             <span class="text-xs font-bold text-amber-600">&rarr;</span>
                         </a>
 
+                        <!-- Ketua RW (Rukun Warga - Jabatan Pembina Wilayah / Di Atas RT) -->
+                        <a href="{{ route('quick.login', 'ketua_rw') }}" class="flex items-center justify-between p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-indigo-500 hover:bg-indigo-50/50 dark:hover:bg-slate-800 transition group">
+                            <div class="flex items-center gap-3">
+                                <span class="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-950/70 text-indigo-800 dark:text-indigo-300 flex items-center justify-center font-bold text-lg">🏛️</span>
+                                <div>
+                                    <div class="text-sm font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400">Ketua RW (Bpk. H. Rahmat Hidayat)</div>
+                                    <div class="text-xs text-slate-500 dark:text-slate-400">Supervisi seluruh RT, rekap agregat lingkungan, & rekomendasi RW</div>
+                                </div>
+                            </div>
+                            <span class="text-xs font-bold text-slate-400 group-hover:text-indigo-600">&rarr;</span>
+                        </a>
+
                         <!-- Ketua RT -->
                         <a href="{{ route('quick.login', 'ketua_rt') }}" class="flex items-center justify-between p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 hover:bg-emerald-50/50 dark:hover:bg-slate-800 transition group">
                             <div class="flex items-center gap-3">

@@ -6,13 +6,23 @@
     <!-- Header & Lingkungan Info -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200 dark:border-slate-800">
         <div>
-            <div class="flex items-center gap-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
-                <span>{{ $tenant->name ?? 'Cluster Melati Mas' }}</span>
-                <span>•</span>
-                <span>{{ $tenant->rt_rw ?? 'RT 05 / RW 12' }}</span>
-            </div>
-            <h1 class="text-3xl font-extrabold text-slate-900 dark:text-white mt-1">Dashboard Pengurus Lingkungan</h1>
-            <p class="text-sm text-slate-500 dark:text-slate-400">Pusat kendali keuangan kas, persetujuan iuran warga, dan analisis grafik keuangan.</p>
+            @if(Auth::user()?->role === 'ketua_rw')
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/70 border border-indigo-200 dark:border-indigo-800 text-indigo-800 dark:text-indigo-300 text-xs font-black uppercase tracking-wider mb-1.5">
+                    <span>🏛️ TINGKAT JABATAN: KETUA RW (LEBIH TINGGI DARI RT)</span>
+                    <span>•</span>
+                    <span>SUPERVISI SELURUH RT</span>
+                </div>
+                <h1 class="text-3xl font-extrabold text-slate-900 dark:text-white mt-1">Dashboard Supervisi Wilayah RW</h1>
+                <p class="text-sm text-slate-500 dark:text-slate-400">Sebagai Ketua RW, Anda membina seluruh RT di wilayah ini, memantau kas lingkungan, keamanan pos jaga utama, dan legalisasi surat rekomendasi warga.</p>
+            @else
+                <div class="flex items-center gap-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
+                    <span>{{ $tenant->name ?? 'Cluster Melati Mas' }}</span>
+                    <span>•</span>
+                    <span>{{ $tenant->rt_rw ?? 'RT 05 / RW 12' }}</span>
+                </div>
+                <h1 class="text-3xl font-extrabold text-slate-900 dark:text-white mt-1">Dashboard Pengurus Lingkungan</h1>
+                <p class="text-sm text-slate-500 dark:text-slate-400">Pusat kendali keuangan kas, persetujuan iuran warga, dan analisis grafik keuangan.</p>
+            @endif
         </div>
 
         <div class="flex items-center gap-3">
