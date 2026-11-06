@@ -349,13 +349,39 @@ Dokumen ini mencatat seluruh hasil audit mendalam terhadap basis kode **E-WARGA*
      * `siti@warga.id` -> Warga Menunggu Review Ketua RW
      * `hendra@warga.id` -> Warga Baru Daftar (Akses Terkunci Total)
 
+### 🔴 Masalah 20: Pemisahan Halaman Pengaturan Akun Warga, Restriksi Ganti Mode Khusus Super Admin, dan Penggantian Nama Modul Siap Satpam
+* **Pemicu Masalah:**
+  1. Tombol "🔄 Ganti Mode: Beralih ke Perkampungan / Cluster" dan tombol "➕ Tambah Jadwal Dinas" di halaman jadwal sebelumnya dapat diakses dan diklik oleh akun warga biasa. Secara hierarki sistem operasional, peralihan mode lingkungan multi-tenant dan penjadwalan dinas adalah kewenangan strategis Super Admin Pusat & Pengurus.
+  2. Formulir pengaturan akun dan kelengkapan berkas KTP warga sebelumnya bertumpuk di dalam modal pop-up pada portal operasional harian warga (`pages/warga.blade.php`), membuat pengalaman pengisian data di layar desktop kurang leluasa dan membingungkan alur antara operasional gerbang harian dengan manajemen identitas kependudukan.
+  3. Modul jadwal tugas keamanan warga ("Jadwal Ronda Saya") perlu disesuaikan dengan nomenklatur operasional terpadu yang lebih profesional dan lugas: **"Siap Satpam"** (atau "Siap Satpam & Ronda").
+* **Akar Masalah:**
+  1. Kurangnya verifikasi RBAC (*Role-Based Access Control*) pada controller `ScheduleController::toggleEnvironmentMode` dan `ScheduleController::store` serta ketiadaan kondisional `@if(auth()->user()?->isSuperAdmin())` di view.
+  2. Belum tersedianya halaman mandiri (*dedicated desktop-first page*) beralamat `/pengaturan-akun` khusus manajemen profil dan berkas identitas resmi kependudukan.
+* **✅ Solusi yang Diterapkan:**
+  1. **Restriksi Ketat RBAC Ganti Mode Lingkungan:**
+     * Menambahkan proteksi pada `ScheduleController::toggleEnvironmentMode()`: hanya pengguna dengan wewenang `super_admin` yang diizinkan memicu pergantian mode. Pengguna selain super admin otomatis ditolak dan dialihkan kembali dengan notifikasi error.
+     * Membungkus tombol ganti mode di `pages/schedules.blade.php` dengan kondisional `@if(auth()->user()?->isSuperAdmin())` sehingga pengguna peran warga, satpam, atau lainnya tidak akan pernah melihat tombol tersebut.
+     * Membatasi tombol "➕ Tambah Jadwal Dinas" hanya untuk peran manajemen (`['super_admin', 'ketua_rw', 'ketua_rt', 'satpam']`).
+  2. **Penciptaan Halaman Mandiri Pengaturan Akun Warga (`/pengaturan-akun`):**
+     * Mendaftarkan route baru `GET /pengaturan-akun` (`warga.profile`) di `routes/web.php`.
+     * Membangun tampilan desktop-first premium `resources/views/pages/warga-profile.blade.php` dengan tata letak grid 12 kolom:
+       - **Kolom Kiri (8 Kolom):** Formulir lengkap data diri resmi (Nama KTP, No WhatsApp, NIK 16-digit angka, Tempat & Tanggal Lahir, Jenis Kelamin, Agama, Pekerjaan, Unit Rumah, Alamat Lengkap, dan Upload Foto KTP Asli).
+       - **Kolom Kanan (4 Kolom):** Preview interaktif Kartu Digital E-KTP, pelacak progress verifikasi Ketua RW (4 tahapan verifikasi), informasi integrasi palang otomatis RFID, serta form ganti password akun mandiri.
+     * Mengarahkan seluruh tombol "Atur Akun" dan "Lengkapi KTP" dari portal harian warga langsung ke halaman `/pengaturan-akun`.
+     * Menambahkan menu navigasi *"🪪 Pengaturan Akun & Data Diri"* di laci sidebar drawer di bawah kategori "Portal Warga Mandiri".
+  3. **Penyesuaian Nomenklatur Modul Menjadi "Siap Satpam":**
+     * Mengubah label menu di sidebar drawer dari *"Jadwal Ronda Saya"* menjadi **"Siap Satpam"**.
+     * Mengubah judul halaman `pages/schedules.blade.php` menjadi **"Siap Satpam & Jadwal Keamanan Bulan Ini"**.
+     * Mengubah kartu navigasi cepat di portal warga menjadi **"Siap Satpam"** dengan deskripsi *"Lihat Siap Satpam & Tim Ronda Malam Ini"*.
+
 ---
 
 ## 📋 Panduan Penanganan Masalah Lapangan (Developer & Pengurus)
 
 | Gejala / Pesan Error | Penyebab Utama | Solusi Praktis |
 | :--- | :--- | :--- |
-| **Warga baru mengeluh tidak bisa buka gerbang dari HP** | Berkas identitas KTP belum diunggah atau belum di-ACC oleh Ketua RW. | Minta warga klik tombol **"Atur Akun & Berkas KTP"** di portal warga untuk mengunggah NIK & foto KTP, lalu minta Ketua RW mengklik **"✓ ACC KTP"** di dashboard pengurus. |
+| **Warga mengeluh tidak menemukan tombol Ganti Mode Lingkungan** | Fitur ganti mode cluster/desa sengaja dikunci hanya untuk akun Super Admin Pusat demi integritas wilayah. | Gunakan akun Super Admin (`superadmin@ewarga.id`) untuk mengatur mode lingkungan perumahan. |
+| **Warga baru mengeluh tidak bisa buka gerbang dari HP** | Berkas identitas KTP belum diunggah atau belum di-ACC oleh Ketua RW. | Minta warga buka menu **"🪪 Pengaturan Akun & Data Diri"** (`/pengaturan-akun`) untuk melengkapi NIK & foto KTP, lalu minta Ketua RW mengklik **"✓ ACC KTP"** di dashboard pengurus. |
 | **Palang pintu simulator tidak bergerak saat dipencet** | Token CSRF kadaluarsa atau tab browser terlalu lama terbuka. | Tekan tombol **Refresh (F5)** pada browser Anda untuk memperbarui sesi. |
 | **Website tidak bisa dibuka di browser (`Unable to connect`)** | Server Laravel lokal belum dinyalakan atau terminal tertutup. | Buka terminal di folder proyek, ketik `php artisan serve`, lalu buka kembali `http://127.0.0.1:8000`. |
 | **Perubahan tampilan CSS tidak muncul** | Cache browser atau aset Vite belum dikompilasi ulang. | Jalankan `npm run build` di terminal, lalu tekan `Ctrl + F5` di browser untuk hard refresh. |
@@ -367,8 +393,8 @@ Dokumen ini mencatat seluruh hasil audit mendalam terhadap basis kode **E-WARGA*
 ## 🧪 Jaminan Kualitas & Hasil Pengujian Otomatis
 
 Seluruh perbaikan di atas telah divalidasi menggunakan rangkaian pengujian otomatis (*Automated Feature Tests*):
-* **Jumlah Pengujian:** 36 Skenario Uji (*100% Passed*)
-* **Total Penegasan (*Assertions*):** 134 Poin Validasi
-* **Waktu Eksekusi:** 3.1 Detik
+* **Jumlah Pengujian:** 39 Skenario Uji (*100% Passed*)
+* **Total Penegasan (*Assertions*):** 145 Poin Validasi
+* **Waktu Eksekusi:** 2.3 Detik
 * **Hasil:** 🟢 **ZERO BUG / ZERO REGRESSION**
 

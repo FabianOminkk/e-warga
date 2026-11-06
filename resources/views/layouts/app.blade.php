@@ -442,7 +442,7 @@
                         <a href="{{ route('schedules.index') }}" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition {{ request()->routeIs('schedules.*') ? 'bg-amber-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
                             <div class="flex items-center gap-2.5">
                                 <span class="text-base">🔦</span>
-                                <span>Jadwal Satpam & Ronda</span>
+                                <span>Siap Satpam & Ronda</span>
                             </div>
                         </a>
 
@@ -472,6 +472,16 @@
                             <span class="text-[9px] px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 font-bold">WARGA</span>
                         </a>
 
+                        <a href="{{ route('warga.profile') }}" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition {{ request()->routeIs('warga.profile') ? 'bg-emerald-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                            <div class="flex items-center gap-2.5">
+                                <span class="text-base">🪪</span>
+                                <span>Pengaturan Akun & Data Diri</span>
+                            </div>
+                            @if(!$currentUser?->canAccessGate() && ($currentUser?->role ?? '') === 'warga')
+                                <span class="text-[9px] px-1.5 py-0.5 rounded-md bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300 font-bold animate-pulse">LENGKAPI</span>
+                            @endif
+                        </a>
+
                         @if(($currentUser?->role ?? '') === 'warga')
                             <a href="{{ route('letters.index') }}" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition {{ request()->routeIs('letters.*') ? 'bg-blue-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
                                 <div class="flex items-center gap-2.5">
@@ -483,7 +493,7 @@
                             <a href="{{ route('schedules.index') }}" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition {{ request()->routeIs('schedules.*') ? 'bg-amber-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
                                 <div class="flex items-center gap-2.5">
                                     <span class="text-base">🔦</span>
-                                    <span>Jadwal Ronda Saya</span>
+                                    <span>Siap Satpam</span>
                                 </div>
                             </a>
                         @endif
@@ -655,7 +665,7 @@
             <!-- PROFIL PENGGUNA YANG SEDANG AKTIF -->
             @auth
                 <div class="flex items-center justify-between pt-2 border-t border-slate-200/80 dark:border-slate-800/80">
-                    <div class="flex items-center gap-2.5 truncate">
+                    <a href="{{ $currentUser->role === 'warga' ? route('warga.profile') : 'javascript:void(0)' }}" class="flex items-center gap-2.5 truncate hover:opacity-80 transition" title="Pengaturan Akun">
                         <div class="w-7 h-7 rounded-full {{ $currentUser->isSuperAdmin() ? 'bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-700' : 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300' }} flex items-center justify-center font-black text-xs shrink-0">
                             {{ $currentUser->isSuperAdmin() ? '⚡' : substr($currentUser->name, 0, 1) }}
                         </div>
@@ -665,7 +675,7 @@
                                 {{ $currentUser->role_label }}
                             </div>
                         </div>
-                    </div>
+                    </a>
                     <form action="{{ route('logout') }}" method="POST" class="inline shrink-0">
                         @csrf
                         <button type="submit" class="p-1 rounded-lg text-slate-400 hover:text-rose-600 transition cursor-pointer" title="Keluar dari Sistem">

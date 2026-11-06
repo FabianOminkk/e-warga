@@ -113,7 +113,7 @@ class WargaKtpVerificationTest extends TestCase
             'house_id' => $this->house->id,
         ]);
 
-        $response->assertRedirect(route('warga.index'));
+        $response->assertRedirect(route('warga.profile'));
         $response->assertSessionHas('success');
 
         $warga->refresh();
@@ -121,6 +121,50 @@ class WargaKtpVerificationTest extends TestCase
         $this->assertEquals('3275011902890005', $warga->nik);
         $this->assertEquals('RFID-3275011902890005', $warga->rfid_tag);
         $this->assertFalse($warga->gate_access_enabled);
+    }
+
+    public function test_warga_can_access_dedicated_profile_page(): void
+    {
+        $warga = User::create([
+            'tenant_id' => $this->tenant->id,
+            'house_id' => $this->house->id,
+            'name' => 'Warga Test',
+            'email' => 'warga.test@ewarga.id',
+            'password' => bcrypt('warga123'),
+            'role' => 'warga',
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($warga);
+
+        $response = $this->get(route('warga.profile'));
+        $response->assertStatus(200);
+        $response->assertSee('Pengaturan Akun & Kelengkapan Identitas KTP', false);
+        $response->assertSee('Nomor Induk Kependudukan (NIK - Wajib 16 Digit)');
+    }
+
+    public function test_warga_views_schedules_as_siap_satpam_and_cannot_see_ganti_mode(): void
+    {
+        $warga = User::create([
+            'tenant_id' => $this->tenant->id,
+            'house_id' => $this->house->id,
+            'name' => 'Warga Test Siskamling',
+            'email' => 'siskamling@ewarga.id',
+            'password' => bcrypt('warga123'),
+            'role' => 'warga',
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($warga);
+
+        $response = $this->get(route('schedules.index'));
+        $response->assertStatus(200);
+        $response->assertSee('Siap Satpam & Jadwal Keamanan Bulan Ini', false);
+        // Warga MUST NOT see Ganti Mode button
+        $response->assertDontSee('Ganti Mode: Beralih ke Perkampungan');
+        $response->assertDontSee('Ganti Mode: Beralih ke Cluster');
+        // Warga MUST NOT see Tambah Jadwal Dinas button
+        $response->assertDontSee('➕ Tambah Jadwal Dinas');
     }
 
     public function test_ketua_rw_can_approve_warga_and_gate_access_is_activated(): void
@@ -209,3 +253,4 @@ class WargaKtpVerificationTest extends TestCase
         $simGranted->assertJson(['success' => true]);
     }
 }
+

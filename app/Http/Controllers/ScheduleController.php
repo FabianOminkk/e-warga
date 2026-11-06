@@ -42,6 +42,11 @@ class ScheduleController extends Controller
 
     public function store(Request $request)
     {
+        $currentUser = Auth::user();
+        if (!$currentUser || !in_array($currentUser->role, ['super_admin', 'ketua_rw', 'ketua_rt', 'satpam'])) {
+            return redirect()->back()->with('error', 'Akses ditolak: Hanya pengurus RT/RW, Satpam, atau Super Admin yang dapat menambahkan jadwal dinas.');
+        }
+
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
             'schedule_type' => 'required|in:satpam_shift,ronda_warga',
@@ -99,6 +104,11 @@ class ScheduleController extends Controller
 
     public function toggleEnvironmentMode(Request $request)
     {
+        $user = Auth::user();
+        if (!$user || !$user->isSuperAdmin()) {
+            return redirect()->back()->with('error', 'Akses ditolak: Hanya Super Admin Platform yang berwenang mengganti mode lingkungan wilayah.');
+        }
+
         $tenant = Tenant::getActiveTenant() ?? Tenant::first();
         if ($tenant) {
             $newMode = $tenant->environment_type === 'cluster' ? 'kampung' : 'cluster';

@@ -40,6 +40,9 @@ class EwargaNewFeaturesTest extends TestCase
 
     public function test_can_toggle_environment_mode(): void
     {
+        $superAdmin = User::where('role', 'super_admin')->first();
+        $this->actingAs($superAdmin);
+
         $tenant = Tenant::first();
         $initialMode = $tenant->environment_type;
 
@@ -48,6 +51,22 @@ class EwargaNewFeaturesTest extends TestCase
 
         $tenant->refresh();
         $this->assertNotEquals($initialMode, $tenant->environment_type);
+    }
+
+    public function test_regular_warga_cannot_toggle_environment_mode(): void
+    {
+        $warga = User::where('role', 'warga')->first();
+        $this->actingAs($warga);
+
+        $tenant = Tenant::first();
+        $initialMode = $tenant->environment_type;
+
+        $response = $this->post('/toggle-mode');
+        $response->assertRedirect();
+        $response->assertSessionHas('error');
+
+        $tenant->refresh();
+        $this->assertEquals($initialMode, $tenant->environment_type);
     }
 
     public function test_can_checkin_security_schedule(): void

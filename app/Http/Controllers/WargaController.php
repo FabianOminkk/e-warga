@@ -57,6 +57,21 @@ class WargaController extends Controller
         return view('pages.warga', compact('user', 'tenant', 'smartGate', 'billing', 'myVisitors', 'myGateLogs', 'myLetters', 'houses'));
     }
 
+    public function profile()
+    {
+        $tenant = Tenant::getActiveTenant() ?? Tenant::first();
+        $user = Auth::user();
+
+        if (!$user) {
+            $user = User::where('tenant_id', $tenant?->id)->where('role', 'warga')->first() 
+                ?? User::where('role', 'warga')->first();
+        }
+
+        $houses = House::where('tenant_id', $tenant?->id)->orderBy('block_name')->orderBy('house_number')->get();
+
+        return view('pages.warga-profile', compact('user', 'tenant', 'houses'));
+    }
+
     public function triggerOpenGate(Request $request)
     {
         $user = Auth::user() ?? User::where('role', 'warga')->first();
@@ -241,7 +256,7 @@ class WargaController extends Controller
 
         $user->update($dataToUpdate);
 
-        return redirect()->route('warga.index')->with('success', 'Data identitas KTP berhasil disimpan! Berkas Anda saat ini masuk ke antrean verifikasi Ketua RW (Bpk. H. Rahmat Hidayat). Akses palang pintu & izin tamu akan aktif otomatis setelah disetujui Pak RW.');
+        return redirect()->route('warga.profile')->with('success', 'Data identitas KTP berhasil disimpan! Berkas Anda saat ini masuk ke antrean verifikasi Ketua RW (Bpk. H. Rahmat Hidayat). Akses palang pintu & izin tamu akan aktif otomatis setelah disetujui Pak RW.');
     }
 
     public function changePassword(Request $request)

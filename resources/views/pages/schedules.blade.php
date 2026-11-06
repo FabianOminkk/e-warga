@@ -13,23 +13,27 @@
                 <span class="text-xs text-slate-400 dark:text-slate-500">•</span>
                 <span class="text-xs font-bold text-slate-500 dark:text-slate-400">{{ $tenant->name ?? 'Cluster Melati Mas' }}</span>
             </div>
-            <h1 class="text-3xl font-black text-slate-900 dark:text-white mt-1">Jadwal Keamanan & Ronda Bulan Ini</h1>
+            <h1 class="text-3xl font-black text-slate-900 dark:text-white mt-1">Siap Satpam & Jadwal Keamanan Bulan Ini</h1>
             <p class="text-sm text-slate-500 dark:text-slate-400">Transparansi petugas satpam yang berdinas dan regu ronda malam (Siskamling) warga.</p>
         </div>
 
         <div class="flex flex-wrap items-center gap-3">
-            <!-- Tombol Beralih Mode Lingkungan (Cluster vs Kampung) -->
-            <form action="{{ route('environment.toggle') }}" method="POST">
-                @csrf
-                <button type="submit" class="px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold text-xs shadow-xs transition flex items-center gap-2">
-                    <span>🔄 Ganti Mode: {{ ($tenant->environment_type ?? 'cluster') === 'cluster' ? 'Beralih ke Perkampungan' : 'Beralih ke Cluster' }}</span>
-                </button>
-            </form>
+            <!-- Tombol Beralih Mode Lingkungan (HANYA HAK AKSES SUPER ADMIN PLATFORM) -->
+            @if(auth()->user()?->isSuperAdmin())
+                <form action="{{ route('environment.toggle') }}" method="POST">
+                    @csrf
+                    <button type="submit" class="px-3.5 py-2 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 text-amber-900 dark:text-amber-200 font-extrabold text-xs shadow-xs transition flex items-center gap-2 cursor-pointer" title="Khusus Super Admin: Ganti Karakter Lingkungan">
+                        <span>⚡ Ganti Mode: {{ ($tenant->environment_type ?? 'cluster') === 'cluster' ? 'Beralih ke Perkampungan' : 'Beralih ke Cluster' }}</span>
+                    </button>
+                </form>
+            @endif
 
-            <!-- Tombol Tambah Jadwal Baru (Admin / Pengurus) -->
-            <button @click="openAddModal = true" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2">
-                <span>➕ Tambah Jadwal Dinas</span>
-            </button>
+            <!-- Tombol Tambah Jadwal Baru (Khusus Admin / Pengurus / Satpam, BUKAN Warga Biasa) -->
+            @if(in_array(auth()->user()?->role ?? '', ['super_admin', 'ketua_rw', 'ketua_rt', 'satpam']))
+                <button @click="openAddModal = true" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2 cursor-pointer">
+                    <span>➕ Tambah Jadwal Dinas</span>
+                </button>
+            @endif
         </div>
     </div>
 

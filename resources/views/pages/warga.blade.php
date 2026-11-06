@@ -45,25 +45,15 @@
                 </div>
             </div>
 
-            <!-- Tombol Aksi Pengaturan Akun & Bantuan -->
+            <!-- Tombol Aksi Pengaturan Akun Terpisah & Bantuan -->
             <div class="flex flex-wrap items-center gap-2.5 shrink-0">
-                <button 
-                    @click="openProfileModal = true" 
-                    type="button" 
-                    class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black shadow-md shadow-emerald-600/20 transition flex items-center gap-2 cursor-pointer"
+                <a 
+                    href="{{ route('warga.profile') }}" 
+                    class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black shadow-md shadow-emerald-600/20 transition flex items-center gap-2"
                 >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                    <span>Atur Akun & Berkas KTP</span>
-                </button>
-
-                <button 
-                    @click="openPasswordModal = true" 
-                    type="button" 
-                    class="px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
-                >
-                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                    <span>Ganti Password</span>
-                </button>
+                    <span>Pengaturan Akun & Data Diri</span>
+                </a>
 
                 <button 
                     @click="startTour()" 
@@ -100,13 +90,12 @@
                         @if($user->verification_status === 'pending_rw')
                             Data NIK KTP Anda (<strong>{{ $user->nik }}</strong>) telah dikirimkan ke meja kerja Ketua RW. Setelah disetujui Pak RW, data RFID/E-KTP Anda otomatis disinkronkan ke Pos Pantau Satpam dan palang gerbang pintar dapat dibuka seketika.
                         @else
-                            Sesuai standar keamanan terpadu lingkungan, seluruh warga baru yang mendaftar <strong>terkunci aksesnya</strong> sampai melengkapi nomor KTP (NIK), foto KTP, dan tanggal lahir. Lengkapi berkas sekarang agar segera divalidasi oleh Ketua RW.
+                            Sesuai standar keamanan terpadu lingkungan, seluruh warga baru yang mendaftar <strong>terkunci aksesnya</strong> sampai melengkapi nomor KTP (NIK), foto KTP, dan tanggal lahir. Buka halaman pengaturan akun untuk mengisi identitas lengkap Anda.
                         @endif
                     </p>
 
                     <!-- 4-Langkah Progres Verifikasi -->
                     <div class="pt-3 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                        <!-- Step 1 -->
                         <div class="p-3 rounded-xl border {{ $user->nik ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500' }}">
                             <div class="font-extrabold flex items-center gap-1.5">
                                 <span>{{ $user->nik ? '✓' : '1.' }}</span>
@@ -115,7 +104,6 @@
                             <div class="text-[10px] mt-0.5 opacity-80">{{ $user->nik ? 'Selesai diunggah' : 'Belum diisi' }}</div>
                         </div>
 
-                        <!-- Step 2 -->
                         <div class="p-3 rounded-xl border {{ $user->verification_status === 'approved' ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300' : ($user->verification_status === 'pending_rw' ? 'bg-amber-100 dark:bg-amber-950/60 border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-200 font-bold' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500') }}">
                             <div class="font-extrabold flex items-center gap-1.5">
                                 <span>{{ $user->verification_status === 'approved' ? '✓' : '2.' }}</span>
@@ -124,7 +112,6 @@
                             <div class="text-[10px] mt-0.5 opacity-80">{{ $user->verification_status === 'pending_rw' ? 'Sedang Ditinjau' : ($user->verification_status === 'approved' ? 'Disetujui' : 'Menunggu Berkas') }}</div>
                         </div>
 
-                        <!-- Step 3 -->
                         <div class="p-3 rounded-xl border {{ $user->canAccessGate() ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500' }}">
                             <div class="font-extrabold flex items-center gap-1.5">
                                 <span>{{ $user->canAccessGate() ? '✓' : '3.' }}</span>
@@ -133,7 +120,6 @@
                             <div class="text-[10px] mt-0.5 opacity-80">{{ $user->canAccessGate() ? 'Tersinkron' : 'Menunggu ACC RW' }}</div>
                         </div>
 
-                        <!-- Step 4 -->
                         <div class="p-3 rounded-xl border {{ $user->canAccessGate() ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500' }}">
                             <div class="font-extrabold flex items-center gap-1.5">
                                 <span>{{ $user->canAccessGate() ? '✓' : '4.' }}</span>
@@ -146,14 +132,13 @@
 
                 <!-- Tombol CTA Selesaikan -->
                 <div class="shrink-0">
-                    <button 
-                        @click="openProfileModal = true" 
-                        type="button" 
-                        class="px-5 py-3 rounded-2xl font-black text-xs shadow-lg transition flex items-center gap-2 cursor-pointer {{ $user->verification_status === 'pending_rw' ? 'bg-amber-600 hover:bg-amber-700 text-white shadow-amber-600/30' : 'bg-rose-600 hover:bg-rose-700 text-white shadow-rose-600/30' }}"
+                    <a 
+                        href="{{ route('warga.profile') }}" 
+                        class="px-5 py-3 rounded-2xl font-black text-xs shadow-lg transition flex items-center gap-2 {{ $user->verification_status === 'pending_rw' ? 'bg-amber-600 hover:bg-amber-700 text-white shadow-amber-600/30' : 'bg-rose-600 hover:bg-rose-700 text-white shadow-rose-600/30' }}"
                     >
-                        <span>{{ $user->verification_status === 'pending_rw' ? 'Periksa / Ubah Berkas KTP' : 'Lengkapi Berkas KTP Sekarang' }}</span>
+                        <span>{{ $user->verification_status === 'pending_rw' ? 'Periksa / Ubah Berkas KTP' : 'Buka Pengaturan Akun & Lengkapi KTP' }}</span>
                         <span>➔</span>
-                    </button>
+                    </a>
                 </div>
 
             </div>
@@ -207,17 +192,16 @@
                                 @if($user->verification_status === 'pending_rw')
                                     Berkas KTP Anda sedang menunggu persetujuan dan pengesahan dari <strong>Ketua RW</strong>. Begitu di-ACC, tombol hijau pembuka palang akan aktif otomatis.
                                 @else
-                                    Akun Anda berstatus warga baru. Silakan klik tombol di bawah untuk melengkapi berkas identitas KTP dan tanggal lahir.
+                                    Akun Anda berstatus warga baru. Silakan buka halaman pengaturan akun untuk melengkapi data KTP, foto, dan tanggal lahir.
                                 @endif
                             </p>
                         </div>
-                        <button 
-                            @click="openProfileModal = true" 
-                            type="button" 
+                        <a 
+                            href="{{ route('warga.profile') }}" 
                             class="mt-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md transition"
                         >
-                            📝 Buka Form Kelengkapan Berkas KTP
-                        </button>
+                            📝 Buka Pengaturan Akun & Berkas KTP
+                        </a>
                     </div>
                 @endif
 
@@ -233,7 +217,7 @@
                 <!-- Card 1: Buat Tiket Izin Tamu / Kurir -->
                 <div 
                     id="step-guest-pass" 
-                    @click="{{ $user->canAccessGate() ? 'openGuestModal = true' : 'showLockedNotice()' }}" 
+                    @click="{{ $user->canAccessGate() ? 'openGuestModal = true' : 'redirectToProfile()' }}" 
                     class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs hover:border-emerald-500 transition cursor-pointer group relative overflow-hidden"
                 >
                     @if(!$user->canAccessGate())
@@ -249,7 +233,7 @@
                         Kirimkan kode QR tiket tamu ke paket kurir, ojol, atau kerabat via WhatsApp.
                     </p>
                     <div class="mt-4 flex items-center text-xs font-bold text-emerald-600 dark:text-emerald-400 gap-1">
-                        <span>{{ $user->canAccessGate() ? 'Buat Tiket Tamu' : 'Buka Kunci Akses' }}</span>
+                        <span>{{ $user->canAccessGate() ? 'Buat Tiket Tamu' : 'Lengkapi KTP di Pengaturan' }}</span>
                         <span>&rarr;</span>
                     </div>
                 </div>
@@ -285,8 +269,7 @@
 
                 <!-- Card 3: Layanan Surat Pengantar RT Online -->
                 <a 
-                    href="{{ $user->canAccessGate() ? route('letters.index') : 'javascript:void(0)' }}" 
-                    @click="{{ !$user->canAccessGate() ? 'showLockedNotice()' : '' }}"
+                    href="{{ $user->canAccessGate() ? route('letters.index') : route('warga.profile') }}" 
                     class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs hover:border-emerald-500 transition group relative"
                 >
                     @if(!$user->canAccessGate())
@@ -302,12 +285,12 @@
                         Permohonan surat domisili, SKCK, dan pengantar kelurahan ber-QR code sah.
                     </p>
                     <div class="mt-4 flex items-center text-xs font-bold text-indigo-600 dark:text-indigo-400 gap-1">
-                        <span>{{ $user->canAccessGate() ? 'Ajukan Surat Online' : 'KTP Terverifikasi Diperlukan' }}</span>
+                        <span>{{ $user->canAccessGate() ? 'Ajukan Surat Online' : 'Lengkapi KTP Terlebih Dahulu' }}</span>
                         <span>&rarr;</span>
                     </div>
                 </a>
 
-                <!-- Card 4: Jadwal Jaga Pos Satpam & Siskamling Ronda -->
+                <!-- Card 4: Siap Satpam (Jadwal Keamanan & Ronda) -->
                 <a 
                     href="{{ route('schedules.index') }}" 
                     class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs hover:border-emerald-500 transition group"
@@ -315,12 +298,12 @@
                     <div class="w-12 h-12 rounded-2xl bg-cyan-50 dark:bg-cyan-950/60 text-cyan-600 dark:text-cyan-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition">
                         🛡️
                     </div>
-                    <div class="font-black text-base text-slate-900 dark:text-white">Jadwal Keamanan & Ronda</div>
+                    <div class="font-black text-base text-slate-900 dark:text-white">Siap Satpam</div>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                        Pantau siapa petugas satpam dan warga yang bertugas ronda malam ini.
+                        Pantau jadwal siaga satpam pos jaga dan regu ronda siskamling malam ini.
                     </p>
                     <div class="mt-4 flex items-center text-xs font-bold text-cyan-600 dark:text-cyan-400 gap-1">
-                        <span>Cek Kalender Keamanan</span>
+                        <span>Cek Siap Satpam</span>
                         <span>&rarr;</span>
                     </div>
                 </a>
@@ -371,9 +354,6 @@
 
             <!-- KARTU E-KTP DIGITAL RESMI (VISUALISASI INDONESIA E-ID) -->
             <div class="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 rounded-3xl p-6 text-white shadow-xl border border-blue-800/40 relative overflow-hidden">
-                <!-- Background Hologram Watermark -->
-                <div class="absolute -right-8 -bottom-8 w-44 h-44 rounded-full bg-blue-500/10 blur-2xl pointer-events-none"></div>
-
                 <div class="flex items-center justify-between pb-3 border-b border-blue-800/60 mb-4">
                     <div class="text-left">
                         <div class="text-[10px] uppercase font-black tracking-widest text-blue-300">REPUBLIK INDONESIA</div>
@@ -382,7 +362,6 @@
                     <span class="text-lg">🇮🇩</span>
                 </div>
 
-                <!-- Preview Foto KTP jika ada -->
                 @if($user->ktp_photo)
                     <div class="mb-4 rounded-xl overflow-hidden border border-blue-700/50 bg-slate-950">
                         <img src="{{ asset($user->ktp_photo) }}" alt="Foto KTP Warga" class="w-full h-32 object-cover">
@@ -420,7 +399,6 @@
                         </div>
                     </div>
 
-                    <!-- Status Otorisasi RW -->
                     <div class="pt-3 border-t border-blue-800/60 flex items-center justify-between text-[11px]">
                         <div>
                             <span class="text-slate-400 block text-[9px] uppercase">Otorisasi Legalitas:</span>
@@ -437,13 +415,12 @@
                     </div>
                 </div>
 
-                <button 
-                    @click="openProfileModal = true" 
-                    type="button" 
-                    class="mt-4 w-full py-2.5 rounded-xl bg-blue-600/60 hover:bg-blue-600 text-white font-bold text-xs transition border border-blue-500/40"
+                <a 
+                    href="{{ route('warga.profile') }}" 
+                    class="mt-4 block text-center w-full py-2.5 rounded-xl bg-blue-600/60 hover:bg-blue-600 text-white font-bold text-xs transition border border-blue-500/40"
                 >
-                    ✏️ Perbarui Data KTP / Foto
-                </button>
+                    ✏️ Buka Pengaturan Akun & Data Diri
+                </a>
             </div>
 
             <!-- TOMBOL DARURAT (PANIC BUTTON) -->
@@ -506,168 +483,7 @@
     </div>
 
     <!-- ======================================================== -->
-    <!-- 4. MODAL FORMULIR PENGATURAN AKUN & KELENGKAPAN KTP      -->
-    <!-- ======================================================== -->
-    <div x-show="openProfileModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-xs">
-        <div @click.away="openProfileModal = false" class="bg-white dark:bg-slate-900 rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 dark:border-slate-800 max-h-[90vh] overflow-y-auto">
-            
-            <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-6">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 flex items-center justify-center text-xl font-bold">
-                        🪪
-                    </div>
-                    <div>
-                        <h3 class="font-black text-slate-900 dark:text-white text-lg">Pengaturan Akun & Berkas KTP</h3>
-                        <p class="text-xs text-slate-500 dark:text-slate-400">Lengkapi identitas resmi Anda untuk diverifikasi & di-ACC oleh Ketua RW</p>
-                    </div>
-                </div>
-                <button @click="openProfileModal = false" class="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 font-bold text-lg cursor-pointer">&times;</button>
-            </div>
-
-            <form action="{{ route('warga.profile.update') }}" method="POST" enctype="multipart/form-data" class="space-y-5">
-                @csrf
-
-                <!-- Nama Lengkap & No WhatsApp -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1.5">Nama Lengkap Sesuai KTP <span class="text-rose-500">*</span></label>
-                        <input type="text" name="name" value="{{ old('name', $user->name) }}" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:border-emerald-500 outline-hidden font-semibold">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1.5">Nomor WhatsApp Aktif <span class="text-rose-500">*</span></label>
-                        <input type="text" name="phone_number" value="{{ old('phone_number', $user->phone_number) }}" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:border-emerald-500 outline-hidden font-mono">
-                    </div>
-                </div>
-
-                <!-- NIK KTP (16 Digit Wajib) -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1.5">
-                        Nomor Induk Kependudukan (NIK - 16 Digit) <span class="text-rose-500">*</span>
-                    </label>
-                    <input 
-                        type="text" 
-                        name="nik" 
-                        maxlength="16" 
-                        minlength="16"
-                        pattern="\d{16}"
-                        value="{{ old('nik', $user->nik) }}" 
-                        placeholder="Contoh: 3275011205820001" 
-                        required 
-                        class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:border-emerald-500 outline-hidden font-mono text-base tracking-widest"
-                    >
-                    <p class="text-[11px] text-slate-400 mt-1">NIK ini akan diintegrasikan dengan chip RFID / E-KTP untuk akses palang otomatis.</p>
-                </div>
-
-                <!-- Tempat & Tanggal Lahir -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1.5">Tempat Lahir <span class="text-rose-500">*</span></label>
-                        <input type="text" name="birth_place" value="{{ old('birth_place', $user->birth_place) }}" placeholder="Kota Lahir (Misal: Bandung)" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:border-emerald-500 outline-hidden">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1.5">Tanggal Lahir <span class="text-rose-500">*</span></label>
-                        <input type="date" name="birth_date" value="{{ old('birth_date', $user->birth_date ? $user->birth_date->format('Y-m-d') : '') }}" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:border-emerald-500 outline-hidden">
-                    </div>
-                </div>
-
-                <!-- Jenis Kelamin, Agama, Pekerjaan -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1.5">Jenis Kelamin <span class="text-rose-500">*</span></label>
-                        <select name="gender" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:border-emerald-500 outline-hidden font-semibold">
-                            <option value="male" {{ old('gender', $user->gender) === 'male' ? 'selected' : '' }}>Laki-laki</option>
-                            <option value="female" {{ old('gender', $user->gender) === 'female' ? 'selected' : '' }}>Perempuan</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1.5">Agama</label>
-                        <select name="religion" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:border-emerald-500 outline-hidden font-semibold">
-                            <option value="Islam" {{ old('religion', $user->religion) === 'Islam' ? 'selected' : '' }}>Islam</option>
-                            <option value="Kristen" {{ old('religion', $user->religion) === 'Kristen' ? 'selected' : '' }}>Kristen</option>
-                            <option value="Katolik" {{ old('religion', $user->religion) === 'Katolik' ? 'selected' : '' }}>Katolik</option>
-                            <option value="Hindu" {{ old('religion', $user->religion) === 'Hindu' ? 'selected' : '' }}>Hindu</option>
-                            <option value="Buddha" {{ old('religion', $user->religion) === 'Buddha' ? 'selected' : '' }}>Buddha</option>
-                            <option value="Konghucu" {{ old('religion', $user->religion) === 'Konghucu' ? 'selected' : '' }}>Konghucu</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1.5">Pekerjaan</label>
-                        <input type="text" name="occupation" value="{{ old('occupation', $user->occupation) }}" placeholder="Karyawan / Wiraswasta" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:border-emerald-500 outline-hidden">
-                    </div>
-                </div>
-
-                <!-- Unit Rumah & Alamat Domisili KTP -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1.5">Unit Rumah Tinggal</label>
-                        <select name="house_id" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:border-emerald-500 outline-hidden font-semibold">
-                            @foreach($houses as $h)
-                                <option value="{{ $h->id }}" {{ old('house_id', $user->house_id) == $h->id ? 'selected' : '' }}>
-                                    {{ $h->block_and_number }} ({{ $h->full_address }})
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1.5">Unggah Foto Fisik KTP Asli</label>
-                        <input type="file" name="ktp_photo" accept="image/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 dark:file:bg-emerald-950 dark:file:text-emerald-300">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1.5">Alamat Lengkap Sesuai KTP <span class="text-rose-500">*</span></label>
-                    <textarea name="address_ktp" rows="2" required placeholder="Tuliskan alamat lengkap beserta RT/RW dan Kelurahan sesuai KTP Anda" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:border-emerald-500 outline-hidden leading-relaxed">{{ old('address_ktp', $user->address_ktp) }}</textarea>
-                </div>
-
-                <!-- Footer Tombol -->
-                <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3">
-                    <button type="button" @click="openProfileModal = false" class="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs transition">
-                        Batal
-                    </button>
-                    <button type="submit" class="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shadow-lg shadow-emerald-600/30 transition flex items-center gap-2 cursor-pointer">
-                        <span>Kirim Berkas Identitas untuk Di-ACC Pak RW</span>
-                        <span>➔</span>
-                    </button>
-                </div>
-
-            </form>
-        </div>
-    </div>
-
-    <!-- ======================================================== -->
-    <!-- 5. MODAL FORMULIR GANTI PASSWORD                         -->
-    <!-- ======================================================== -->
-    <div x-show="openPasswordModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-xs">
-        <div @click.away="openPasswordModal = false" class="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-slate-200 dark:border-slate-800">
-            <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 mb-4">
-                <h3 class="font-black text-slate-900 dark:text-white text-base">Ganti Password Akun</h3>
-                <button @click="openPasswordModal = false" class="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 font-bold">&times;</button>
-            </div>
-
-            <form action="{{ route('warga.change-password') }}" method="POST" class="space-y-4">
-                @csrf
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Password Saat Ini</label>
-                    <input type="password" name="current_password" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:border-emerald-500 outline-hidden">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Password Baru (Min 6 Karakter)</label>
-                    <input type="password" name="new_password" required minlength="6" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:border-emerald-500 outline-hidden">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Konfirmasi Password Baru</label>
-                    <input type="password" name="new_password_confirmation" required minlength="6" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:border-emerald-500 outline-hidden">
-                </div>
-                <div class="pt-2 flex gap-3">
-                    <button type="button" @click="openPasswordModal = false" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold text-xs">Batal</button>
-                    <button type="submit" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-md">Simpan Password</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- ======================================================== -->
-    <!-- 6. MODAL BUAT UNDANGAN TAMU / KURIR                      -->
+    <!-- 4. MODAL BUAT UNDANGAN TAMU / KURIR                      -->
     <!-- ======================================================== -->
     <div x-show="openGuestModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-xs">
         <div @click.away="openGuestModal = false" class="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-slate-200 dark:border-slate-800">
@@ -781,7 +597,7 @@
                     <span class="text-[10px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-2.5 py-0.5 rounded-full">Langkah 3 dari 3</span>
                     <h3 class="text-lg font-black text-slate-900 dark:text-white mt-2">Integrasi E-KTP & Verifikasi RW</h3>
                     <p class="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
-                        Semua warga baru wajib melengkapi identitas KTP agar di-ACC oleh Ketua RW. Setelah di-ACC, gerbang otomatis mengenali identitas Anda!
+                        Semua warga baru wajib melengkapi identitas KTP di halaman Pengaturan Akun agar di-ACC oleh Ketua RW.
                     </p>
                 </div>
             </template>
@@ -801,17 +617,14 @@ function wargaApp() {
     return {
         isOpening: false,
         openGuestModal: false,
-        openProfileModal: false,
-        openPasswordModal: false,
         tourStep: 0,
 
         startTour() {
             this.tourStep = 1;
         },
 
-        showLockedNotice() {
-            alert('AKSES TERKUNCI! Anda wajib melengkapi berkas data diri & KTP terlebih dahulu untuk disahkan oleh Ketua RW.');
-            this.openProfileModal = true;
+        redirectToProfile() {
+            window.location.href = "{{ route('warga.profile') }}";
         },
 
         handleGateClick(e) {

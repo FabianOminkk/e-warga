@@ -41,8 +41,9 @@ Route::get('/simulator', [SimulatorController::class, 'index'])->name('simulator
 Route::post('/simulator/trigger', [SimulatorController::class, 'triggerSimulation'])->name('simulator.trigger');
 Route::get('/simulator/logs', [SimulatorController::class, 'getLatestLogs'])->name('simulator.logs');
 
-// Panel Akses Warga Mandiri & Pengaturan Akun
+// Panel Akses Warga Mandiri & Pengaturan Akun Terpisah
 Route::get('/warga', [WargaController::class, 'index'])->name('warga.index');
+Route::get('/pengaturan-akun', [WargaController::class, 'profile'])->name('warga.profile');
 Route::post('/warga/open-gate', [WargaController::class, 'triggerOpenGate'])->name('warga.open-gate');
 Route::post('/warga/create-visitor', [WargaController::class, 'createVisitorPass'])->name('warga.create-visitor');
 Route::post('/warga/panic', [WargaController::class, 'panicAlert'])->name('warga.panic');
