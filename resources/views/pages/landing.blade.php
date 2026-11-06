@@ -146,7 +146,7 @@
                                 <span class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 flex items-center justify-center font-bold text-lg">🏡</span>
                                 <div>
                                     <div class="text-sm font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400">Warga (Bpk. Bambang Pamungkas)</div>
-                                    <div class="text-xs text-slate-500 dark:text-slate-400">Buka gerbang dari HP, tiket tamu WA, panic button</div>
+                                    <div class="text-xs text-slate-500 dark:text-slate-400">E-KTP terverifikasi RW, buka gerbang, tiket tamu WA, panic button</div>
                                 </div>
                             </div>
                             <span class="text-xs font-bold text-slate-400 group-hover:text-emerald-600">&rarr;</span>

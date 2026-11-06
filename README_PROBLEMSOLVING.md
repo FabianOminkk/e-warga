@@ -308,10 +308,54 @@ Dokumen ini mencatat seluruh hasil audit mendalam terhadap basis kode **E-WARGA*
 
 ---
 
+### 🔴 Masalah 19: Logika Akses Warga Baru Terkunci, Formulir Pengaturan Identitas KTP, Otorisasi Ketua RW, dan Integrasi RFID Palang Pintu ke Pos Satpam
+* **Pemicu Masalah:**
+  1. Halaman utama warga sebelumnya berukuran sempit (`max-w-lg`) sehingga terlihat terisolasi di layar desktop luas.
+  2. Belum ada logika penguncian akses (*zero-trust security*): warga baru yang mendaftar langsung bisa membuka palang gerbang dan membuat izin tamu tanpa verifikasi identitas resmi.
+  3. Belum ada formulir pengaturan akun mandiri bagi warga untuk mengunggah nomor KTP (NIK), foto fisik KTP, tanggal lahir, dan data kependudukan penting.
+  4. Belum ada integrasi berjenjang di mana berkas KTP warga harus di-ACC secara resmi oleh **Ketua RW**, yang kemudian otomatis meneruskan otorisasi RFID ke **Pos Satpam** dan **Palang Pintu Otomatis (Smart Gate IoT)**.
+* **Akar Masalah:**
+  Belum tersedianya kolom data identitas kependudukan & status verifikasi pada tabel `users`, ketiadaan *guard middleware/check* pada pembuka palang dan tiket tamu, serta belum terhubungnya alur kerja persetujuan RW ke whitelist sensor gerbang dan monitor satpam.
+* **✅ Solusi yang Diterapkan:**
+  1. **Redesain Total Halaman Utama Warga (`pages/warga.blade.php`):**
+     * Mengubah kontainer sempit menjadi dashboard desktop luas (`max-w-7xl`).
+     * Menampilkan **Kartu E-KTP Digital Resmi** lengkap dengan preview foto KTP, NIK termasking, tanggal lahir, UID RFID, dan stempel pengesahan Ketua RW.
+     * Log aktivitas pembukaan palang pintu terkini rumah warga.
+     * Kontak darurat terhubung ke WhatsApp Ketua RW, Ketua RT, dan Pos Satpam.
+  2. **Penguncian Akses Penuh (*Locked State*) untuk Warga Baru:**
+     * Jika `verification_status` masih `unverified` atau `pending_rw`:
+       - Tombol **"BUKA GERBANG PORTAL"** terkunci dengan gembok dan penjelasan edukatif.
+       - Tombol **"Buat Izin Tamu / QR Kurir"** terkunci.
+       - Permohonan **Surat Pengantar RT Online** terkunci.
+       - Tombol **Panic Button** terkunci.
+     * Ditampilkan banner panduan 4 langkah verifikasi: (1) Input KTP & Data Diri -> (2) Review Ketua RW -> (3) Sinkron RFID Satpam -> (4) Bebas Akses Palang.
+  3. **Formulir Pengaturan Akun & Berkas KTP Mandiri:**
+     * Modal interaktif untuk melengkapi: Nama KTP, No WhatsApp, NIK 16 Digit angka, Tempat & Tanggal Lahir, Jenis Kelamin, Agama, Pekerjaan, Alamat KTP, Unit Rumah, dan Upload Foto KTP Asli.
+     * Pengubahan password mandiri di modal terpisah.
+     * Saat dikirimkan, status otomatis beralih ke `pending_rw` ("Menunggu Persetujuan Ketua RW").
+  4. **Meja Verifikasi KTP & Otorisasi RW di Dashboard (`pages/dashboard.blade.php`):**
+     * Tabel kendali khusus Ketua RW & Pengurus untuk meninjau seluruh berkas warga yang masuk:
+       - Thumbnail foto KTP yang dapat diperbesar.
+       - Tombol **"✓ ACC KTP"** (mengaktifkan akses palang dan membuat UID RFID terikat NIK).
+       - Tombol **"✕ Tolak"** (memberikan catatan perbaikan data kepada warga).
+  5. **Integrasi Whitelist RFID ke Pos Pantau Satpam (`pages/satpam.blade.php`):**
+     * Menambahkan panel *"Database Whitelist RFID & E-KTP Warga (Otorisasi RW)"* yang menampilkan seluruh warga yang di-ACC RW beserta status sinkronisasi aktif ke palang pos jaga.
+  6. **Uji Coba Sensor RFID di Simulator Smart Gate (`pages/simulator.blade.php`):**
+     * Simulator menyediakan dropdown pemilih warga penguji:
+       - Memilih warga terverifikasi (Bpk. Bambang) -> Sensor RFID / HP membaca E-KTP valid -> **PALANG TERANGKAT**.
+       - Memilih warga belum di-ACC (Ibu Siti / Bpk. Hendra) -> Sensor RFID menolak akses -> **AKSES DITOLAK: PALANG TETAP TERTUTUP**.
+  7. **Akun Uji Coba Multi-State di Role Switcher & Login:**
+     * `bambang@warga.id` -> Warga Terverifikasi RW (Akses Aktif)
+     * `siti@warga.id` -> Warga Menunggu Review Ketua RW
+     * `hendra@warga.id` -> Warga Baru Daftar (Akses Terkunci Total)
+
+---
+
 ## 📋 Panduan Penanganan Masalah Lapangan (Developer & Pengurus)
 
 | Gejala / Pesan Error | Penyebab Utama | Solusi Praktis |
 | :--- | :--- | :--- |
+| **Warga baru mengeluh tidak bisa buka gerbang dari HP** | Berkas identitas KTP belum diunggah atau belum di-ACC oleh Ketua RW. | Minta warga klik tombol **"Atur Akun & Berkas KTP"** di portal warga untuk mengunggah NIK & foto KTP, lalu minta Ketua RW mengklik **"✓ ACC KTP"** di dashboard pengurus. |
 | **Palang pintu simulator tidak bergerak saat dipencet** | Token CSRF kadaluarsa atau tab browser terlalu lama terbuka. | Tekan tombol **Refresh (F5)** pada browser Anda untuk memperbarui sesi. |
 | **Website tidak bisa dibuka di browser (`Unable to connect`)** | Server Laravel lokal belum dinyalakan atau terminal tertutup. | Buka terminal di folder proyek, ketik `php artisan serve`, lalu buka kembali `http://127.0.0.1:8000`. |
 | **Perubahan tampilan CSS tidak muncul** | Cache browser atau aset Vite belum dikompilasi ulang. | Jalankan `npm run build` di terminal, lalu tekan `Ctrl + F5` di browser untuk hard refresh. |
@@ -323,8 +367,8 @@ Dokumen ini mencatat seluruh hasil audit mendalam terhadap basis kode **E-WARGA*
 ## 🧪 Jaminan Kualitas & Hasil Pengujian Otomatis
 
 Seluruh perbaikan di atas telah divalidasi menggunakan rangkaian pengujian otomatis (*Automated Feature Tests*):
-* **Jumlah Pengujian:** 32 Skenario Uji (*100% Passed*)
-* **Total Penegasan (*Assertions*):** 111 Poin Validasi
-* **Waktu Eksekusi:** 2.1 Detik
+* **Jumlah Pengujian:** 36 Skenario Uji (*100% Passed*)
+* **Total Penegasan (*Assertions*):** 134 Poin Validasi
+* **Waktu Eksekusi:** 3.1 Detik
 * **Hasil:** 🟢 **ZERO BUG / ZERO REGRESSION**
 

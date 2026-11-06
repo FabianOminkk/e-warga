@@ -53,9 +53,41 @@ class SimulatorController extends Controller
 
         $user = $userId ? User::find($userId) : User::where('role', 'warga')->first();
 
+        // VALIDASI KEAMANAN: Warga yang belum di-ACC oleh Pak RW ditolak oleh palang otomatis!
+        if ($user && in_array($method, ['mobile_button', 'rfid_card']) && !$user->canAccessGate()) {
+            $deniedReason = $user->verification_status === 'pending_rw'
+                ? "AKSES DITOLAK: E-KTP/RFID {$user->name} masih dalam review Ketua RW (Belum di-ACC)"
+                : "AKSES DITOLAK: {$user->name} belum melengkapi berkas KTP (Akun Terkunci)";
+
+            $log = GateLog::create([
+                'tenant_id' => $tenant->id,
+                'smart_gate_id' => $smartGate->id,
+                'user_id' => $user->id,
+                'access_method' => $method,
+                'direction' => 'entry',
+                'status' => 'denied',
+                'reason' => $deniedReason,
+                'triggered_at' => now(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'AKSES DITOLAK! ' . $deniedReason . '. Palang gerbang tetap tertutup!',
+                'log' => [
+                    'id' => $log->id,
+                    'user_name' => $user->name,
+                    'house' => $user->house?->block_and_number ?? 'Warga Terkunci',
+                    'reason' => $deniedReason,
+                    'method' => $method,
+                    'status' => 'denied',
+                    'time' => $log->triggered_at->format('H:i:s'),
+                ],
+            ], 403);
+        }
+
         $reason = match ($method) {
-            'mobile_button' => 'Simulasi Tombol HP Warga: ' . ($user ? $user->name : 'Warga'),
-            'rfid_card' => 'Simulasi Tap Kartu RFID Fisik: ' . ($user ? $user->name : 'Warga'),
+            'mobile_button' => 'Simulasi Tombol HP: ' . ($user ? $user->name . ' (E-KTP Terverifikasi RW)' : 'Warga'),
+            'rfid_card' => 'Simulasi Tap RFID E-KTP: ' . ($user ? $user->name . ' (' . ($user->rfid_tag ?? 'UID-KTP') . ')' : 'Warga'),
             'satpam_manual' => 'Simulasi Buka Manual oleh Pos Satpam',
             'qr_code' => 'Simulasi Scan QR Tiket Tamu/Kurir',
             default => 'Simulasi Akses Pintu',

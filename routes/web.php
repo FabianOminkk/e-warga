@@ -24,10 +24,12 @@ Route::post('/toggle-mode', [ScheduleController::class, 'toggleEnvironmentMode']
 Route::get('/super-admin', [SuperAdminController::class, 'index'])->name('superadmin.index');
 Route::post('/super-admin/switch-tenant/{id}', [SuperAdminController::class, 'switchTenant'])->name('superadmin.switch-tenant');
 
-// Dashboard Pengurus RT & Bendahara
+// Dashboard Pengurus RT, RW, & Bendahara
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 Route::post('/dashboard/verify-payment/{id}', [DashboardController::class, 'verifyPayment'])->name('dashboard.verify-payment');
 Route::post('/dashboard/store-cashbook', [DashboardController::class, 'storeCashBook'])->name('dashboard.store-cashbook');
+Route::post('/rw/verifikasi-warga/{id}/approve', [DashboardController::class, 'approveWargaVerification'])->name('rw.verifications.approve');
+Route::post('/rw/verifikasi-warga/{id}/reject', [DashboardController::class, 'rejectWargaVerification'])->name('rw.verifications.reject');
 
 // Console Pos Satpam
 Route::get('/satpam', [SatpamController::class, 'console'])->name('satpam.console');
@@ -39,11 +41,13 @@ Route::get('/simulator', [SimulatorController::class, 'index'])->name('simulator
 Route::post('/simulator/trigger', [SimulatorController::class, 'triggerSimulation'])->name('simulator.trigger');
 Route::get('/simulator/logs', [SimulatorController::class, 'getLatestLogs'])->name('simulator.logs');
 
-// Panel Akses Warga (Mobile View)
+// Panel Akses Warga Mandiri & Pengaturan Akun
 Route::get('/warga', [WargaController::class, 'index'])->name('warga.index');
 Route::post('/warga/open-gate', [WargaController::class, 'triggerOpenGate'])->name('warga.open-gate');
 Route::post('/warga/create-visitor', [WargaController::class, 'createVisitorPass'])->name('warga.create-visitor');
 Route::post('/warga/panic', [WargaController::class, 'panicAlert'])->name('warga.panic');
+Route::post('/warga/profile', [WargaController::class, 'updateProfile'])->name('warga.profile.update');
+Route::post('/warga/change-password', [WargaController::class, 'changePassword'])->name('warga.change-password');
 
 // Modul Jadwal Keamanan (Satpam & Ronda Warga Bulan Ini)
 Route::get('/jadwal-keamanan', [ScheduleController::class, 'index'])->name('schedules.index');

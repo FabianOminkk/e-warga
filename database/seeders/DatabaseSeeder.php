@@ -148,7 +148,7 @@ class DatabaseSeeder extends Seeder
             'status' => 'active',
         ]);
 
-        // 5. Warga Contoh (Kepala Keluarga & Anggota)
+        // 5. Warga Contoh (Terverifikasi, Menunggu ACC RW, & Baru Terkunci)
         $wargaBambang = User::create([
             'tenant_id' => $tenant->id,
             'house_id' => $houseC12->id,
@@ -158,6 +158,19 @@ class DatabaseSeeder extends Seeder
             'password' => $defaultWargaPassword,
             'role' => 'warga',
             'is_family_head' => true,
+            'nik' => '3275011205820001',
+            'ktp_photo' => 'uploads/ktp/sample_ktp_bambang.svg',
+            'birth_date' => '1982-05-12',
+            'birth_place' => 'Kota Bandung',
+            'gender' => 'male',
+            'religion' => 'Islam',
+            'occupation' => 'Wiraswasta / Konsultan IT',
+            'address_ktp' => 'Jl. Melati Mas IX No. 12, RT 05 / RW 12, Kel. Coblong, Kota Bandung',
+            'rfid_tag' => 'RFID-3275011205820001',
+            'verification_status' => 'approved',
+            'verified_by_user_id' => $ketuaRw->id,
+            'verified_at' => Carbon::now()->subDays(14),
+            'gate_access_enabled' => true,
             'status' => 'active',
         ]);
 
@@ -170,6 +183,71 @@ class DatabaseSeeder extends Seeder
             'password' => $defaultWargaPassword,
             'role' => 'warga',
             'is_family_head' => false,
+            'nik' => '3275015507850002',
+            'ktp_photo' => 'uploads/ktp/sample_ktp_bambang.svg',
+            'birth_date' => '1985-07-15',
+            'birth_place' => 'Kota Bandung',
+            'gender' => 'female',
+            'religion' => 'Islam',
+            'occupation' => 'Ibu Rumah Tangga',
+            'address_ktp' => 'Jl. Melati Mas IX No. 12, RT 05 / RW 12, Kel. Coblong, Kota Bandung',
+            'rfid_tag' => 'RFID-3275015507850002',
+            'verification_status' => 'approved',
+            'verified_by_user_id' => $ketuaRw->id,
+            'verified_at' => Carbon::now()->subDays(14),
+            'gate_access_enabled' => true,
+            'status' => 'active',
+        ]);
+
+        // Warga 2: Baru melengkapi berkas KTP & sedang menunggu review Pak RW
+        $wargaSiti = User::create([
+            'tenant_id' => $tenant->id,
+            'house_id' => $houseB5->id,
+            'name' => 'Ibu Siti Rahmawati',
+            'phone_number' => '081234567898',
+            'email' => 'siti@warga.id',
+            'password' => $defaultWargaPassword,
+            'role' => 'warga',
+            'is_family_head' => true,
+            'nik' => '3275014408900003',
+            'ktp_photo' => 'uploads/ktp/sample_ktp_siti.svg',
+            'birth_date' => '1990-08-24',
+            'birth_place' => 'Kota Cimahi',
+            'gender' => 'female',
+            'religion' => 'Islam',
+            'occupation' => 'Guru Sekolah Menengah',
+            'address_ktp' => 'Jl. Melati Mas V No. 05, RT 05 / RW 12, Kel. Coblong, Kota Bandung',
+            'rfid_tag' => 'RFID-3275014408900003',
+            'verification_status' => 'pending_rw',
+            'verified_by_user_id' => null,
+            'verified_at' => null,
+            'gate_access_enabled' => false,
+            'status' => 'active',
+        ]);
+
+        // Warga 3: Warga Baru Daftar - Belum isi KTP (Semua Akses Terkunci Total!)
+        $wargaHendra = User::create([
+            'tenant_id' => $tenant->id,
+            'house_id' => $houseA2->id,
+            'name' => 'Bpk. Hendra Gunawan',
+            'phone_number' => '081234567899',
+            'email' => 'hendra@warga.id',
+            'password' => $defaultWargaPassword,
+            'role' => 'warga',
+            'is_family_head' => true,
+            'nik' => null,
+            'ktp_photo' => null,
+            'birth_date' => null,
+            'birth_place' => null,
+            'gender' => null,
+            'religion' => null,
+            'occupation' => null,
+            'address_ktp' => null,
+            'rfid_tag' => null,
+            'verification_status' => 'unverified',
+            'verified_by_user_id' => null,
+            'verified_at' => null,
+            'gate_access_enabled' => false,
             'status' => 'active',
         ]);
 

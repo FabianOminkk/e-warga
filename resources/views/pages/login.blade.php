@@ -236,12 +236,21 @@
                         </div>
                     </a>
 
-                    <!-- Warga Penghuni -->
+                    <!-- Warga Terverifikasi RW (Akses Gerbang Aktif) -->
                     <a href="{{ route('quick.login', 'warga') }}" class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition">
                         <span class="text-base">🏡</span>
                         <div>
-                            <div class="text-xs font-bold text-slate-800 dark:text-slate-200">Warga Penghuni</div>
-                            <div class="text-[10px] text-slate-400">Bpk. Bambang</div>
+                            <div class="text-xs font-bold text-slate-800 dark:text-slate-200">Warga Terverifikasi</div>
+                            <div class="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">Bpk. Bambang (Aktif)</div>
+                        </div>
+                    </a>
+
+                    <!-- Warga Baru (Akses Terkunci Total) -->
+                    <a href="{{ route('quick.login', 'warga-baru') }}" class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-rose-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition">
+                        <span class="text-base">🔒</span>
+                        <div>
+                            <div class="text-xs font-bold text-slate-800 dark:text-slate-200">Warga Baru (Terkunci)</div>
+                            <div class="text-[10px] text-rose-600 dark:text-rose-400 font-semibold">Bpk. Hendra (Belum KTP)</div>
                         </div>
                     </a>
                 </div>

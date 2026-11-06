@@ -616,12 +616,35 @@
                             </div>
                         </a>
 
-                        <a href="{{ route('quick.login', 'warga') }}" class="flex items-center justify-between px-2.5 py-2 rounded-xl {{ ($currentUser?->role ?? '') === 'warga' ? 'bg-emerald-50 dark:bg-emerald-950/70 text-emerald-900 dark:text-emerald-200 font-bold' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                        <!-- Warga Terverifikasi RW (Akses Gerbang Aktif) -->
+                        <a href="{{ route('quick.login', 'warga') }}" class="flex items-center justify-between px-2.5 py-2 rounded-xl {{ ($currentUser?->email ?? '') === 'bambang@warga.id' ? 'bg-emerald-50 dark:bg-emerald-950/70 text-emerald-900 dark:text-emerald-200 font-bold' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
                             <div class="flex items-center gap-2">
                                 <span>🏡</span>
                                 <div>
                                     <div class="font-bold">Warga (Bpk. Bambang)</div>
-                                    <div class="text-[9px] text-slate-400">Buka gerbang & surat RT</div>
+                                    <div class="text-[9px] text-emerald-600 dark:text-emerald-400 font-semibold">✓ Terverifikasi RW (Gerbang Aktif)</div>
+                                </div>
+                            </div>
+                        </a>
+
+                        <!-- Warga Menunggu ACC RW -->
+                        <a href="{{ route('quick.login', 'warga-pending') }}" class="flex items-center justify-between px-2.5 py-2 rounded-xl {{ ($currentUser?->email ?? '') === 'siti@warga.id' ? 'bg-amber-50 dark:bg-amber-950/70 text-amber-900 dark:text-amber-200 font-bold' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                            <div class="flex items-center gap-2">
+                                <span>⏳</span>
+                                <div>
+                                    <div class="font-bold">Warga (Ibu Siti)</div>
+                                    <div class="text-[9px] text-amber-600 dark:text-amber-400 font-semibold">Sedang Ditinjau Ketua RW</div>
+                                </div>
+                            </div>
+                        </a>
+
+                        <!-- Warga Baru (Akses Terkunci Total) -->
+                        <a href="{{ route('quick.login', 'warga-baru') }}" class="flex items-center justify-between px-2.5 py-2 rounded-xl {{ ($currentUser?->email ?? '') === 'hendra@warga.id' ? 'bg-rose-50 dark:bg-rose-950/70 text-rose-900 dark:text-rose-200 font-bold' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                            <div class="flex items-center gap-2">
+                                <span>🔒</span>
+                                <div>
+                                    <div class="font-bold">Warga Baru (Bpk. Hendra)</div>
+                                    <div class="text-[9px] text-rose-600 dark:text-rose-400 font-semibold">Belum Isi KTP (Akses Terkunci)</div>
                                 </div>
                             </div>
                         </a>

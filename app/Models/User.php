@@ -22,6 +22,19 @@ class User extends Authenticatable
         'role',
         'is_family_head',
         'nik',
+        'ktp_photo',
+        'birth_date',
+        'birth_place',
+        'gender',
+        'religion',
+        'occupation',
+        'address_ktp',
+        'rfid_tag',
+        'verification_status',
+        'verified_by_user_id',
+        'verified_at',
+        'rejection_reason',
+        'gate_access_enabled',
         'status',
     ];
 
@@ -34,8 +47,11 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'birth_date' => 'date',
+            'verified_at' => 'datetime',
             'password' => 'hashed',
             'is_family_head' => 'boolean',
+            'gate_access_enabled' => 'boolean',
         ];
     }
 
@@ -112,6 +128,78 @@ class User extends Authenticatable
     public function isPengurus(): bool
     {
         return in_array($this->role, ['super_admin', 'ketua_rw', 'ketua_rt', 'sekretaris', 'bendahara']);
+    }
+
+    public function verifiedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'verified_by_user_id');
+    }
+
+    public function isVerifiedWarga(): bool
+    {
+        return $this->verification_status === 'approved' && $this->gate_access_enabled;
+    }
+
+    public function isPendingVerification(): bool
+    {
+        return $this->verification_status === 'pending_rw';
+    }
+
+    public function isUnverified(): bool
+    {
+        return in_array($this->verification_status, ['unverified', 'rejected']);
+    }
+
+    public function canAccessGate(): bool
+    {
+        // Staf keamanan dan super admin selalu bisa buka gerbang
+        if (in_array($this->role, ['super_admin', 'ketua_rw', 'satpam'])) {
+            return true;
+        }
+
+        // Warga harus berstatus approved dan akses gerbang aktif oleh RW
+        return $this->verification_status === 'approved' && $this->gate_access_enabled;
+    }
+
+    public function getMaskedNikAttribute(): string
+    {
+        if (!$this->nik) {
+            return 'Belum Diisi';
+        }
+        if (strlen($this->nik) < 8) {
+            return $this->nik;
+        }
+        return substr($this->nik, 0, 6) . '******' . substr($this->nik, -4);
+    }
+
+    public function getVerificationBadgeAttribute(): array
+    {
+        return match ($this->verification_status) {
+            'approved' => [
+                'label' => 'Terverifikasi RW (Akses Aktif)',
+                'badge' => 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700',
+                'icon' => '✅',
+                'gate' => 'Aktif Terbuka',
+            ],
+            'pending_rw' => [
+                'label' => 'Menunggu Persetujuan Ketua RW',
+                'badge' => 'bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border-amber-300 dark:border-amber-700',
+                'icon' => '⏳',
+                'gate' => 'Terkunci Sementara',
+            ],
+            'rejected' => [
+                'label' => 'Ditolak / Butuh Revisi KTP',
+                'badge' => 'bg-rose-100 text-rose-800 dark:bg-rose-950/80 dark:text-rose-300 border-rose-300 dark:border-rose-700',
+                'icon' => '❌',
+                'gate' => 'Terkunci',
+            ],
+            default => [
+                'label' => 'Data KTP Belum Lengkap (Terkunci)',
+                'badge' => 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-300 dark:border-slate-700',
+                'icon' => '🔒',
+                'gate' => 'Terkunci',
+            ],
+        };
     }
 
     public function getRoleLabelAttribute(): string

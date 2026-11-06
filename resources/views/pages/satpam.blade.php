@@ -94,10 +94,85 @@
                 </div>
             </div>
 
-            <!-- Kolom Kanan: Log Kendaraan Masuk / Keluar -->
-            <div class="lg:col-span-7 bg-slate-800/80 rounded-2xl border border-slate-700 p-6 space-y-4">
-                <div class="flex items-center justify-between pb-3 border-b border-slate-700">
-                    <h3 class="font-extrabold text-white text-base">🚗 Log Aktivitas Palang Pintu Real-Time</h3>
+            <!-- Kolom Kanan: Whitelist E-KTP Warga & Log Kendaraan Masuk / Keluar -->
+            <div class="lg:col-span-7 space-y-6">
+
+                <!-- PANEL BARU: WHITELIST E-KTP & RFID WARGA RESMI (OTORISASI KETUA RW) -->
+                <div class="bg-slate-800/80 rounded-2xl border-2 border-emerald-500/40 p-6 space-y-4">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-700">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 font-extrabold border border-emerald-700">
+                                    SINKRON DARI KETUA RW
+                                </span>
+                                <h3 class="font-extrabold text-white text-base">🪪 Database Whitelist RFID & E-KTP Warga</h3>
+                            </div>
+                            <p class="text-xs text-slate-400 mt-1">
+                                Palang pintu otomatis hanya mengenali NIK & kartu RFID warga yang telah disahkan secara resmi oleh <strong>Ketua RW</strong>.
+                            </p>
+                        </div>
+                        <span class="text-xs font-mono text-emerald-400 font-bold bg-emerald-950/80 px-2.5 py-1 rounded-lg border border-emerald-800">
+                            {{ $verifiedWargaList->where('verification_status', 'approved')->count() }} E-KTP AKTIF
+                        </span>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead>
+                                <tr class="border-b border-slate-700 text-slate-400 uppercase tracking-wider">
+                                    <th class="py-2">Warga & Rumah</th>
+                                    <th class="py-2">Nomor KTP (NIK)</th>
+                                    <th class="py-2">UID Tag RFID</th>
+                                    <th class="py-2 text-right">Otorisasi Palang</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700/60">
+                                @forelse($verifiedWargaList as $vw)
+                                    <tr>
+                                        <td class="py-2.5">
+                                            <div class="font-bold text-white">{{ $vw->name }}</div>
+                                            <div class="text-[11px] text-slate-400">{{ $vw->house?->block_and_number ?? 'Unit Rumah Belum Terdata' }}</div>
+                                        </td>
+                                        <td class="py-2.5 font-mono text-slate-300">
+                                            {{ $vw->nik ?? '-' }}
+                                        </td>
+                                        <td class="py-2.5 font-mono">
+                                            @if($vw->rfid_tag)
+                                                <span class="text-cyan-400 font-bold">{{ $vw->rfid_tag }}</span>
+                                            @else
+                                                <span class="text-slate-500 italic">Belum Ada RFID</span>
+                                            @endif
+                                        </td>
+                                        <td class="py-2.5 text-right">
+                                            @if($vw->canAccessGate())
+                                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-950 text-emerald-400 border border-emerald-700">
+                                                    <span>●</span> DI-ACC KETUA RW
+                                                </span>
+                                            @elseif($vw->verification_status === 'pending_rw')
+                                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-950 text-amber-400 border border-amber-800">
+                                                    <span>⏳</span> MENUNGGU ACC RW
+                                                </span>
+                                            @else
+                                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-950 text-rose-400 border border-rose-800">
+                                                    <span>🔒</span> TERKUNCI
+                                                </span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="4" class="py-4 text-center text-slate-500">Belum ada warga terdaftar.</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Box Log Palang Pintu Real-Time -->
+                <div class="bg-slate-800/80 rounded-2xl border border-slate-700 p-6 space-y-4">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-700">
+                        <h3 class="font-extrabold text-white text-base">🚗 Log Aktivitas Palang Pintu Real-Time</h3>
                     <span class="text-xs text-slate-400">Update Langsung Otomatis</span>
                 </div>
 

@@ -163,6 +163,128 @@
         </div>
     </div>
 
+    <!-- ================================================================= -->
+    <!-- MEJA VERIFIKASI KTP & OTORISASI RFID WARGA OLEH KETUA RW         -->
+    <!-- (SETIAP WARGA BARU WAJIB DI-ACC RW AGAR SINKRON KE SATPAM & GATE) -->
+    <!-- ================================================================= -->
+    <div class="bg-white dark:bg-slate-900 rounded-3xl border-2 border-emerald-500/30 p-6 lg:p-8 shadow-sm space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 text-[11px] font-black uppercase tracking-wide">
+                        Kewenangan Khusus Ketua RW & Pengurus
+                    </span>
+                    @if($pendingWargaCount > 0)
+                        <span class="px-2.5 py-0.5 rounded-full bg-amber-500 text-white text-[11px] font-black animate-pulse">
+                            {{ $pendingWargaCount }} Berkas KTP Menunggu ACC
+                        </span>
+                    @else
+                        <span class="px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-[11px] font-bold">
+                            ✓ Seluruh Berkas KTP Telah Selesai Ditinjau
+                        </span>
+                    @endif
+                </div>
+                <h2 class="text-xl font-extrabold text-slate-900 dark:text-white mt-1">Meja Verifikasi KTP & Otorisasi Akses Gerbang Pintar</h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400">
+                    Warga baru wajib mengisi data identitas KTP dan foto KTP. Setelah disahkan oleh <strong>Ketua RW</strong>, nomor KTP & chip RFID otomatis diteruskan ke <strong>Pos Satpam</strong> dan palang pintu terbuka otomatis mengenali identitas warga.
+                </p>
+            </div>
+            
+            <div class="text-xs text-slate-500 dark:text-slate-400 shrink-0">
+                Total Warga Terdaftar: <strong class="text-slate-900 dark:text-white">{{ $wargaVerifications->count() }} Orang</strong>
+            </div>
+        </div>
+
+        <!-- Tabel Warga & Status Pengesahan RW -->
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead>
+                    <tr class="border-b border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                        <th class="py-3 px-3">Warga & Foto KTP</th>
+                        <th class="py-3 px-3">Nomor KTP (NIK)</th>
+                        <th class="py-3 px-3">Unit Rumah / Alamat</th>
+                        <th class="py-3 px-3">UID RFID E-KTP</th>
+                        <th class="py-3 px-3">Status Verifikasi</th>
+                        <th class="py-3 px-3 text-right">Tindakan Ketua RW</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                    @forelse($wargaVerifications as $wv)
+                        <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
+                            <td class="py-3.5 px-3">
+                                <div class="flex items-center gap-3">
+                                    @if($wv->ktp_photo)
+                                        <a href="{{ asset($wv->ktp_photo) }}" target="_blank" class="shrink-0" title="Klik untuk perbesar foto KTP">
+                                            <img src="{{ asset($wv->ktp_photo) }}" alt="Foto KTP" class="w-12 h-8 rounded-lg object-cover border border-slate-300 dark:border-slate-700 hover:scale-110 transition shadow-xs">
+                                        </a>
+                                    @else
+                                        <div class="w-12 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[10px] text-slate-400 font-bold border border-dashed border-slate-300 dark:border-slate-700 shrink-0">
+                                            No KTP
+                                        </div>
+                                    @endif
+                                    <div>
+                                        <div class="font-extrabold text-slate-900 dark:text-white text-sm">{{ $wv->name }}</div>
+                                        <div class="text-[11px] text-slate-400">{{ $wv->phone_number ?? '-' }} • {{ $wv->birth_place ?? '-' }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-3.5 px-3 font-mono font-bold text-slate-700 dark:text-slate-300">
+                                {{ $wv->nik ?? 'Belum Diisi Warga' }}
+                            </td>
+                            <td class="py-3.5 px-3">
+                                <span class="font-bold text-emerald-600 dark:text-emerald-400 block">{{ $wv->house?->block_and_number ?? 'Belum Terdata' }}</span>
+                                <span class="text-[10px] text-slate-400 truncate max-w-[180px] block">{{ $wv->address_ktp ?? ($wv->house?->full_address ?? '-') }}</span>
+                            </td>
+                            <td class="py-3.5 px-3 font-mono text-[11px]">
+                                @if($wv->rfid_tag)
+                                    <span class="px-2 py-0.5 rounded-md bg-cyan-50 dark:bg-cyan-950/70 text-cyan-700 dark:text-cyan-300 font-bold border border-cyan-200 dark:border-cyan-800">
+                                        {{ $wv->rfid_tag }}
+                                    </span>
+                                @else
+                                    <span class="text-slate-400 italic">Belum digenerate</span>
+                                @endif
+                            </td>
+                            <td class="py-3.5 px-3">
+                                <span class="px-2.5 py-1 rounded-full text-[11px] font-bold border {{ $wv->verification_badge['badge'] }}">
+                                    {{ $wv->verification_badge['icon'] }} {{ $wv->verification_badge['label'] }}
+                                </span>
+                            </td>
+                            <td class="py-3.5 px-3 text-right">
+                                @if($wv->verification_status === 'pending_rw' || $wv->verification_status === 'unverified')
+                                    <div class="flex items-center justify-end gap-2">
+                                        <form action="{{ route('rw.verifications.approve', $wv->id) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-xs transition flex items-center gap-1 cursor-pointer" title="ACC & Aktifkan RFID ke Pos Satpam">
+                                                <span>✓ ACC KTP</span>
+                                            </button>
+                                        </form>
+
+                                        @if($wv->verification_status === 'pending_rw')
+                                            <form action="{{ route('rw.verifications.reject', $wv->id) }}" method="POST" onsubmit="return confirm('Tolak berkas KTP ini dan minta warga perbaiki foto/data?')">
+                                                @csrf
+                                                <button type="submit" class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-rose-100 text-slate-600 hover:text-rose-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-rose-950 font-bold text-xs transition cursor-pointer">
+                                                    <span>✕ Tolak</span>
+                                                </button>
+                                            </form>
+                                        @endif
+                                    </div>
+                                @else
+                                    <span class="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center justify-end gap-1">
+                                        <span>✓ Aktif di Satpam</span>
+                                    </span>
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="text-center py-6 text-slate-400">Belum ada warga terdaftar.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <!-- Row: Antrian Verifikasi Iuran & Catat Transaksi Baru -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
         

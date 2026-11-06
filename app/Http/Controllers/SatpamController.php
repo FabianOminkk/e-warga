@@ -31,7 +31,14 @@ class SatpamController extends Controller
             ->take(8)
             ->get();
 
-        return view('pages.satpam', compact('tenant', 'smartGate', 'recentLogs', 'activeVisitors'));
+        // Whitelist Warga & E-KTP / RFID yang Di-ACC oleh Pak RW
+        $verifiedWargaList = User::where('tenant_id', $tenant->id)
+            ->where('role', 'warga')
+            ->with(['house', 'verifiedBy'])
+            ->orderByRaw("CASE WHEN verification_status = 'approved' THEN 1 WHEN verification_status = 'pending_rw' THEN 2 ELSE 3 END")
+            ->get();
+
+        return view('pages.satpam', compact('tenant', 'smartGate', 'recentLogs', 'activeVisitors', 'verifiedWargaList'));
     }
 
     public function triggerManual(Request $request)

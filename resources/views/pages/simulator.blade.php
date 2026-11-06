@@ -98,6 +98,23 @@
 
         <!-- Testing Control Console (Trigger Buttons) -->
         <div class="mt-8 pt-6 border-t border-slate-700">
+            <!-- Pilihan Warga Penguji -->
+            <div class="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-950 p-4 rounded-xl border border-slate-700">
+                <div class="text-xs">
+                    <label class="block font-bold text-slate-300 uppercase mb-1">Pilih Akun Warga Penguji Sensor RFID / HP:</label>
+                    <select x-model="selectedUserId" class="bg-slate-900 border border-slate-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold focus:border-emerald-500 outline-hidden">
+                        @foreach($wargaUsers as $wu)
+                            <option value="{{ $wu->id }}">
+                                {{ $wu->name }} - {{ $wu->canAccessGate() ? '✅ Terverifikasi RW (Akses Aktif)' : ($wu->verification_status === 'pending_rw' ? '⏳ Menunggu ACC RW (Terkunci)' : '🔒 Belum Lengkap KTP (Terkunci)') }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="text-[11px] text-slate-400 max-w-sm">
+                    <strong>Uji Logika Integrasi:</strong> Jika memilih warga yang belum di-ACC RW, sensor gerbang akan menolak akses & palang tetap tertutup!
+                </div>
+            </div>
+
             <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Simulasikan Aksi Pemicu:</div>
             
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -169,6 +186,7 @@ function gateSimulator() {
         isOpen: false,
         countdown: 5,
         timer: null,
+        selectedUserId: '{{ $wargaUsers->first()?->id ?? '' }}',
         logs: [
             @foreach($recentLogs as $log)
             {
@@ -189,11 +207,15 @@ function gateSimulator() {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 },
-                body: JSON.stringify({ method: method })
+                body: JSON.stringify({ 
+                    method: method,
+                    user_id: this.selectedUserId
+                })
             })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
+            .then(res => res.json().then(data => ({ status: res.status, body: data })))
+            .then(result => {
+                const data = result.body;
+                if (result.status === 200 && data.success) {
                     this.isOpen = true;
                     this.countdown = data.hold_duration_seconds || 5;
 
@@ -214,6 +236,17 @@ function gateSimulator() {
                             this.isOpen = false;
                         }
                     }, 1000);
+                } else {
+                    // Akses ditolak (Warga terkunci atau belum di-ACC Ketua RW)
+                    alert('⚠️ ' + data.message);
+                    if (data.log) {
+                        this.logs.unshift({
+                            id: data.log.id,
+                            time: data.log.time,
+                            method: data.log.method,
+                            reason: '⛔ ' + data.log.reason
+                        });
+                    }
                 }
             })
             .catch(err => console.error(err));

@@ -117,7 +117,21 @@ class HomeController extends Controller
 
     public function quickLogin($role)
     {
-        $user = User::where('role', $role)->first();
+        $user = null;
+
+        if ($role === 'warga-baru') {
+            $user = User::where('email', 'hendra@warga.id')->first() 
+                ?? User::where('role', 'warga')->where('verification_status', 'unverified')->first();
+        } elseif ($role === 'warga-pending') {
+            $user = User::where('email', 'siti@warga.id')->first()
+                ?? User::where('role', 'warga')->where('verification_status', 'pending_rw')->first();
+        } elseif ($role === 'warga') {
+            $user = User::where('email', 'bambang@warga.id')->first()
+                ?? User::where('role', 'warga')->where('verification_status', 'approved')->first();
+        } else {
+            $user = User::where('role', $role)->first();
+        }
+
         if ($user) {
             Auth::login($user);
             if ($user->role === 'super_admin') {
@@ -127,7 +141,12 @@ class HomeController extends Controller
             } elseif ($user->role === 'satpam') {
                 return redirect()->route('satpam.console');
             } elseif ($user->role === 'warga') {
-                return redirect()->route('warga.index');
+                if ($user->verification_status === 'unverified') {
+                    return redirect()->route('warga.index')->with('warning', "Selamat datang, {$user->name}! Status akun Anda: TERKUNCI. Mohon lengkapi data identitas KTP & tanggal lahir untuk verifikasi oleh Ketua RW.");
+                } elseif ($user->verification_status === 'pending_rw') {
+                    return redirect()->route('warga.index')->with('info', "Selamat datang, {$user->name}! Berkas KTP Anda sedang dalam proses peninjauan oleh Ketua RW.");
+                }
+                return redirect()->route('warga.index')->with('success', "Selamat datang, {$user->name}! Akun & E-KTP Anda telah terverifikasi resmi oleh Ketua RW.");
             }
             return redirect()->route('dashboard');
         }

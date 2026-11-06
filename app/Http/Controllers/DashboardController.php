@@ -42,6 +42,14 @@ class DashboardController extends Controller
             ->with(['billing.house', 'payer'])
             ->get();
 
+        // Verifikasi KTP Warga oleh Ketua RW
+        $pendingWargaCount = User::where('tenant_id', $tenant->id)->where('verification_status', 'pending_rw')->count();
+        $wargaVerifications = User::where('tenant_id', $tenant->id)
+            ->where('role', 'warga')
+            ->with(['house', 'verifiedBy'])
+            ->orderByRaw("CASE WHEN verification_status = 'pending_rw' THEN 1 WHEN verification_status = 'unverified' THEN 2 ELSE 3 END")
+            ->get();
+
         // Data Grafik 1: Proporsi Pengeluaran per Kategori (Pie Chart)
         $expenseByCategory = CashBook::where('tenant_id', $tenant->id)
             ->where('type', 'expense')
@@ -92,6 +100,8 @@ class DashboardController extends Controller
             'paidBillings',
             'unpaidBillings',
             'pendingPayments',
+            'pendingWargaCount',
+            'wargaVerifications',
             'chartExpenseLabels',
             'chartExpenseTotals',
             'chartBillingStatus',
@@ -175,5 +185,58 @@ class DashboardController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Transaksi kas berhasil dicatat!');
+    }
+
+    public function approveWargaVerification($id)
+    {
+        $targetUser = User::where('role', 'warga')->findOrFail($id);
+        $approver = Auth::user() ?? User::where('role', 'ketua_rw')->first();
+
+        // Pastikan NIK dan rfid_tag tersedia
+        $rfid = $targetUser->rfid_tag;
+        if (empty($rfid)) {
+            $rfid = 'RFID-' . ($targetUser->nik ?? ('AUTO-' . $targetUser->id));
+        }
+
+        $targetUser->update([
+            'verification_status' => 'approved',
+            'verified_by_user_id' => $approver?->id,
+            'verified_at' => now(),
+            'gate_access_enabled' => true,
+            'rfid_tag' => $rfid,
+            'rejection_reason' => null,
+        ]);
+
+        // Buat log sistem bahwa palang gerbang dan satpam telah disinkronkan
+        $tenant = Tenant::getActiveTenant() ?? Tenant::first();
+        $gate = SmartGate::where('tenant_id', $tenant?->id)->first() ?? SmartGate::first();
+        if ($gate) {
+            GateLog::create([
+                'tenant_id' => $tenant?->id ?? $gate->tenant_id,
+                'smart_gate_id' => $gate->id,
+                'user_id' => $targetUser->id,
+                'access_method' => 'rfid_card',
+                'direction' => 'entry',
+                'status' => 'granted',
+                'reason' => "Sinkronisasi Otorisasi RW: E-KTP & RFID {$targetUser->name} ({$rfid}) resmi aktif di gerbang dan pos satpam",
+                'triggered_at' => now(),
+            ]);
+        }
+
+        return redirect()->back()->with('success', "Identitas KTP & RFID Bpk/Ibu {$targetUser->name} berhasil DI-ACC OLEH KETUA RW! Akses palang pintu otomatis telah aktif dan disinkronkan ke Pos Satpam.");
+    }
+
+    public function rejectWargaVerification(Request $request, $id)
+    {
+        $targetUser = User::where('role', 'warga')->findOrFail($id);
+        $reason = $request->input('reason', 'Foto KTP tidak jelas / NIK tidak cocok dengan data kependudukan.');
+
+        $targetUser->update([
+            'verification_status' => 'rejected',
+            'gate_access_enabled' => false,
+            'rejection_reason' => $reason,
+        ]);
+
+        return redirect()->back()->with('warning', "Pengajuan verifikasi KTP untuk {$targetUser->name} telah ditolak dengan catatan: {$reason}");
     }
 }
