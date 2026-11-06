@@ -261,19 +261,11 @@
 
 @elseif($isLogin)
     <!-- ================================================================= -->
-    <!-- KONDISI 2: HALAMAN LOGIN (STANDALONE TANPA SIDEBAR)               -->
+    <!-- KONDISI 2: HALAMAN LOGIN (STANDALONE FULLSCREEN TANPA SIDEBAR)    -->
     <!-- ================================================================= -->
-    <div class="min-h-screen flex flex-col justify-center items-center py-12 px-4 sm:px-6 lg:px-8">
-        <div class="mb-8 text-center">
-            <x-logo size="lg" href="{{ route('home') }}" />
-        </div>
-        <div class="w-full max-w-md">
-            @yield('content')
-        </div>
-        <div class="mt-8 text-center text-xs text-slate-400">
-            <a href="{{ route('home') }}" class="hover:text-emerald-600 transition font-bold">➔ Kembali ke Beranda Landing Page</a>
-        </div>
-    </div>
+    <main class="min-h-screen w-full flex flex-col justify-between bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
+        @yield('content')
+    </main>
 
 @else
     <!-- ================================================================= -->

@@ -60,3 +60,4 @@ class SuperAdminController extends Controller
         return redirect()->back()->with('success', "Pusat Kendali beralih ke lingkungan: {$tenant->name} (" . strtoupper($tenant->environment_type) . ")");
     }
 }
+

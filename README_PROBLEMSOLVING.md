@@ -266,6 +266,24 @@ Dokumen ini mencatat seluruh hasil audit mendalam terhadap basis kode **E-WARGA*
 
 ---
 
+### 🔴 Masalah 17: Layout Halaman Login Terjepit (*Layout Squeezed*) Akibat Batasan `max-w-md` di Layout Induk
+* **Pemicu Masalah:**
+  Pada layar desktop, halaman login (`/login`) terlihat sangat sempit dan berantakan. Kolom promosi di sisi kiri dan form login di sisi kanan terhimpit parah sehingga teks patah kata-per-kata ("Transfor", "Digital", "Lingkung", "RT/RW"), input terpotong, dan logo tampil ganda bertumpuk.
+* **Akar Masalah:**
+  Pada file `layouts/app.blade.php`, blok kondisional `@elseif($isLogin)` membungkus `@yield('content')` dengan tag `<div class="w-full max-w-md">` (yang membatasi lebar maksimal hanya 448px / 28rem). Padahal, `login.blade.php` dirancang dengan arsitektur *split view* 2 kolom (`grid-cols-12`: 5 kolom branding + 7 kolom form) dengan lebar standar `max-w-5xl` (~1024px). Akibat pembatas luar tersebut, kontainer 2 kolom dipaksa menyempit ke dalam ruang 448px.
+* **✅ Solusi yang Diterapkan:**
+  1. **Pelepasan Batasan Lebar di Layout Induk:**
+     Mengganti pembungkus di `layouts/app.blade.php` menjadi `<main class="min-h-screen w-full flex flex-col justify-between bg-slate-50 dark:bg-slate-950">` sehingga halaman login memiliki kontrol penuh atas kanvas desktop.
+  2. **Rekonstruksi Halaman Login (`login.blade.php`):**
+     * **Topbar Navigasi Bersih:** Logo brand `<x-logo size="md" />` tunggal, tombol dark/light toggle, dan tombol *"← Kembali ke Beranda"*.
+     * **Kartu 2-Kolom Desktop (`max-w-5xl`):**
+       - Sisi Kiri (5 Kolom): Gradien navy-emerald mewah, badge *"Enterprise Smart Living"*, 4 keunggulan solusi IoT, dan link permohonan pasang palang.
+       - Sisi Kanan (7 Kolom): Form login email/password dengan layout lega, tombol submit gradien, dan seksi akses cepat 1-klik peran demo (*Super Admin*, *Ketua RT*, *Bendahara*, *Satpam*, *Warga*).
+     * **Footer Tipis:** Hak cipta resmi E-WARGA.
+  3. **Hasil:** Tampilan halaman login kini 100% simetris, lega, profesional, dan nyaman digunakan di desktop.
+
+---
+
 ## 📋 Panduan Penanganan Masalah Lapangan (Developer & Pengurus)
 
 | Gejala / Pesan Error | Penyebab Utama | Solusi Praktis |
