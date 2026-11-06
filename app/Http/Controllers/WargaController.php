@@ -17,9 +17,12 @@ class WargaController extends Controller
 {
     public function index()
     {
-        $user = Auth::user() ?? User::where('role', 'warga')->with('house')->first();
-        $tenant = Tenant::first();
-        $smartGate = SmartGate::first();
+        $tenant = Tenant::getActiveTenant() ?? Tenant::first();
+        $user = Auth::user();
+        if (!$user) {
+            $user = User::where('tenant_id', $tenant->id)->where('role', 'warga')->with('house')->first() ?? User::where('role', 'warga')->first();
+        }
+        $smartGate = SmartGate::where('tenant_id', $tenant->id)->first() ?? SmartGate::first();
 
         // Tagihan Warga
         $billing = null;
@@ -42,8 +45,8 @@ class WargaController extends Controller
             return redirect()->back()->with('error', 'Silakan login terlebih dahulu.');
         }
 
-        $tenant = Tenant::first();
-        $gate = SmartGate::first();
+        $tenant = Tenant::getActiveTenant() ?? Tenant::first();
+        $gate = SmartGate::where('tenant_id', $tenant?->id)->first() ?? SmartGate::first();
 
         if (!$gate) {
             return redirect()->back()->with('error', 'Perangkat palang gerbang tidak ditemukan atau sedang offline.');
@@ -86,7 +89,7 @@ class WargaController extends Controller
             return redirect()->back()->with('error', 'Sesi tidak valid.');
         }
 
-        $tenant = Tenant::first();
+        $tenant = Tenant::getActiveTenant() ?? Tenant::first();
         if (!$tenant) {
             return redirect()->back()->with('error', 'Data komplek tidak ditemukan.');
         }

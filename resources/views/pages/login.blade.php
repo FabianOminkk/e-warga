@@ -14,13 +14,7 @@
 
             <div class="space-y-6 relative z-10">
                 <!-- Brand Header -->
-                <div class="flex items-center gap-3">
-                    <img src="{{ asset('images/logo.jpg') }}" alt="Logo E-WARGA" class="h-10 w-auto object-contain rounded-xl bg-white p-1">
-                    <div>
-                        <span class="font-extrabold text-lg tracking-tight block leading-tight">E-WARGA</span>
-                        <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest block">Smart Community OS</span>
-                    </div>
-                </div>
+                <x-logo size="md" href="{{ route('home') }}" />
 
                 <!-- Headline Promosi -->
                 <div>

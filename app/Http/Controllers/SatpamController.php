@@ -14,9 +14,16 @@ class SatpamController extends Controller
 {
     public function console()
     {
-        $tenant = Tenant::first();
-        $smartGate = SmartGate::where('status', 'online')->first() ?? SmartGate::first();
-        $recentLogs = GateLog::with(['user'])->latest('triggered_at')->take(10)->get();
+        $user = Auth::user();
+        if ($user && $user->role === 'warga') {
+            return redirect()->route('warga.index')->with('error', 'Warga tidak memiliki akses ke Konsol Pos Jaga Satpam.');
+        }
+
+        $tenant = Tenant::getActiveTenant() ?? Tenant::first();
+        $smartGate = SmartGate::where('tenant_id', $tenant->id)->where('status', 'online')->first() 
+            ?? SmartGate::where('tenant_id', $tenant->id)->first() 
+            ?? SmartGate::first();
+        $recentLogs = GateLog::where('tenant_id', $tenant->id)->with(['user'])->latest('triggered_at')->take(10)->get();
         $activeVisitors = Visitor::where('is_used', false)
             ->where('valid_until', '>=', now())
             ->with(['hostHouse', 'invitedBy'])
@@ -30,8 +37,8 @@ class SatpamController extends Controller
     public function triggerManual(Request $request)
     {
         $reason = $request->input('reason', 'Buka Manual Pos Satpam');
-        $tenant = Tenant::first();
-        $gate = SmartGate::first();
+        $tenant = Tenant::getActiveTenant() ?? Tenant::first();
+        $gate = SmartGate::where('tenant_id', $tenant?->id)->first() ?? SmartGate::first();
 
         if (!$gate) {
             return redirect()->back()->with('error', 'Perangkat palang gerbang belum terpasang.');

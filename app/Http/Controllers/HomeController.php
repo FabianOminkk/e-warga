@@ -120,7 +120,9 @@ class HomeController extends Controller
         $user = User::where('role', $role)->first();
         if ($user) {
             Auth::login($user);
-            if ($user->role === 'satpam') {
+            if ($user->role === 'super_admin') {
+                return redirect()->route('superadmin.index');
+            } elseif ($user->role === 'satpam') {
                 return redirect()->route('satpam.console');
             } elseif ($user->role === 'warga') {
                 return redirect()->route('warga.index');

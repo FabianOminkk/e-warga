@@ -17,7 +17,7 @@
     <!-- Compiled Assets -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    <!-- Dark / Light Mode Early Bootstrapper (Prevent FOUC) -->
+    <!-- Dark / Light Mode Early Bootstrapper (Mencegah FOUC) -->
     <script>
         if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
@@ -31,6 +31,21 @@
             font-family: 'Plus Jakarta Sans', sans-serif;
         }
         [x-cloak] { display: none !important; }
+        
+        /* Sleek custom scrollbar for desktop drawer */
+        .custom-drawer-scroll::-webkit-scrollbar {
+            width: 5px;
+        }
+        .custom-drawer-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-drawer-scroll::-webkit-scrollbar-thumb {
+            background-color: rgba(156, 163, 175, 0.4);
+            border-radius: 9999px;
+        }
+        .dark .custom-drawer-scroll::-webkit-scrollbar-thumb {
+            background-color: rgba(75, 85, 99, 0.5);
+        }
     </style>
 </head>
 <body 
@@ -64,14 +79,209 @@
         }
     }
 
-    $activeTenant = \App\Models\Tenant::first();
+    $activeTenant = \App\Models\Tenant::getActiveTenant();
     $pendingLettersCount = \App\Models\LetterRequest::where('status', 'pending')->count();
     $currentUser = \Illuminate\Support\Facades\Auth::user();
 @endphp
 
-    <!-- ======================================================== -->
-    <!-- BACKDROP GELAP (UNTUK MOBILE / OVERLAY DRAWER)            -->
-    <!-- ======================================================== -->
+@if($isLanding)
+    <!-- ================================================================= -->
+    <!-- KONDISI 1: LANDING PAGE STANDALONE (MURNI PROMOSI / BRANDING)    -->
+    <!-- SAMA SEKALI TIDAK ADA SIDEBAR / LACI MENU DI LANDING PAGE         -->
+    <!-- ================================================================= -->
+
+    <!-- TOPBAR NAVBAR KHUSUS LANDING PAGE (DESKTOP-FIRST ENTERPRISE) -->
+    <header class="sticky top-0 z-50 bg-white/90 dark:bg-slate-950/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 transition-colors duration-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-6">
+            
+            <!-- Brand Logo SVG (Match Dark & Light 100%) -->
+            <x-logo size="md" href="{{ route('home') }}" />
+
+            <!-- Desktop Anchor Nav Links -->
+            <nav class="hidden lg:flex items-center gap-7 text-xs font-bold text-slate-600 dark:text-slate-300">
+                <a href="#hero" class="hover:text-emerald-600 dark:hover:text-emerald-400 transition">Beranda</a>
+                <a href="#fitur" class="hover:text-emerald-600 dark:hover:text-emerald-400 transition">Fitur Solusi</a>
+                <a href="#hardware" class="hover:text-emerald-600 dark:hover:text-emerald-400 transition flex items-center gap-1.5">
+                    <span>Hardware IoT</span>
+                    <span class="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 font-extrabold uppercase">Siap + R&D</span>
+                </a>
+                <a href="#posyandu" class="hover:text-emerald-600 dark:hover:text-emerald-400 transition">Posyandu Digital</a>
+                <a href="#komparasi" class="hover:text-emerald-600 dark:hover:text-emerald-400 transition">Mengapa Kami</a>
+                <a href="#testimoni" class="hover:text-emerald-600 dark:hover:text-emerald-400 transition">Testimoni</a>
+                <a href="#kerjasama" class="hover:text-emerald-600 dark:hover:text-emerald-400 transition">Kemitraan & Kontak</a>
+            </nav>
+
+            <!-- Topbar Right Controls -->
+            <div class="flex items-center gap-3">
+                <!-- Dark / Light Theme Toggle -->
+                <div x-data="{
+                    isDark: document.documentElement.classList.contains('dark'),
+                    toggle() {
+                        this.isDark = !this.isDark;
+                        if (this.isDark) {
+                            document.documentElement.classList.add('dark');
+                            localStorage.setItem('theme', 'dark');
+                        } else {
+                            document.documentElement.classList.remove('dark');
+                            localStorage.setItem('theme', 'light');
+                        }
+                    }
+                }">
+                    <button 
+                        @click="toggle()" 
+                        type="button" 
+                        class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition shadow-xs cursor-pointer flex items-center justify-center" 
+                        :title="isDark ? 'Ganti ke Mode Terang' : 'Ganti ke Mode Gelap'"
+                        aria-label="Toggle Dark / Light Theme"
+                    >
+                        <svg x-show="isDark" x-cloak class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                        <svg x-show="!isDark" x-cloak class="w-4 h-4 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+                    </button>
+                </div>
+
+                <!-- CTA Masuk Sistem / Dashboard -->
+                @auth
+                    @if($currentUser?->role === 'super_admin')
+                        <a href="{{ route('superadmin.index') }}" class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition flex items-center gap-2">
+                            <span>⚡ Pusat Super Admin</span>
+                            <span>➔</span>
+                        </a>
+                    @else
+                        <a href="{{ route('dashboard') }}" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-md shadow-emerald-600/20 transition flex items-center gap-2">
+                            <span>Buka Dashboard</span>
+                            <span>➔</span>
+                        </a>
+                    @endif
+                @else
+                    <a href="{{ route('login') }}" class="px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold text-xs transition">
+                        Masuk
+                    </a>
+                    <a href="#kerjasama" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-lg shadow-emerald-600/20 transition flex items-center gap-2">
+                        <span>Konsultasi & Survei</span>
+                        <span>➔</span>
+                    </a>
+                @endauth
+            </div>
+        </div>
+    </header>
+
+    <!-- Area Flash Message -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+        @if(session('success'))
+            <div class="bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 px-4 py-3 rounded-2xl flex items-center gap-3 text-sm font-medium shadow-xs mb-4">
+                <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                <span>{{ session('success') }}</span>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300 px-4 py-3 rounded-2xl flex items-center gap-3 text-sm font-medium shadow-xs mb-4">
+                <svg class="w-5 h-5 text-rose-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>
+                <span>{{ session('error') }}</span>
+            </div>
+        @endif
+    </div>
+
+    <!-- KONTEN MURNI LANDING PAGE (FULL WIDTH DESKTOP) -->
+    <main class="w-full">
+        @yield('content')
+    </main>
+
+    <!-- FOOTER RESMI BRANDING E-WARGA -->
+    <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-16 text-xs text-slate-500 dark:text-slate-400">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
+                <div class="space-y-4">
+                    <x-logo size="md" href="{{ route('home') }}" />
+                    <p class="text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+                        Platform Enterprise Smart Community & Managed IoT Living #1 di Indonesia. Mengintegrasikan Palang Pintu Otomatis, Transparansi Kas Keuangan, Layanan Surat Digital, Posyandu Terpadu, dan Keamanan Wilayah.
+                    </p>
+                    <div class="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                        PT SMART COMMUNITY INDONESIA
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="font-bold text-slate-900 dark:text-white uppercase tracking-wider text-[11px] mb-4">Fitur Solusi</h4>
+                    <ul class="space-y-2.5">
+                        <li><a href="#fitur" class="hover:text-emerald-600 transition">Transparansi Kas RT & Laporan</a></li>
+                        <li><a href="#hardware" class="hover:text-emerald-600 transition">Palang Pintu Otomatis RFID / QR</a></li>
+                        <li><a href="#posyandu" class="hover:text-emerald-600 transition">Posyandu Digital & Deteksi Stunting</a></li>
+                        <li><a href="#fitur" class="hover:text-emerald-600 transition">Surat Pengantar RT Online Ber-QR</a></li>
+                        <li><a href="#fitur" class="hover:text-emerald-600 transition">Jadwal Satpam & Ronda Swakarsa</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="font-bold text-slate-900 dark:text-white uppercase tracking-wider text-[11px] mb-4">Hardware Pipeline</h4>
+                    <ul class="space-y-2.5">
+                        <li><a href="#hardware" class="hover:text-emerald-600 transition">Smart Barrier Gate (Tersedia)</a></li>
+                        <li><a href="#hardware" class="hover:text-emerald-600 transition">Kiosk QR Scanner Outdoor (Tersedia)</a></li>
+                        <li><a href="#hardware" class="hover:text-emerald-600 transition">CCTV ANPR Otomatis Plat (Coming Soon)</a></li>
+                        <li><a href="#hardware" class="hover:text-emerald-600 transition">Tiang Tombol Panik Warga (Coming Soon)</a></li>
+                        <li><a href="#hardware" class="hover:text-emerald-600 transition">Sensor Banjir Saluran Air (Coming Soon)</a></li>
+                        <li><a href="#hardware" class="hover:text-emerald-600 transition">Smart PJU & Smart TPS (Coming Soon)</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="font-bold text-slate-900 dark:text-white uppercase tracking-wider text-[11px] mb-4">Hubungi & Kerjasama</h4>
+                    <div class="space-y-2 text-xs">
+                        <div>
+                            <span class="text-slate-400 block text-[10px] uppercase font-bold">Email Kemitraan:</span>
+                            <a href="mailto:partnership@ewarga.id" class="text-emerald-600 dark:text-emerald-400 font-bold hover:underline">partnership@ewarga.id</a>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block text-[10px] uppercase font-bold">Email Penjualan / Pengadaan:</span>
+                            <a href="mailto:sales@ewarga.id" class="text-emerald-600 dark:text-emerald-400 font-bold hover:underline">sales@ewarga.id</a>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block text-[10px] uppercase font-bold">Hotline WhatsApp Konsultan:</span>
+                            <span class="font-mono font-bold text-slate-900 dark:text-white">+62 812-3456-7890</span>
+                        </div>
+                        <div class="text-[11px] text-slate-400 pt-1">
+                            Layanan Survei: Jabodetabek, Bandung, Semarang, Surabaya, Denpasar.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-8 border-t border-slate-100 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-slate-400">
+                <div>&copy; {{ date('Y') }} E-WARGA by PT Smart Community Indonesia. Seluruh hak cipta dilindungi undang-undang.</div>
+                <div class="flex items-center gap-4 text-[11px]">
+                    <a href="#kerjasama" class="hover:text-slate-600 dark:hover:text-slate-300">Hubungi Konsultan</a>
+                    <span>•</span>
+                    <a href="{{ route('login') }}" class="hover:text-slate-600 dark:hover:text-slate-300">Login Sistem</a>
+                    <span>•</span>
+                    <a href="{{ route('superadmin.index') }}" class="hover:text-amber-500 font-bold">Pusat Super Admin</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+@elseif($isLogin)
+    <!-- ================================================================= -->
+    <!-- KONDISI 2: HALAMAN LOGIN (STANDALONE TANPA SIDEBAR)               -->
+    <!-- ================================================================= -->
+    <div class="min-h-screen flex flex-col justify-center items-center py-12 px-4 sm:px-6 lg:px-8">
+        <div class="mb-8 text-center">
+            <x-logo size="lg" href="{{ route('home') }}" />
+        </div>
+        <div class="w-full max-w-md">
+            @yield('content')
+        </div>
+        <div class="mt-8 text-center text-xs text-slate-400">
+            <a href="{{ route('home') }}" class="hover:text-emerald-600 transition font-bold">➔ Kembali ke Beranda Landing Page</a>
+        </div>
+    </div>
+
+@else
+    <!-- ================================================================= -->
+    <!-- KONDISI 3: AREA INTERNAL OPERASIONAL (DASHBOARD, SATPAM, DLL)     -->
+    <!-- MENGGUNAKAN MODE LACI COLLAPSIBLE DESKTOP & STRICT RBAC           -->
+    <!-- ================================================================= -->
+
+    <!-- BACKDROP MOBILE SAAT DRAWER DIBUKA (HANYA LAYAR KECIL) -->
     <div 
         x-show="sidebarOpen" 
         @click="closeDrawer()" 
@@ -80,238 +290,126 @@
     ></div>
 
     <!-- ======================================================== -->
-    <!-- TOMBOL TARIK LACI MENGAPUNG (SAAT LACI DITUTUP)          -->
-    <!-- ======================================================== -->
-    <button 
-        x-show="!sidebarOpen" 
-        @click="openDrawer()" 
-        x-cloak
-        type="button"
-        class="fixed top-4 left-4 z-40 flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200/90 dark:border-slate-700/90 text-slate-800 dark:text-slate-100 shadow-xl shadow-slate-900/10 hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400 hover:scale-105 active:scale-95 transition-all text-xs font-black cursor-pointer group"
-        title="Buka Laci Menu Navigasi E-WARGA"
-    >
-        <span class="p-1 rounded-lg bg-emerald-100 dark:bg-emerald-950/70 text-emerald-600 dark:text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white transition">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"/>
-            </svg>
-        </span>
-        <span class="tracking-tight">Laci Menu</span>
-        <span class="text-slate-400 dark:text-slate-500 text-[10px] group-hover:translate-x-0.5 transition-transform">▶</span>
-    </button>
-
-    <!-- ======================================================== -->
-    <!-- LACI NAVIGASI SAMPING KIRI (DRAWER SIDEBAR NGELACI)      -->
+    <!-- LACI NAVIGASI DESKTOP (COLLAPSIBLE DRAWER SIDEBAR)       -->
     <!-- ======================================================== -->
     <aside 
         :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-        class="fixed top-0 left-0 z-50 h-screen w-80 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between shadow-2xl transition-transform duration-300 ease-in-out shrink-0"
+        class="fixed top-0 left-0 z-50 h-screen w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between shadow-2xl transition-transform duration-300 ease-in-out shrink-0"
     >
-        <!-- 1. HEADER LACI (FIXED / SHRINK-0: TIDAK AKAN HILANG SAAT DI-SCROLL) -->
+        <!-- 1. HEADER LACI (LOGO + COLLAPSE + TENANT SWITCHER) -->
         <div class="p-5 pb-4 border-b border-slate-100 dark:border-slate-800 shrink-0 space-y-4">
             <div class="flex items-center justify-between">
-                <a href="{{ route('home') }}" class="flex items-center gap-3 group">
-                    <img src="{{ asset('images/logo.jpg') }}" alt="Logo E-WARGA" class="h-10 w-auto object-contain">
-                    <div>
-                        <span class="font-extrabold text-base tracking-tight text-slate-900 dark:text-white block leading-tight">E-WARGA</span>
-                        <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block">Smart Community OS</span>
-                    </div>
-                </a>
+                <x-logo size="sm" href="{{ route('home') }}" />
                 
                 <!-- Tombol Dorong Masuk Laci (Collapse Drawer) -->
                 <button 
                     @click="closeDrawer()" 
                     type="button"
-                    class="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center justify-center cursor-pointer group"
+                    class="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
                     title="Dorong / Tutup Laci Menu"
                 >
-                    <svg class="w-5 h-5 text-slate-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
                     </svg>
                 </button>
             </div>
 
-            <!-- Kartu Status Lingkungan Aktif (Cluster vs Kampung) -->
-            <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 space-y-1.5">
-                <div class="flex items-center justify-between">
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Mode Lingkungan:</span>
-                    <form action="{{ route('environment.toggle') }}" method="POST" class="inline">
-                        @csrf
-                        <button type="submit" class="text-[10px] font-bold px-2 py-0.5 rounded-md transition cursor-pointer {{ ($activeTenant?->environment_type ?? 'cluster') === 'cluster' ? 'bg-blue-100 dark:bg-blue-950/80 text-blue-800 dark:text-blue-300 hover:bg-blue-200' : 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-200' }}" title="Klik untuk beralih mode Cluster / Kampung">
-                            {{ ($activeTenant?->environment_type ?? 'cluster') === 'cluster' ? '🏢 Cluster' : '🌾 Kampung' }}
-                        </button>
-                    </form>
+            <!-- MULTI-TENANT SWITCHER KHUSUS SUPER ADMIN ATAU STATUS WILAYAH -->
+            @if(($currentUser?->role ?? '') === 'super_admin')
+                <div class="p-3 rounded-2xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/80 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[9px] font-black uppercase tracking-wider text-amber-800 dark:text-amber-300 flex items-center gap-1">
+                            <span>⚡</span> WILAYAH AKTIF KENDALI:
+                        </span>
+                        <a href="{{ route('superadmin.index') }}" class="text-[9px] font-extrabold text-amber-600 dark:text-amber-400 hover:underline">
+                            Pusat Hub ➔
+                        </a>
+                    </div>
+                    <div class="font-extrabold text-xs text-slate-900 dark:text-white truncate">
+                        {{ $activeTenant?->name ?? 'Cluster Melati Mas' }}
+                    </div>
+
+                    <!-- 1-KLIK SWITCHER LINGKUNGAN DEMO (1 CLUSTER vs 1 DESA) -->
+                    @php
+                        $clusterDemo = \App\Models\Tenant::where('environment_type', 'cluster')->first();
+                        $desaDemo = \App\Models\Tenant::where('environment_type', 'kampung')->first();
+                    @endphp
+                    <div class="grid grid-cols-2 gap-1.5 pt-1 border-t border-amber-200/60 dark:border-amber-800/60">
+                        @if($clusterDemo)
+                            <form action="{{ route('superadmin.switch-tenant', $clusterDemo->id) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="w-full text-[10px] font-bold py-1.5 px-2 rounded-xl transition cursor-pointer {{ ($activeTenant?->id == $clusterDemo->id) ? 'bg-blue-600 text-white shadow-xs' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-blue-50' }}">
+                                    🏢 Cluster
+                                </button>
+                            </form>
+                        @endif
+                        @if($desaDemo)
+                            <form action="{{ route('superadmin.switch-tenant', $desaDemo->id) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="w-full text-[10px] font-bold py-1.5 px-2 rounded-xl transition cursor-pointer {{ ($activeTenant?->id == $desaDemo->id) ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-emerald-50' }}">
+                                    🌾 Desa RT
+                                </button>
+                            </form>
+                        @endif
+                    </div>
                 </div>
-                <div class="font-extrabold text-xs text-slate-800 dark:text-slate-100 truncate">
-                    {{ $activeTenant?->name ?? 'Graha Asri Residence' }}
+            @else
+                <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 space-y-1">
+                    <div class="flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        <span>Wilayah Lingkungan:</span>
+                        <span class="px-1.5 py-0.5 rounded text-[9px] {{ ($activeTenant?->environment_type ?? 'cluster') === 'cluster' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-200' : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200' }}">
+                            {{ ($activeTenant?->environment_type ?? 'cluster') === 'cluster' ? 'Cluster' : 'Desa' }}
+                        </span>
+                    </div>
+                    <div class="font-extrabold text-xs text-slate-800 dark:text-slate-100 truncate">
+                        {{ $activeTenant?->name ?? 'Cluster Melati Mas' }}
+                    </div>
                 </div>
-            </div>
+            @endif
         </div>
 
-        <!-- 2. KONTEN MENU NAVIGASI (FLEX-1 & SCROLLABLE DENGAN CUSTOM SLEEK SCROLLBAR) -->
-        <div class="flex-1 overflow-y-auto px-5 py-4 space-y-6 custom-sidebar-scroll">
-            <nav class="space-y-6 text-xs font-semibold">
-                
-                @if($isLanding)
-                    <!-- KELOMPOK KHUSUS LANDING PAGE: SEKSI PROMOSI KLIEN & FORM SURVEI -->
-                    <div>
-                        <div class="px-3 pb-2 text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center justify-between">
-                            <span>Seksi Landing Page</span>
-                            <span class="text-[9px] text-emerald-600 dark:text-emerald-400 font-bold">PROMOSI</span>
-                        </div>
-                        <div class="space-y-1">
-                            <a href="#hero" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-slate-800 dark:hover:text-emerald-400 transition">
-                                <span class="text-base">🏠</span>
-                                <span>Beranda & Hero</span>
-                            </a>
-                            <a href="#fitur" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-slate-800 dark:hover:text-emerald-400 transition">
-                                <span class="text-base">⭐</span>
-                                <span>Fitur Unggulan</span>
-                            </a>
-                            <a href="#keamanan" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-slate-800 dark:hover:text-emerald-400 transition">
-                                <span class="text-base">🚪</span>
-                                <span>IoT Smart Barrier Gate</span>
-                            </a>
-                            <a href="#posyandu" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-slate-800 dark:hover:text-emerald-400 transition">
-                                <span class="text-base">🩺</span>
-                                <span>Posyandu & Stunting</span>
-                            </a>
-                            <a href="#komparasi" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-slate-800 dark:hover:text-emerald-400 transition">
-                                <span class="text-base">⚖️</span>
-                                <span>Sebelum vs Sesudah</span>
-                            </a>
-                            <a href="#testimoni" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-slate-800 dark:hover:text-emerald-400 transition">
-                                <span class="text-base">💬</span>
-                                <span>Testimoni Pengurus & Warga</span>
-                            </a>
-                            @guest
-                                <a href="#daftar-komplek" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-slate-800 dark:hover:text-emerald-400 transition">
-                                    <span class="text-base">📝</span>
-                                    <span>Konsultasi & Survei Pasang</span>
-                                </a>
-                            @endguest
-                        </div>
+        <!-- 2. KONTEN MENU NAVIGASI DENGAN STRICT ROLE-BASED ACCESS CONTROL (RBAC) -->
+        <div class="flex-1 overflow-y-auto px-4 py-3 space-y-5 custom-drawer-scroll text-xs font-semibold">
+            
+            <!-- MENU SUPER ADMIN (PUSAT PLATFORM) -->
+            @if(($currentUser?->role ?? '') === 'super_admin')
+                <div>
+                    <div class="px-3 pb-2 text-[10px] font-black uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center justify-between">
+                        <span>Pusat Kendali Platform</span>
+                        <span class="text-[9px] px-1 rounded-sm bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 font-extrabold">KEPALA</span>
                     </div>
-
-                    <!-- PINTASAN DEMO APLIKASI UNTUK CALON KLIEN -->
-                    <div>
-                        <div class="px-3 pb-2 text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                            Akses Cepat Modul Sistem
-                        </div>
-                        <div class="space-y-1">
-                            <a href="{{ route('dashboard') }}" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold shadow-md shadow-emerald-600/20 hover:from-emerald-500 hover:to-teal-500 transition">
-                                <div class="flex items-center gap-3">
-                                    <span class="text-base">📊</span>
-                                    <span>Buka Dashboard RT</span>
-                                </div>
-                                <span>➔</span>
-                            </a>
-                            <a href="{{ route('login') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
-                                <span class="text-base">🔐</span>
-                                <span>Halaman Login</span>
-                            </a>
-                        </div>
+                    <div class="space-y-1">
+                        <a href="{{ route('superadmin.index') }}" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition {{ request()->routeIs('superadmin.index') ? 'bg-amber-500 text-slate-950 font-black shadow-md' : 'text-slate-700 dark:text-slate-300 hover:bg-amber-50 dark:hover:bg-slate-800' }}">
+                            <div class="flex items-center gap-2.5">
+                                <span class="text-base">⚡</span>
+                                <span>Platform Hub & Multi-Wilayah</span>
+                            </div>
+                            <span class="text-[10px]">🏢🌾</span>
+                        </a>
                     </div>
+                </div>
+            @endif
 
-                @elseif($isLogin)
-                    <!-- KELOMPOK KHUSUS HALAMAN LOGIN -->
-                    <div>
-                        <div class="px-3 pb-2 text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                            Navigasi Login
-                        </div>
-                        <div class="space-y-1">
-                            <a href="{{ route('home') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
-                                <span class="text-base">🏠</span>
-                                <span>Kembali ke Beranda Utama</span>
-                            </a>
-                            <a href="{{ route('home') }}#daftar-komplek" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
-                                <span class="text-base">📝</span>
-                                <span>Pendaftaran Komplek Baru</span>
-                            </a>
-                            <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-emerald-600 dark:text-emerald-400 font-bold hover:bg-emerald-50 dark:hover:bg-slate-800 transition">
+            <!-- MENU OPERASIONAL RT / LINGKUNGAN (DIBAWAH SUPER ADMIN, KETUA RT, BENDAHARA) -->
+            @if(in_array($currentUser?->role ?? '', ['super_admin', 'ketua_rt', 'bendahara']))
+                <div>
+                    <div class="px-3 pb-2 text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                        Manajemen Lingkungan
+                    </div>
+                    <div class="space-y-1">
+                        <a href="{{ route('dashboard') }}" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition {{ request()->routeIs('dashboard') ? 'bg-emerald-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                            <div class="flex items-center gap-2.5">
                                 <span class="text-base">📊</span>
-                                <span>Langsung Buka Dashboard</span>
-                            </a>
-                        </div>
-                    </div>
+                                <span>Dashboard Utama RT & Kas</span>
+                            </div>
+                            @if(request()->routeIs('dashboard'))
+                                <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                            @endif
+                        </a>
 
-                @else
-                    <!-- KELOMPOK KHUSUS OPERASIONAL (DASHBOARD & INTERNAL APP: BERSIH DARI IKLAN/PROMOSI) -->
-                    <!-- Kelompok 1: Manajemen Utama -->
-                    <div>
-                        <div class="px-3 pb-2 text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                            Manajemen Utama
-                        </div>
-                        <div class="space-y-1">
-                            <a href="{{ route('dashboard') }}" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl transition {{ request()->routeIs('dashboard') ? 'bg-emerald-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
-                                <div class="flex items-center gap-3">
-                                    <span class="text-base">📊</span>
-                                    <span>Dashboard RT & Kas</span>
-                                </div>
-                                @if(request()->routeIs('dashboard'))
-                                    <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
-                                @endif
-                            </a>
-
-                            <a href="{{ route('warga.index') }}" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl transition {{ request()->routeIs('warga.index') ? 'bg-emerald-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
-                                <div class="flex items-center gap-3">
-                                    <span class="text-base">📱</span>
-                                    <span>Akses Warga (Mobile View)</span>
-                                </div>
-                                <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 font-bold">HP</span>
-                            </a>
-                        </div>
-                    </div>
-
-                    <!-- Kelompok 2: Keamanan & Hardware IoT -->
-                    <div>
-                        <div class="px-3 pb-2 text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                            Keamanan & Hardware
-                        </div>
-                        <div class="space-y-1">
-                            <a href="{{ route('satpam.console') }}" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl transition {{ request()->routeIs('satpam.console') ? 'bg-emerald-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
-                                <div class="flex items-center gap-3">
-                                    <span class="text-base">🛡️</span>
-                                    <span>Pos Pantau Satpam</span>
-                                </div>
-                                <span class="text-[10px] font-bold font-mono text-cyan-600 dark:text-cyan-400">QR</span>
-                            </a>
-
-                            <a href="{{ route('simulator') }}" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl transition {{ request()->routeIs('simulator') ? 'bg-emerald-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
-                                <div class="flex items-center gap-3">
-                                    <span class="text-base">🧪</span>
-                                    <span>Simulator Smart Gate</span>
-                                </div>
-                                <span class="flex h-2 w-2 relative">
-                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                                </span>
-                            </a>
-
-                            <a href="{{ route('schedules.index') }}" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl transition {{ request()->routeIs('schedules.*') ? 'bg-emerald-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
-                                <div class="flex items-center gap-3">
-                                    <span class="text-base">🔦</span>
-                                    <span>Jadwal & Ronda Bulan Ini</span>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-
-                    <!-- Kelompok 3: Pelayanan Warga Digital -->
-                    <div>
-                        <div class="px-3 pb-2 text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                            Pelayanan Warga
-                        </div>
-                        <div class="space-y-1">
-                            <a href="{{ route('posyandu.index') }}" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl transition {{ request()->routeIs('posyandu.*') ? 'bg-pink-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
-                                <div class="flex items-center gap-3">
-                                    <span class="text-base">🩺</span>
-                                    <span>Posyandu Digital RT/RW</span>
-                                </div>
-                                <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-pink-100 text-pink-700 dark:bg-pink-950/60 dark:text-pink-300 font-bold">KMS</span>
-                            </a>
-
-                            <a href="{{ route('letters.index') }}" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl transition {{ request()->routeIs('letters.*') ? 'bg-blue-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
-                                <div class="flex items-center gap-3">
+                        @if(in_array($currentUser?->role ?? '', ['super_admin', 'ketua_rt']))
+                            <a href="{{ route('letters.index') }}" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition {{ request()->routeIs('letters.*') ? 'bg-blue-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                                <div class="flex items-center gap-2.5">
                                     <span class="text-base">📜</span>
                                     <span>Surat Pengantar RT</span>
                                 </div>
@@ -321,30 +419,99 @@
                                     </span>
                                 @endif
                             </a>
-                        </div>
-                    </div>
 
-                    <!-- Kelompok 4: Navigasi Luar -->
-                    <div>
-                        <div class="px-3 pb-2 text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                            Portal Publik
-                        </div>
-                        <div class="space-y-1">
-                            <a href="{{ route('home') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
-                                <span class="text-base">🌐</span>
-                                <span>Lihat Beranda Publik</span>
+                            <a href="{{ route('posyandu.index') }}" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition {{ request()->routeIs('posyandu.*') ? 'bg-pink-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="text-base">🩺</span>
+                                    <span>Posyandu Digital RT/RW</span>
+                                </div>
+                                <span class="text-[9px] px-1.5 py-0.5 rounded-md bg-pink-100 text-pink-700 dark:bg-pink-950/60 dark:text-pink-300 font-bold">KMS</span>
                             </a>
-                        </div>
+                        @endif
                     </div>
-                @endif
+                </div>
+            @endif
 
-            </nav>
+            <!-- MENU KEAMANAN & HARDWARE (SUPER ADMIN, KETUA RT, SATPAM) -->
+            @if(in_array($currentUser?->role ?? '', ['super_admin', 'ketua_rt', 'satpam']))
+                <div>
+                    <div class="px-3 pb-2 text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                        Keamanan & Pos Jaga
+                    </div>
+                    <div class="space-y-1">
+                        <a href="{{ route('satpam.console') }}" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition {{ request()->routeIs('satpam.console') ? 'bg-slate-800 text-white font-bold shadow-xs dark:bg-slate-700' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                            <div class="flex items-center gap-2.5">
+                                <span class="text-base">🛡️</span>
+                                <span>Pos Pantau Satpam</span>
+                            </div>
+                            <span class="text-[9px] font-mono text-cyan-500 font-bold">GATE</span>
+                        </a>
+
+                        <a href="{{ route('schedules.index') }}" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition {{ request()->routeIs('schedules.*') ? 'bg-amber-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                            <div class="flex items-center gap-2.5">
+                                <span class="text-base">🔦</span>
+                                <span>Jadwal Satpam & Ronda</span>
+                            </div>
+                        </a>
+
+                        <a href="{{ route('simulator') }}" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition {{ request()->routeIs('simulator') ? 'bg-teal-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                            <div class="flex items-center gap-2.5">
+                                <span class="text-base">🧪</span>
+                                <span>Simulator Smart Gate</span>
+                            </div>
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        </a>
+                    </div>
+                </div>
+            @endif
+
+            <!-- MENU WARGA MANDIRI (WARGA & SUPER ADMIN UNTUK INSPEKSI) -->
+            @if(in_array($currentUser?->role ?? '', ['super_admin', 'warga']))
+                <div>
+                    <div class="px-3 pb-2 text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                        Portal Warga Mandiri
+                    </div>
+                    <div class="space-y-1">
+                        <a href="{{ route('warga.index') }}" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition {{ request()->routeIs('warga.index') ? 'bg-emerald-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                            <div class="flex items-center gap-2.5">
+                                <span class="text-base">🏡</span>
+                                <span>Portal Layanan Warga</span>
+                            </div>
+                            <span class="text-[9px] px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 font-bold">WARGA</span>
+                        </a>
+
+                        @if(($currentUser?->role ?? '') === 'warga')
+                            <a href="{{ route('letters.index') }}" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition {{ request()->routeIs('letters.*') ? 'bg-blue-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="text-base">📜</span>
+                                    <span>Ajukan Surat Pengantar</span>
+                                </div>
+                            </a>
+
+                            <a href="{{ route('schedules.index') }}" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition {{ request()->routeIs('schedules.*') ? 'bg-amber-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="text-base">🔦</span>
+                                    <span>Jadwal Ronda Saya</span>
+                                </div>
+                            </a>
+                        @endif
+                    </div>
+                </div>
+            @endif
+
+            <!-- PORTAL PUBLIK LINK -->
+            <div class="pt-2 border-t border-slate-100 dark:border-slate-800">
+                <a href="{{ route('home') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    <span class="text-sm">🌐</span>
+                    <span>Lihat Halaman Promosi / Landing</span>
+                </a>
+            </div>
+
         </div>
 
-        <!-- 3. FOOTER LACI (FIXED / SHRINK-0: TIDAK AKAN HILANG & BEBAS CLIPPING) -->
-        <div class="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/95 shrink-0 space-y-3 relative">
+        <!-- 3. FOOTER LACI (DARK/LIGHT TOGGLE, ROLE SWITCHER POPOVER, PROFIL PENGGUNA) -->
+        <div class="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/95 shrink-0 space-y-3">
             
-            <!-- CONTROLS: DARK MODE TOGGLE & ROLE SWITCHER -->
             <div class="flex items-center justify-between gap-2">
                 <!-- Dark / Light Mode Toggle -->
                 <div x-data="{
@@ -365,102 +532,101 @@
                     <button 
                         @click="toggle()" 
                         type="button" 
-                        class="w-full py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition flex items-center justify-center gap-2 shadow-xs cursor-pointer" 
+                        class="w-full py-2 px-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-xs cursor-pointer" 
                         :title="isDark ? 'Ganti ke Mode Terang' : 'Ganti ke Mode Gelap'"
-                        aria-label="Toggle Dark / Light Theme"
                     >
-                        <svg x-show="isDark" x-cloak class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                        <svg x-show="!isDark" x-cloak class="w-4 h-4 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
-                        <span x-text="isDark ? 'Mode Terang' : 'Mode Gelap'"></span>
+                        <svg x-show="isDark" x-cloak class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                        <svg x-show="!isDark" x-cloak class="w-3.5 h-3.5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+                        <span class="text-[11px]" x-text="isDark ? 'Mode Terang' : 'Mode Gelap'"></span>
                     </button>
                 </div>
 
-                <!-- Role Switcher Trigger (Dengan Popover Luas Anti-Clipping) -->
+                <!-- Role Switcher Trigger (Popover Anti-Clipping) -->
                 <div x-data="{ openRole: false }" class="relative">
                     <button 
                         @click="openRole = !openRole" 
                         type="button" 
-                        class="py-2 px-3 bg-[#1B365D] hover:bg-slate-800 text-white rounded-xl text-xs font-bold shadow-xs transition flex items-center gap-1.5 cursor-pointer" 
-                        title="Ganti Peran Pengujian"
+                        class="py-2 px-3 bg-slate-800 dark:bg-slate-700 hover:bg-slate-700 text-white rounded-xl text-xs font-bold shadow-xs transition flex items-center gap-1 cursor-pointer" 
+                        title="Ganti Peran Pengujian Cepat"
                     >
                         <span>Role</span>
-                        <span class="text-[10px]" x-text="openRole ? '▲' : '▼'"></span>
+                        <span class="text-[9px]" x-text="openRole ? '▲' : '▼'"></span>
                     </button>
 
-                    <!-- Popover Dropdown Luas yang Tidak Akan Terpotong -->
+                    <!-- Popover Dropdown Luas Anti-Clipping -->
                     <div 
                         x-show="openRole" 
                         @click.away="openRole = false" 
                         x-cloak 
-                        class="absolute bottom-full right-0 mb-3 w-64 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 p-2.5 z-50 text-xs space-y-1.5"
+                        class="absolute bottom-full right-0 mb-3 w-64 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 p-2.5 z-50 text-xs space-y-1"
                     >
-                        <div class="px-2 py-1 text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-1.5">
-                            <span>Ganti Peran Pengujian:</span>
-                            <span class="text-emerald-600 dark:text-emerald-400 font-bold">1-Klik</span>
+                        <div class="px-2 py-1 text-[9px] font-black text-slate-400 uppercase tracking-wider flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-1.5 mb-1">
+                            <span>Ganti Peran Demo:</span>
+                            <span class="text-emerald-600 dark:text-emerald-400 font-bold">1-KLIK</span>
                         </div>
 
                         <!-- Super Admin Platform (Utama) -->
-                        <a href="{{ route('quick.login', 'super_admin') }}" class="flex items-center justify-between px-2.5 py-2 rounded-xl {{ ($currentUser?->role ?? '') === 'super_admin' ? 'bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-300 dark:border-emerald-700 text-emerald-900 dark:text-emerald-200 font-bold' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                        <a href="{{ route('quick.login', 'super_admin') }}" class="flex items-center justify-between px-2.5 py-2 rounded-xl {{ ($currentUser?->role ?? '') === 'super_admin' ? 'bg-amber-50 dark:bg-amber-950/70 text-amber-900 dark:text-amber-200 font-bold border border-amber-300 dark:border-amber-700' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
                             <div class="flex items-center gap-2">
-                                <span class="text-amber-500 font-bold">⚡</span>
+                                <span class="text-amber-500 font-black">⚡</span>
                                 <div>
                                     <div class="font-bold">Fabian (Super Admin)</div>
-                                    <div class="text-[9px] text-slate-400">Akses Penuh Seluruh Sistem</div>
+                                    <div class="text-[9px] text-slate-400">Pusat & Kepala Seluruh Wilayah</div>
                                 </div>
                             </div>
                             @if(($currentUser?->role ?? '') === 'super_admin')
-                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                             @endif
                         </a>
 
                         <a href="{{ route('quick.login', 'ketua_rt') }}" class="flex items-center justify-between px-2.5 py-2 rounded-xl {{ ($currentUser?->role ?? '') === 'ketua_rt' ? 'bg-blue-50 dark:bg-blue-950/70 text-blue-900 dark:text-blue-200 font-bold' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
                             <div class="flex items-center gap-2">
                                 <span>👔</span>
-                                <span>Ketua RT (Bpk. H. Sutrisno)</span>
+                                <div>
+                                    <div class="font-bold">Ketua RT (Bpk. H. Sutrisno)</div>
+                                    <div class="text-[9px] text-slate-400">Persetujuan surat & kas</div>
+                                </div>
                             </div>
-                            @if(($currentUser?->role ?? '') === 'ketua_rt')
-                                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-                            @endif
                         </a>
 
-                        <a href="{{ route('quick.login', 'bendahara') }}" class="flex items-center justify-between px-2.5 py-2 rounded-xl {{ ($currentUser?->role ?? '') === 'bendahara' ? 'bg-amber-50 dark:bg-amber-950/70 text-amber-900 dark:text-amber-200 font-bold' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                        <a href="{{ route('quick.login', 'bendahara') }}" class="flex items-center justify-between px-2.5 py-2 rounded-xl {{ ($currentUser?->role ?? '') === 'bendahara' ? 'bg-emerald-50 dark:bg-emerald-950/70 text-emerald-900 dark:text-emerald-200 font-bold' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
                             <div class="flex items-center gap-2">
                                 <span>💰</span>
-                                <span>Bendahara RT (Bpk. Joko)</span>
+                                <div>
+                                    <div class="font-bold">Bendahara (Bpk. Joko)</div>
+                                    <div class="text-[9px] text-slate-400">Kelola buku kas RT</div>
+                                </div>
                             </div>
-                            @if(($currentUser?->role ?? '') === 'bendahara')
-                                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-                            @endif
                         </a>
 
                         <a href="{{ route('quick.login', 'satpam') }}" class="flex items-center justify-between px-2.5 py-2 rounded-xl {{ ($currentUser?->role ?? '') === 'satpam' ? 'bg-cyan-50 dark:bg-cyan-950/70 text-cyan-900 dark:text-cyan-200 font-bold' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
                             <div class="flex items-center gap-2">
                                 <span>🛡️</span>
-                                <span>Satpam (Pak Slamet)</span>
+                                <div>
+                                    <div class="font-bold">Satpam (Pak Slamet)</div>
+                                    <div class="text-[9px] text-slate-400">Palang pintu & pos jaga</div>
+                                </div>
                             </div>
-                            @if(($currentUser?->role ?? '') === 'satpam')
-                                <span class="w-2 h-2 rounded-full bg-cyan-500"></span>
-                            @endif
                         </a>
 
                         <a href="{{ route('quick.login', 'warga') }}" class="flex items-center justify-between px-2.5 py-2 rounded-xl {{ ($currentUser?->role ?? '') === 'warga' ? 'bg-emerald-50 dark:bg-emerald-950/70 text-emerald-900 dark:text-emerald-200 font-bold' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
                             <div class="flex items-center gap-2">
                                 <span>🏡</span>
-                                <span>Warga (Bpk. Bambang)</span>
+                                <div>
+                                    <div class="font-bold">Warga (Bpk. Bambang)</div>
+                                    <div class="text-[9px] text-slate-400">Buka gerbang & surat RT</div>
+                                </div>
                             </div>
-                            @if(($currentUser?->role ?? '') === 'warga')
-                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                            @endif
                         </a>
                     </div>
                 </div>
             </div>
 
-            <!-- PROFIL PENGGUNA YANG SEDANG AKTIF (DEFAULT: SUPER ADMIN FABIAN) -->
+            <!-- PROFIL PENGGUNA YANG SEDANG AKTIF -->
             @auth
                 <div class="flex items-center justify-between pt-2 border-t border-slate-200/80 dark:border-slate-800/80">
                     <div class="flex items-center gap-2.5 truncate">
-                        <div class="w-8 h-8 rounded-full {{ $currentUser->isSuperAdmin() ? 'bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-700' : 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300' }} flex items-center justify-center font-black text-xs shrink-0">
+                        <div class="w-7 h-7 rounded-full {{ $currentUser->isSuperAdmin() ? 'bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-700' : 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300' }} flex items-center justify-center font-black text-xs shrink-0">
                             {{ $currentUser->isSuperAdmin() ? '⚡' : substr($currentUser->name, 0, 1) }}
                         </div>
                         <div class="truncate">
@@ -472,89 +638,84 @@
                     </div>
                     <form action="{{ route('logout') }}" method="POST" class="inline shrink-0">
                         @csrf
-                        <button type="submit" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 transition cursor-pointer" title="Keluar">
+                        <button type="submit" class="p-1 rounded-lg text-slate-400 hover:text-rose-600 transition cursor-pointer" title="Keluar dari Sistem">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                         </button>
                     </form>
-                </div>
-            @else
-                <div class="pt-2 border-t border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between">
-                    <div class="text-[11px] text-slate-500 dark:text-slate-400">
-                        Status: <strong class="text-slate-700 dark:text-slate-300">Pengunjung Publik</strong>
-                    </div>
-                    <a href="{{ route('login') }}" class="px-3 py-1.5 rounded-xl bg-emerald-600 text-white font-extrabold text-[11px] hover:bg-emerald-500 transition">
-                        Masuk ➔
-                    </a>
                 </div>
             @endauth
         </div>
     </aside>
 
     <!-- ======================================================== -->
-    <!-- KONTEN UTAMA (BERGESER ERGONOMIS MENYESUAIKAN LACI)       -->
+    <!-- KONTEN UTAMA OPERASIONAL (BERGESER ERGONOMIS DENGAN LACI)-->
     <!-- ======================================================== -->
     <div 
-        :class="sidebarOpen ? 'lg:pl-80' : 'pl-0'" 
+        :class="sidebarOpen ? 'lg:pl-72' : 'pl-0'" 
         class="flex-1 flex flex-col min-w-0 min-h-screen transition-all duration-300 ease-in-out"
     >
-        
-        <!-- PADA HALAMAN INTERNAL DASHBOARD: TOPBAR TOOLBAR TIPIS (TANPA IKLAN & PROMOSI) -->
-        @if(!$isLanding && !$isLogin)
-            <header class="h-16 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 px-6 flex items-center justify-between gap-4 transition-colors duration-200">
-                <!-- Kiri: Tombol Laci & Breadcrumb -->
-                <div class="flex items-center gap-3">
-                    <button 
-                        @click="toggleDrawer()" 
-                        type="button"
-                        class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer flex items-center gap-1.5 text-xs font-bold"
-                        :title="sidebarOpen ? 'Sembunyikan Laci' : 'Buka Laci'"
-                    >
-                        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-                        <span class="hidden sm:inline" x-text="sidebarOpen ? 'Tutup Laci' : 'Buka Laci'"></span>
-                    </button>
-                    
-                    <div class="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                        <span class="text-slate-900 dark:text-white font-bold">E-WARGA</span>
-                        <span>/</span>
-                        <span class="text-emerald-600 dark:text-emerald-400 capitalize">
-                            {{ str_replace('-', ' ', request()->segment(1) ?: 'Dashboard') }}
-                        </span>
-                    </div>
+        <!-- TOPBAR TOOLBAR TIPIS OPERASIONAL -->
+        <header class="h-16 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 px-6 flex items-center justify-between gap-4 transition-colors duration-200">
+            <!-- Kiri: Tombol Laci & Breadcrumb -->
+            <div class="flex items-center gap-3">
+                <button 
+                    @click="toggleDrawer()" 
+                    type="button"
+                    class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer flex items-center gap-1.5 text-xs font-bold"
+                    :title="sidebarOpen ? 'Tutup Laci Menu' : 'Buka Laci Menu'"
+                >
+                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                    <span class="hidden sm:inline" x-text="sidebarOpen ? 'Tutup Laci' : 'Buka Laci'"></span>
+                </button>
+                
+                <div class="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                    <span class="text-slate-900 dark:text-white font-bold">E-WARGA</span>
+                    <span>/</span>
+                    <span class="text-emerald-600 dark:text-emerald-400 capitalize">
+                        {{ str_replace('-', ' ', request()->segment(1) ?: 'Dashboard') }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Kanan: Tanggal & Wilayah Aktif -->
+            <div class="flex items-center gap-3">
+                @if(($currentUser?->role ?? '') === 'super_admin')
+                    <a href="{{ route('superadmin.index') }}" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/70 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 text-xs font-bold hover:bg-amber-100 transition">
+                        <span>⚡</span>
+                        <span>Super Admin Hub</span>
+                    </a>
+                @endif
+
+                <div class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 text-xs font-semibold">
+                    <span>🗓️</span>
+                    <span>{{ now()->translatedFormat('l, d M Y') }}</span>
                 </div>
 
-                <!-- Kanan: Tanggal & Badge Lingkungan -->
-                <div class="flex items-center gap-3">
-                    <div class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 text-xs font-semibold">
-                        <span>🗓️</span>
-                        <span>{{ now()->translatedFormat('l, d M Y') }}</span>
-                    </div>
-
-                    <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold {{ ($activeTenant?->environment_type ?? 'cluster') === 'cluster' ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300' : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300' }}">
-                        <span class="w-2 h-2 rounded-full {{ ($activeTenant?->environment_type ?? 'cluster') === 'cluster' ? 'bg-blue-500' : 'bg-emerald-500' }} animate-pulse"></span>
-                        <span class="hidden md:inline">{{ ($activeTenant?->environment_type ?? 'cluster') === 'cluster' ? 'Cluster Perumahan' : 'Perkampungan (RT)' }}</span>
-                    </div>
+                <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold {{ ($activeTenant?->environment_type ?? 'cluster') === 'cluster' ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300' : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300' }}">
+                    <span class="w-2 h-2 rounded-full {{ ($activeTenant?->environment_type ?? 'cluster') === 'cluster' ? 'bg-blue-500' : 'bg-emerald-500' }} animate-pulse"></span>
+                    <span class="hidden md:inline">{{ $activeTenant?->name ?? 'Cluster Melati Mas' }}</span>
                 </div>
-            </header>
-        @endif
+            </div>
+        </header>
 
-        <!-- Area Notifikasi Flash Message -->
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 {{ ($isLanding || $isLogin) ? 'pt-6' : 'mt-4' }} w-full">
+        <!-- Area Notifikasi Flash Message Operasional -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 w-full">
             @if(session('success'))
-                <div class="bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-medium shadow-xs mb-4">
+                <div class="bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 px-4 py-3 rounded-2xl flex items-center gap-3 text-sm font-medium shadow-xs mb-4">
                     <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
                     <span>{{ session('success') }}</span>
                 </div>
             @endif
 
             @if(session('error'))
-                <div class="bg-red-50 dark:bg-rose-950/60 border border-red-200 dark:border-rose-800 text-red-800 dark:text-rose-300 px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-medium shadow-xs mb-4">
-                    <svg class="w-5 h-5 text-red-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>
+                <div class="bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300 px-4 py-3 rounded-2xl flex items-center gap-3 text-sm font-medium shadow-xs mb-4">
+                    <svg class="w-5 h-5 text-rose-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>
                     <span>{{ session('error') }}</span>
                 </div>
             @endif
 
             @if(session('panic_sent'))
-                <div class="bg-red-600 text-white px-5 py-4 rounded-xl flex items-center gap-4 text-base font-bold shadow-lg animate-pulse mb-4">
+                <div class="bg-red-600 text-white px-5 py-4 rounded-2xl flex items-center gap-4 text-base font-bold shadow-lg animate-pulse mb-4">
                     <span class="text-2xl">🚨</span>
                     <div>
                         <div>PERINGATAN DARURAT TERKIRIM KE POS SATPAM</div>
@@ -565,77 +726,24 @@
         </div>
 
         <!-- Area Konten Halaman Aktif -->
-        <main class="flex-1 {{ ($isLanding || $isLogin) ? '' : 'p-4 sm:p-6 lg:p-8' }}">
+        <main class="flex-1 p-4 sm:p-6 lg:p-8">
             @yield('content')
         </main>
 
-        <!-- Footer Halaman -->
-        @if($isLanding)
-            <!-- Footer Khusus Landing Page -->
-            <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-12 text-xs text-slate-500 dark:text-slate-400">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-                        <div class="space-y-3">
-                            <div class="flex items-center gap-2">
-                                <img src="{{ asset('images/logo.jpg') }}" alt="Logo E-WARGA" class="h-8 w-auto object-contain">
-                                <span class="font-bold text-base text-slate-800 dark:text-white">E-WARGA</span>
-                            </div>
-                            <p class="text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-                                Ekosistem Smart Community & Managed IoT Living terpadu untuk RT, RW, Paguyuban, dan Pengembang Cluster di Indonesia.
-                            </p>
-                        </div>
-                        <div>
-                            <h4 class="font-bold text-slate-900 dark:text-white uppercase tracking-wider text-[11px] mb-3">Fitur Solusi</h4>
-                            <ul class="space-y-2">
-                                <li><a href="{{ route('dashboard') }}" class="hover:text-emerald-600 transition">Transparansi Kas RT</a></li>
-                                <li><a href="{{ route('simulator') }}" class="hover:text-emerald-600 transition">Palang Pintu Otomatis</a></li>
-                                <li><a href="{{ route('schedules.index') }}" class="hover:text-emerald-600 transition">Jadwal Keamanan & Ronda</a></li>
-                                <li><a href="{{ route('posyandu.index') }}" class="hover:text-emerald-600 transition">Posyandu Digital & Stunting</a></li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h4 class="font-bold text-slate-900 dark:text-white uppercase tracking-wider text-[11px] mb-3">Pelayanan Warga</h4>
-                            <ul class="space-y-2">
-                                <li><a href="{{ route('letters.index') }}" class="hover:text-emerald-600 transition">Surat Pengantar RT Online</a></li>
-                                <li><a href="{{ route('warga.index') }}" class="hover:text-emerald-600 transition">Aplikasi HP Buka Gerbang</a></li>
-                                <li><a href="{{ route('satpam.console') }}" class="hover:text-emerald-600 transition">Console Pos Satpam</a></li>
-                                <li><a href="{{ route('login') }}" class="hover:text-emerald-600 transition">Masuk ke Sistem (Login)</a></li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h4 class="font-bold text-slate-900 dark:text-white uppercase tracking-wider text-[11px] mb-3">Pusat Bantuan</h4>
-                            <p class="text-xs text-slate-500 dark:text-slate-400 mb-2">Hubungi konsultan E-WARGA untuk survei perangkat keras & palang gerbang:</p>
-                            <div class="font-mono text-emerald-600 dark:text-emerald-400 font-bold">WhatsApp: 0812-3456-7890</div>
-                            <div class="text-[11px] text-slate-400 mt-1">Jakarta • Bekasi • Bandung • Surabaya</div>
-                        </div>
-                    </div>
-                    <div class="pt-8 border-t border-slate-100 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-slate-400">
-                        <div>&copy; {{ date('Y') }} E-WARGA Indonesia. All rights reserved. Platform Resmi Manajemen Lingkungan.</div>
-                        <div class="flex items-center gap-4 text-[11px]">
-                            <span>Ketentuan Layanan</span>
-                            <span>•</span>
-                            <span>Kebijakan Privasi</span>
-                            <span>•</span>
-                            <span>Keamanan Data ISO/IEC</span>
-                        </div>
-                    </div>
+        <!-- Footer Halaman Internal Operasional -->
+        <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-5 px-6 text-center text-xs text-slate-400 transition-colors duration-200">
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-2">
+                <div>
+                    <span class="font-bold text-slate-700 dark:text-slate-300">E-WARGA Desktop Console</span> &bull; Lingkungan Pintar Masa Depan
                 </div>
-            </footer>
-        @elseif(!$isLogin)
-            <!-- Footer Halaman Internal Operasional -->
-            <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-6 px-6 text-center text-xs text-slate-400 transition-colors duration-200">
-                <div class="flex flex-col sm:flex-row justify-between items-center gap-2">
-                    <div>
-                        <span class="font-bold text-slate-700 dark:text-slate-300">E-WARGA Desktop Console</span> &bull; Lingkungan Pintar Masa Depan
-                    </div>
-                    <div>
-                        &copy; {{ date('Y') }} E-WARGA Indonesia. All rights reserved.
-                    </div>
+                <div>
+                    &copy; {{ date('Y') }} E-WARGA Indonesia. All rights reserved.
                 </div>
-            </footer>
-        @endif
-
+            </div>
+        </footer>
     </div>
+
+@endif
 
 </body>
 </html>

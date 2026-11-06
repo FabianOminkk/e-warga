@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" fill="none">
+  <defs>
+    <linearGradient id="ewargaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981"/>
+      <stop offset="50%" stop-color="#059669"/>
+      <stop offset="100%" stop-color="#047857"/>
+    </linearGradient>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#065F46"/>
+      <stop offset="100%" stop-color="#064E3B"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34D399"/>
+      <stop offset="100%" stop-color="#38BDF8"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Base Squircle Container -->
+  <rect width="48" height="48" rx="14" fill="url(#ewargaGrad)"/>
+
+  <!-- Subtle Inner Border Highlight -->
+  <rect x="1" y="1" width="46" height="46" rx="13" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" fill="none"/>
+
+  <!-- Smart IoT Wave Dots at Roof Peak -->
+  <circle cx="24" cy="11" r="2.2" fill="#FFFFFF"/>
+  <path d="M18 14 C21 11.5, 27 11.5, 30 14" stroke="#A7F3D0" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Modern House Roof (White & Clean) -->
+  <path d="M11 25 L24 15 L37 25" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Smart Gate / Community Portal Pillars -->
+  <path d="M15 24.5 V35.5 C15 36.5, 16 37, 17 37 H31 C32 37, 33 36.5, 33 35.5 V24.5" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Smart Barrier Gate Bar (Cyan/Emerald Accent with Diagonal Hash) -->
+  <rect x="17.5" y="27.5" width="13" height="4" rx="2" fill="url(#accentGrad)"/>
+  <circle cx="20" cy="29.5" r="1" fill="#FFFFFF"/>
+  <circle cx="28" cy="29.5" r="1" fill="#FFFFFF"/>
+</svg>

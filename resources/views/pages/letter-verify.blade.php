@@ -38,7 +38,7 @@
         <!-- Kop Surat Resmi RT/RW -->
         <div class="text-center border-b-4 border-double border-slate-900 pb-4 mb-6">
             <div class="flex items-center justify-center gap-4 mb-2">
-                <img src="/images/logo.jpg" alt="Logo RT" class="w-14 h-14 object-contain">
+                <img src="/images/logo.svg" alt="Logo RT" class="w-14 h-14 object-contain">
                 <div>
                     <h2 class="text-lg font-bold tracking-widest uppercase">RUKUN TETANGGA 04 / RUKUN WARGA 02</h2>
                     <h3 class="text-base font-bold uppercase tracking-wider text-slate-800">PERUMAHAN GRAHA ASRI RESIDENCE</h3>

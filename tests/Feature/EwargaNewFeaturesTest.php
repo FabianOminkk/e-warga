@@ -219,4 +219,57 @@ class EwargaNewFeaturesTest extends TestCase
         $response->assertSee('Halo, ' . $user->name);
         $response->assertSee('Buka Dashboard Utama');
     }
+
+    public function test_super_admin_hub_renders_with_multi_tenants_and_can_switch(): void
+    {
+        $superAdmin = User::where('role', 'super_admin')->first();
+        $this->assertNotNull($superAdmin);
+
+        $response = $this->actingAs($superAdmin)->get('/super-admin');
+        $response->assertStatus(200);
+        $response->assertSee('PUSAT KENDALI PLATFORM', false);
+        $response->assertSee('Cluster Melati Mas');
+        $response->assertSee('Desa Sukamaju Guyub');
+
+        $desaTenant = \App\Models\Tenant::where('environment_type', 'kampung')->first();
+        $this->assertNotNull($desaTenant);
+
+        $switchResponse = $this->actingAs($superAdmin)->post("/super-admin/switch-tenant/{$desaTenant->id}");
+        $switchResponse->assertRedirect();
+        $switchResponse->assertSessionHas('active_tenant_id', $desaTenant->id);
+    }
+
+    public function test_satpam_and_warga_are_redirected_from_dashboard_with_strict_rbac(): void
+    {
+        $satpam = User::where('role', 'satpam')->first();
+        $this->assertNotNull($satpam);
+        $satpamResponse = $this->actingAs($satpam)->get('/dashboard');
+        $satpamResponse->assertRedirect(route('satpam.console'));
+
+        $warga = User::where('role', 'warga')->first();
+        $this->assertNotNull($warga);
+        $wargaResponse = $this->actingAs($warga)->get('/dashboard');
+        $wargaResponse->assertRedirect(route('warga.index'));
+    }
+
+    public function test_landing_page_is_standalone_without_sidebar_and_has_hardware_and_partnership(): void
+    {
+        $response = $this->get('/');
+        $response->assertStatus(200);
+        $response->assertDontSee('<aside', false);
+        $response->assertDontSee('Laci Menu', false);
+
+        // Hardware Ready & Coming Soon
+        $response->assertSee('Smart Barrier Gate Otomatis');
+        $response->assertSee('CCTV ANPR');
+        $response->assertSee('Tiang Tombol Panik');
+        $response->assertSee('Sensor Banjir');
+        $response->assertSee('Smart PJU');
+        $response->assertSee('Smart TPS');
+
+        // Kontak & Kemitraan
+        $response->assertSee('partnership@ewarga.id');
+        $response->assertSee('sales@ewarga.id');
+        $response->assertSee('+62 812-3456-7890');
+    }
 }

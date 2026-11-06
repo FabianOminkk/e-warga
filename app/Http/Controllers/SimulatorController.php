@@ -12,7 +12,7 @@ class SimulatorController extends Controller
 {
     private function getOrCreateDefaultGate()
     {
-        $tenant = Tenant::first();
+        $tenant = Tenant::getActiveTenant() ?? Tenant::first();
         if (!$tenant) {
             $tenant = Tenant::create([
                 'name' => 'Cluster Melati Mas',

@@ -492,5 +492,61 @@ class DatabaseSeeder extends Seeder
             'status' => 'pending',
             'qr_verification_code' => null,
         ]);
+
+        // 15. Demo Tenant 2: Desa / Perkampungan (Khusus Demo Super Admin Multi-Tenant)
+        $desaTenant = Tenant::create([
+            'name' => 'Desa Sukamaju Guyub',
+            'slug' => 'desa-sukamaju-guyub',
+            'rt_rw' => 'RT 02 / RW 04',
+            'province' => 'D.I. Yogyakarta',
+            'city' => 'Kabupaten Sleman',
+            'district' => 'Depok',
+            'postal_code' => '55281',
+            'subscription_plan' => 'starter',
+            'environment_type' => 'kampung',
+            'is_active' => true,
+        ]);
+
+        $hDesa1 = House::create([
+            'tenant_id' => $desaTenant->id,
+            'block_name' => 'RT 02',
+            'house_number' => '14',
+            'full_address' => 'Dusun Sukamaju RT 02 / RW 04 No. 14',
+            'occupancy_status' => 'occupied',
+        ]);
+
+        $kades = User::create([
+            'tenant_id' => $desaTenant->id,
+            'house_id' => $hDesa1->id,
+            'name' => 'Bpk. Sugeng (Ketua RT Desa)',
+            'phone_number' => '08120000002',
+            'email' => 'pakrt.desa@ewarga.id',
+            'password' => $defaultStaffPassword,
+            'role' => 'ketua_rt',
+            'is_family_head' => true,
+            'status' => 'active',
+        ]);
+
+        CashBook::create([
+            'tenant_id' => $desaTenant->id,
+            'created_by_user_id' => $kades->id,
+            'title' => 'Iuran Swakarsa & Jimpitan Warga Bulan Ini',
+            'type' => 'income',
+            'category' => 'Iuran Warga',
+            'amount' => 4500000,
+            'transaction_date' => Carbon::now()->subDays(3),
+            'notes' => 'Terkumpul dari 45 KK gotong royong warga desa',
+        ]);
+
+        CashBook::create([
+            'tenant_id' => $desaTenant->id,
+            'created_by_user_id' => $kades->id,
+            'title' => 'Renovasi Pos Ronda & Lampu Penerangan',
+            'type' => 'expense',
+            'category' => 'Infrastruktur',
+            'amount' => 1200000,
+            'transaction_date' => Carbon::now()->subDays(1),
+            'notes' => 'Pengecatan pos ronda kamling dan lampu jalan desa',
+        ]);
     }
 }

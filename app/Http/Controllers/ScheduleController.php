@@ -13,7 +13,7 @@ class ScheduleController extends Controller
 {
     public function index(Request $request)
     {
-        $tenant = Tenant::first();
+        $tenant = Tenant::getActiveTenant() ?? Tenant::first();
         $type = $request->input('type'); // 'satpam_shift' or 'ronda_warga' or all
         $month = $request->input('month', now()->format('Y-m'));
 
@@ -52,7 +52,7 @@ class ScheduleController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        $tenant = Tenant::first();
+        $tenant = Tenant::getActiveTenant() ?? Tenant::first();
 
         SecuritySchedule::create([
             'tenant_id' => $tenant->id,
@@ -99,7 +99,7 @@ class ScheduleController extends Controller
 
     public function toggleEnvironmentMode(Request $request)
     {
-        $tenant = Tenant::first();
+        $tenant = Tenant::getActiveTenant() ?? Tenant::first();
         if ($tenant) {
             $newMode = $tenant->environment_type === 'cluster' ? 'kampung' : 'cluster';
             $tenant->update(['environment_type' => $newMode]);

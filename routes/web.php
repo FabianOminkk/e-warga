@@ -7,6 +7,7 @@ use App\Http\Controllers\PosyanduController;
 use App\Http\Controllers\SatpamController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\SimulatorController;
+use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\WargaController;
 use Illuminate\Support\Facades\Route;
 
@@ -18,6 +19,10 @@ Route::post('/register-tenant', [HomeController::class, 'registerTenant'])->name
 Route::get('/quick-login/{role}', [HomeController::class, 'quickLogin'])->name('quick.login');
 Route::post('/logout', [HomeController::class, 'logout'])->name('logout');
 Route::post('/toggle-mode', [ScheduleController::class, 'toggleEnvironmentMode'])->name('environment.toggle');
+
+// Pusat Kendali Super Admin Platform (Multi-Tenant Demo Hub)
+Route::get('/super-admin', [SuperAdminController::class, 'index'])->name('superadmin.index');
+Route::post('/super-admin/switch-tenant/{id}', [SuperAdminController::class, 'switchTenant'])->name('superadmin.switch-tenant');
 
 // Dashboard Pengurus RT & Bendahara
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');

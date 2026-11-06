@@ -12,7 +12,7 @@ class PosyanduController extends Controller
 {
     public function index(Request $request)
     {
-        $tenant = Tenant::first() ?? Tenant::create([
+        $tenant = Tenant::getActiveTenant() ?? Tenant::first() ?? Tenant::create([
             'name' => 'RT 04 / RW 02 - Graha Asri Residence',
             'slug' => 'graha-asri-rt04',
             'rt_rw' => 'RT 04 / RW 02',
@@ -92,7 +92,7 @@ class PosyanduController extends Controller
 
     public function storeMember(Request $request)
     {
-        $tenant = Tenant::first();
+        $tenant = Tenant::getActiveTenant() ?? Tenant::first();
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -116,7 +116,7 @@ class PosyanduController extends Controller
 
     public function storeRecord(Request $request)
     {
-        $tenant = Tenant::first();
+        $tenant = Tenant::getActiveTenant() ?? Tenant::first();
 
         $validated = $request->validate([
             'posyandu_member_id' => 'required|exists:posyandu_members,id',

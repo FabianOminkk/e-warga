@@ -52,6 +52,26 @@ class Tenant extends Model
         return $this->hasMany(Billing::class);
     }
 
+    public static function getActiveTenant(): ?self
+    {
+        $user = \Illuminate\Support\Facades\Auth::user();
+        if ($user && $user->role === 'super_admin' && session()->has('active_tenant_id')) {
+            $tenant = self::find(session('active_tenant_id'));
+            if ($tenant) {
+                return $tenant;
+            }
+        }
+
+        if ($user && $user->tenant_id) {
+            $tenant = self::find($user->tenant_id);
+            if ($tenant) {
+                return $tenant;
+            }
+        }
+
+        return self::first();
+    }
+
     public function isCluster(): bool
     {
         return ($this->environment_type ?? 'cluster') === 'cluster';

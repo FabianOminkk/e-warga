@@ -12,7 +12,7 @@ class LetterController extends Controller
 {
     public function index(Request $request)
     {
-        $tenant = Tenant::first() ?? Tenant::create([
+        $tenant = Tenant::getActiveTenant() ?? Tenant::first() ?? Tenant::create([
             'name' => 'RT 04 / RW 02 - Graha Asri Residence',
             'slug' => 'graha-asri-rt04',
             'rt_rw' => 'RT 04 / RW 02',
@@ -49,7 +49,7 @@ class LetterController extends Controller
 
     public function store(Request $request)
     {
-        $tenant = Tenant::first();
+        $tenant = Tenant::getActiveTenant() ?? Tenant::first();
         $wargaUser = User::where('role', 'warga')->first() ?? User::first();
 
         $validated = $request->validate([
@@ -72,7 +72,7 @@ class LetterController extends Controller
 
     public function approve(Request $request, $id)
     {
-        $tenant = Tenant::first();
+        $tenant = Tenant::getActiveTenant() ?? Tenant::first();
         $letter = LetterRequest::findOrFail($id);
         $rtUser = User::where('role', 'ketua_rt')->first() ?? User::first();
 

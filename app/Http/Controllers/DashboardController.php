@@ -7,6 +7,7 @@ use App\Models\CashBook;
 use App\Models\GateLog;
 use App\Models\House;
 use App\Models\Payment;
+use App\Models\SmartGate;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -16,22 +17,34 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $tenant = Tenant::first();
-        $totalHouses = House::count();
-        $totalWarga = User::where('role', 'warga')->count();
+        $user = Auth::user();
+        if ($user && $user->role === 'satpam') {
+            return redirect()->route('satpam.console')->with('error', 'Akses dialihkan: Petugas Satpam hanya memiliki akses ke Konsol Pos Jaga.');
+        }
+        if ($user && $user->role === 'warga') {
+            return redirect()->route('warga.index')->with('error', 'Akses dialihkan: Warga diarahkan ke Portal Warga Mandiri.');
+        }
 
-        // Keuangan
-        $totalIncome = CashBook::where('type', 'income')->sum('amount');
-        $totalExpense = CashBook::where('type', 'expense')->sum('amount');
+        $tenant = Tenant::getActiveTenant() ?? Tenant::first();
+        $totalHouses = House::where('tenant_id', $tenant->id)->count();
+        $totalWarga = User::where('tenant_id', $tenant->id)->where('role', 'warga')->count();
+
+        // Keuangan scoped to tenant
+        $totalIncome = CashBook::where('tenant_id', $tenant->id)->where('type', 'income')->sum('amount');
+        $totalExpense = CashBook::where('tenant_id', $tenant->id)->where('type', 'expense')->sum('amount');
         $saldoKas = $totalIncome - $totalExpense;
 
-        // Tagihan
-        $paidBillings = Billing::where('status', 'paid')->count();
-        $unpaidBillings = Billing::where('status', 'unpaid')->count();
-        $pendingPayments = Payment::whereNull('verified_at')->with(['billing.house', 'payer'])->get();
+        // Tagihan scoped to tenant
+        $paidBillings = Billing::where('tenant_id', $tenant->id)->where('status', 'paid')->count();
+        $unpaidBillings = Billing::where('tenant_id', $tenant->id)->where('status', 'unpaid')->count();
+        $pendingPayments = Payment::whereNull('verified_at')
+            ->whereHas('billing', fn($q) => $q->where('tenant_id', $tenant->id))
+            ->with(['billing.house', 'payer'])
+            ->get();
 
         // Data Grafik 1: Proporsi Pengeluaran per Kategori (Pie Chart)
-        $expenseByCategory = CashBook::where('type', 'expense')
+        $expenseByCategory = CashBook::where('tenant_id', $tenant->id)
+            ->where('type', 'expense')
             ->selectRaw('category, SUM(amount) as total')
             ->groupBy('category')
             ->orderByDesc('total')
@@ -59,14 +72,15 @@ class DashboardController extends Controller
             'Saldo Bersih' => (float)max(0, $saldoKas),
         ];
 
-        // Log Pintu Terkini
-        $recentGateLogs = GateLog::with(['user', 'smartGate'])->latest('triggered_at')->take(6)->get();
+        // Log Pintu Terkini scoped
+        $gateIds = SmartGate::where('tenant_id', $tenant->id)->pluck('id');
+        $recentGateLogs = GateLog::whereIn('smart_gate_id', $gateIds)->with(['user', 'smartGate'])->latest('triggered_at')->take(6)->get();
 
         // Data Rumah & Penghuni
-        $houses = House::with(['residents', 'vehicles'])->get();
+        $houses = House::where('tenant_id', $tenant->id)->with(['residents', 'vehicles'])->get();
 
         // Riwayat Kas Terakhir
-        $recentCashBooks = CashBook::latest('transaction_date')->take(8)->get();
+        $recentCashBooks = CashBook::where('tenant_id', $tenant->id)->latest('transaction_date')->take(8)->get();
 
         return view('pages.dashboard', compact(
             'tenant',

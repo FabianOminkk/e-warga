@@ -221,6 +221,51 @@ Dokumen ini mencatat seluruh hasil audit mendalam terhadap basis kode **E-WARGA*
 
 ---
 
+### 🔴 Masalah 15: Pemisahan Mutlak Landing Page Standalone (Bebas Sidebar) & Redesain Mode Laci Ergonomis Desktop
+* **Pemicu Masalah:**
+  Ketika pengguna keluar dari sistem (*logout*) atau mengakses halaman utama (`/`), elemen sidebar laci navigasi masih muncul di sebelah kiri layar desktop, memakan ruang visual dan mengaburkan esensi landing page sebagai halaman promosi mandiri.
+* **Akar Masalah:**
+  Template `layouts/app.blade.php` merender tag `<aside>` drawer secara global tanpa mengecualikan rute publik beranda (`routeIs('home')`).
+* **✅ Solusi yang Diterapkan:**
+  1. **Isolasi Penuh Layout Landing Page (`@if($isLanding)`):**
+     * Pada landing page, tag `<aside>` laci samping dan tombol mengapung *"Laci Menu"* **100% ditiadakan/dihilangkan**.
+     * Halaman landing menggunakan Topbar Navbar kaca (*glassmorphism*) profesional: Logo SVG, tautan navigasi seksi produk (*Fitur*, *Hardware IoT*, *Posyandu*, *Komparasi*, *Testimoni*, *Kemitraan*), tombol Dark/Light mode, dan tombol Masuk / Konsultasi.
+  2. **Mode Laci Bersih di Halaman Operasional:**
+     * Laci samping hanya aktif di halaman internal (`/dashboard`, `/super-admin`, `/satpam`, `/warga`, dll.).
+     * Dilengkapi tombol lipat/buka `[ ◀ Tutup Laci / ▶ Buka Laci ]` di bilah atas (*topbar toolbar*) sehingga area kerja desktop sangat luas dan hemat ruang.
+
+---
+
+### 🔴 Masalah 16: Keselarasan Logo Dark/Light Mode, Strict RBAC (Hak Akses Peran), & Hub Super Admin 1 Cluster + 1 Desa
+* **Pemicu Masalah:**
+  1. Logo gambar raster `.jpg` lama memiliki latar belakang kotak putih kaku yang tidak serasi dengan palet tema gelap (*dark mode* navy).
+  2. Pembagian menu di sidebar belum mencerminkan hak akses ketat (*Role-Based Access Control* / RBAC). Warga dan Satpam masih melihat menu yang bukan hak otorisasi mereka.
+  3. Super Admin belum memiliki dashboard platform tersendiri untuk mengawasi multi-wilayah dan memilih lingkungan demo (1 Cluster vs 1 Desa).
+  4. Landing page belum menyajikan katalog perangkat keras yang lengkap (termasuk hardware dalam tahap inovasi/pipeline *Coming Soon*) serta kontak kemitraan/email resmi.
+* **Akar Masalah:**
+  Aset logo raster non-vektor, ketiadaan filter peran dinamis pada item navigasi, serta belum tersedianya data seeder dan controller terpisah untuk platform multi-tenant Super Admin.
+* **✅ Solusi yang Diterapkan:**
+  1. **Komponen Logo Vektor SVG (`<x-logo />` & `public/images/logo.svg`):**
+     * Logo dibangun dengan path vektor SVG modern dengan lambang perisai gerbang pintar dan sinyal IoT gradien emerald-cyan.
+     * Teks tipografi *"E-WARGA"* secara dinamis mengikuti tema: teks hitam elegan di mode terang dan putih bersih di mode gelap tanpa artefak kotak putih.
+  2. **Pusat Kendali Super Admin Platform Hub (`/super-admin`):**
+     * Dibuat khusus untuk Super Admin (Fabian) sebagai kepala platform.
+     * Menyajikan metrik agregat seluruh wilayah (Total Unit Rumah, Total Jiwa, Kas Agregat).
+     * Fitur **Pilihan Wilayah Demo:** Super Admin dapat memilih dan beralih antara **1 Cluster Modern (`Cluster Melati Mas`)** dan **1 Desa Guyub (`Desa Sukamaju Guyub`)** dalam 1-klik (`switch-tenant`).
+  3. **Pemisahan Hak Akses Menu Berjenjang (Strict RBAC):**
+     * **Super Admin:** Akses Platform Hub, switcher wilayah, dan seluruh fitur operasional.
+     * **Ketua RT & Bendahara:** Dashboard kas lingkungan, persetujuan surat ber-QR, posyandu KMS. Satpam dan Warga diblokir dari dashboard kas RT.
+     * **Satpam:** Konsol Pos Jaga Satpam, pemantau palang gerbang, scanner QR kurir, dan jadwal jaga. Tidak memiliki akses ke pembukuan kas warga.
+     * **Warga:** Portal Warga Mandiri, remote buka gerbang HP, tiket tamu QR WhatsApp, ajukan surat online, dan tombol panik.
+  4. **Katalog Perangkat Keras Komprehensif di Landing Page:**
+     * **Hardware Siap Pakai:** Smart Barrier Gate Otomatis, Kiosk QR Scanner & RFID Post, Simulator Digital Twin Cloud.
+     * **Hardware Pipeline & Coming Soon:** CCTV ANPR (Automatic Number Plate Recognition AI), Tiang Tombol Panik Publik, Sensor Banjir Saluran Air IoT, Smart PJU (Lampu Jalan Pintar), Smart TPS (Sensor Bak Sampah), dan Sub-Meter Listrik/Air Fasum.
+  5. **Kontak Kemitraan & Email Kerjasama Resmi:**
+     * Email resmi: `partnership@ewarga.id` (Developer & Pemda) dan `sales@ewarga.id` (Pengadaan Hardware).
+     * Hotline WhatsApp Konsultan: `+62 812-3456-7890`.
+
+---
+
 ## 📋 Panduan Penanganan Masalah Lapangan (Developer & Pengurus)
 
 | Gejala / Pesan Error | Penyebab Utama | Solusi Praktis |
@@ -236,8 +281,8 @@ Dokumen ini mencatat seluruh hasil audit mendalam terhadap basis kode **E-WARGA*
 ## 🧪 Jaminan Kualitas & Hasil Pengujian Otomatis
 
 Seluruh perbaikan di atas telah divalidasi menggunakan rangkaian pengujian otomatis (*Automated Feature Tests*):
-* **Jumlah Pengujian:** 28 Skenario Uji (*100% Passed*)
-* **Total Penegasan (*Assertions*):** 78 Poin Validasi
-* **Waktu Eksekusi:** 1.7 Detik
+* **Jumlah Pengujian:** 31 Skenario Uji (*100% Passed*)
+* **Total Penegasan (*Assertions*):** 104 Poin Validasi
+* **Waktu Eksekusi:** 1.5 Detik
 * **Hasil:** 🟢 **ZERO BUG / ZERO REGRESSION**
 
