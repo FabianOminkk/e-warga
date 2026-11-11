@@ -2,8 +2,11 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="theme-color" content="#10B981">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>{{ $title ?? 'E-WARGA - Smart Community & IoT Living Ecosystem' }}</title>
     
     <!-- Favicon Resmi SVG -->
@@ -50,22 +53,29 @@
 </head>
 <body 
     x-data="{
-        sidebarOpen: localStorage.getItem('ewarga_drawer_open') !== 'false',
+        sidebarOpen: window.innerWidth >= 1024 ? (localStorage.getItem('ewarga_drawer_open') !== 'false') : false,
+        landingMobileMenu: false,
         openComingSoon: false,
         comingSoonTitle: '',
         comingSoonDesc: '',
         showUserAccountModal: false,
         toggleDrawer() {
             this.sidebarOpen = !this.sidebarOpen;
-            localStorage.setItem('ewarga_drawer_open', this.sidebarOpen);
+            if (window.innerWidth >= 1024) {
+                localStorage.setItem('ewarga_drawer_open', this.sidebarOpen);
+            }
         },
         closeDrawer() {
             this.sidebarOpen = false;
-            localStorage.setItem('ewarga_drawer_open', 'false');
+            if (window.innerWidth >= 1024) {
+                localStorage.setItem('ewarga_drawer_open', 'false');
+            }
         },
         openDrawer() {
             this.sidebarOpen = true;
-            localStorage.setItem('ewarga_drawer_open', 'true');
+            if (window.innerWidth >= 1024) {
+                localStorage.setItem('ewarga_drawer_open', 'true');
+            }
         },
         triggerComingSoon(title, desc) {
             this.comingSoonTitle = title || 'Fitur Sedang Dalam Pengembangan';
@@ -169,6 +179,68 @@
                         <span>Konsultasi & Survei</span>
                         <span>➔</span>
                     </a>
+                @endauth
+                <!-- Mobile Menu Hamburger Button (Landing Page) -->
+                <button 
+                    @click="landingMobileMenu = !landingMobileMenu" 
+                    type="button" 
+                    class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 lg:hidden hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer touch-press"
+                    aria-label="Buka Menu Navigasi"
+                >
+                    <svg x-show="!landingMobileMenu" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                    <svg x-show="landingMobileMenu" x-cloak class="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Slide-Down Menu (Landing Page) -->
+        <div 
+            x-show="landingMobileMenu" 
+            x-cloak 
+            @click.away="landingMobileMenu = false"
+            class="lg:hidden border-t border-slate-200 dark:border-slate-800 bg-white/98 dark:bg-slate-950/98 backdrop-blur-md px-5 py-4 space-y-3 transition-all animate-in fade-in slide-in-from-top-2 duration-200 shadow-xl"
+        >
+            <div class="grid grid-cols-2 gap-2 text-xs font-bold text-slate-700 dark:text-slate-200">
+                <a @click="landingMobileMenu = false" href="#hero" class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 hover:text-emerald-600 transition flex items-center gap-2">
+                    <span>🏠</span> Beranda
+                </a>
+                <a @click="landingMobileMenu = false" href="#fitur" class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 hover:text-emerald-600 transition flex items-center gap-2">
+                    <span>⚡</span> Fitur Solusi
+                </a>
+                <a @click="landingMobileMenu = false" href="#hardware" class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 hover:text-emerald-600 transition flex items-center gap-2">
+                    <span>📹</span> Hardware IoT
+                </a>
+                <a @click="landingMobileMenu = false" href="#posyandu" class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 hover:text-emerald-600 transition flex items-center gap-2">
+                    <span>👶</span> Posyandu
+                </a>
+                <a @click="landingMobileMenu = false" href="#komparasi" class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 hover:text-emerald-600 transition flex items-center gap-2">
+                    <span>⚖️</span> Keunggulan
+                </a>
+                <a @click="landingMobileMenu = false" href="#testimoni" class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 hover:text-emerald-600 transition flex items-center gap-2">
+                    <span>💬</span> Testimoni
+                </a>
+            </div>
+
+            <div class="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                @auth
+                    @if($currentUser?->role === 'super_admin')
+                        <a href="{{ route('superadmin.index') }}" class="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs shadow-md transition flex items-center justify-center gap-2 touch-press">
+                            <span>⚡ Buka Pusat Super Admin</span>
+                        </a>
+                    @else
+                        <a href="{{ route('dashboard') }}" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-md transition flex items-center justify-center gap-2 touch-press">
+                            <span>Buka Dashboard Operasional</span>
+                        </a>
+                    @endif
+                @else
+                    <div class="grid grid-cols-2 gap-2">
+                        <a href="{{ route('login') }}" class="py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-100 font-bold text-xs text-center transition touch-press">
+                            Masuk Akun
+                        </a>
+                        <a href="#kerjasama" @click="landingMobileMenu = false" class="py-2.5 rounded-xl bg-emerald-600 text-white font-extrabold text-xs text-center shadow-md transition touch-press">
+                            Konsultasi
+                        </a>
+                    </div>
                 @endauth
             </div>
         </div>
@@ -789,21 +861,112 @@
         </div>
 
         <!-- Area Konten Halaman Aktif -->
-        <main class="flex-1 p-4 sm:p-6 lg:p-8">
+        <main class="flex-1 p-3.5 sm:p-6 lg:p-8 pb-28 lg:pb-8">
             @yield('content')
         </main>
 
         <!-- Footer Halaman Internal Operasional -->
-        <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-5 px-6 text-center text-xs text-slate-400 transition-colors duration-200">
+        <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-5 px-6 text-center text-xs text-slate-400 transition-colors duration-200 pb-20 lg:pb-5">
             <div class="flex flex-col sm:flex-row justify-between items-center gap-2">
                 <div>
-                    <span class="font-bold text-slate-700 dark:text-slate-300">E-WARGA Desktop Console</span> &bull; Lingkungan Pintar Masa Depan
+                    <span class="font-bold text-slate-700 dark:text-slate-300">E-WARGA Smart Community</span> &bull; Lingkungan Pintar Masa Depan
                 </div>
                 <div>
                     &copy; {{ date('Y') }} E-WARGA Indonesia. All rights reserved.
                 </div>
             </div>
         </footer>
+
+        <!-- ======================================================== -->
+        <!-- MOBILE BOTTOM NAVIGATION BAR (APP BAR KHUSUS SMARTPHONE) -->
+        <!-- ======================================================== -->
+        <nav 
+            class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200/90 dark:border-slate-800/90 lg:hidden px-2 pt-2 pb-safe shadow-[0_-4px_25px_rgba(0,0,0,0.1)] transition-colors duration-200"
+            aria-label="Navigasi Cepat Smartphone"
+        >
+            <div class="flex items-center justify-around max-w-lg mx-auto">
+                
+                <!-- Tab 1: Dashboard / Hub -->
+                @php
+                    $isHub = ($currentUser?->role ?? '') === 'super_admin' && request()->routeIs('superadmin.index');
+                    $isDash = request()->routeIs('dashboard');
+                    $activeDash = $isHub || $isDash;
+                    $dashRoute = ($currentUser?->role ?? '') === 'super_admin' ? (request()->routeIs('superadmin.index') ? route('dashboard') : route('superadmin.index')) : route('dashboard');
+                @endphp
+                <a 
+                    href="{{ $dashRoute }}" 
+                    class="flex flex-col items-center justify-center flex-1 py-1 text-center transition group touch-press {{ $activeDash ? 'text-emerald-600 dark:text-emerald-400 font-extrabold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium' }}"
+                >
+                    <div class="relative">
+                        <span class="text-xl">📊</span>
+                        @if($activeDash)
+                            <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        @endif
+                    </div>
+                    <span class="text-[10px] tracking-tight mt-1">Dashboard</span>
+                </a>
+
+                <!-- Tab 2: Portal Warga / Buka Gerbang -->
+                <a 
+                    href="{{ route('warga.index') }}" 
+                    class="flex flex-col items-center justify-center flex-1 py-1 text-center transition group touch-press {{ request()->routeIs('warga.*') ? 'text-emerald-600 dark:text-emerald-400 font-extrabold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium' }}"
+                >
+                    <div class="relative">
+                        <span class="text-xl">🚪</span>
+                        @if(request()->routeIs('warga.*'))
+                            <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        @endif
+                    </div>
+                    <span class="text-[10px] tracking-tight mt-1">Warga & Pintu</span>
+                </a>
+
+                <!-- Tab 3: Pos Satpam / Simulator -->
+                <a 
+                    href="{{ ($currentUser?->role ?? '') === 'satpam' ? route('satpam.console') : route('simulator') }}" 
+                    class="flex flex-col items-center justify-center flex-1 py-1 text-center transition group touch-press {{ request()->routeIs('satpam.*') || request()->routeIs('simulator') ? 'text-emerald-600 dark:text-emerald-400 font-extrabold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium' }}"
+                >
+                    <div class="relative">
+                        <span class="text-xl">👮</span>
+                        @if(request()->routeIs('satpam.*') || request()->routeIs('simulator'))
+                            <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        @endif
+                    </div>
+                    <span class="text-[10px] tracking-tight mt-1">Pos Satpam</span>
+                </a>
+
+                <!-- Tab 4: Surat Pengantar Online -->
+                <a 
+                    href="{{ route('letters.index') }}" 
+                    class="flex flex-col items-center justify-center flex-1 py-1 text-center transition group touch-press relative {{ request()->routeIs('letters.*') ? 'text-emerald-600 dark:text-emerald-400 font-extrabold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium' }}"
+                >
+                    <div class="relative">
+                        <span class="text-xl">📜</span>
+                        @if($pendingLettersCount > 0)
+                            <span class="absolute -top-1 -right-2 px-1.5 py-0.2 bg-amber-500 text-slate-950 font-black text-[9px] rounded-full shadow-xs animate-pulse">
+                                {{ $pendingLettersCount }}
+                            </span>
+                        @endif
+                        @if(request()->routeIs('letters.*'))
+                            <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        @endif
+                    </div>
+                    <span class="text-[10px] tracking-tight mt-1">Surat RT</span>
+                </a>
+
+                <!-- Tab 5: Menu Lengkap Drawer -->
+                <button 
+                    type="button" 
+                    @click="toggleDrawer()" 
+                    class="flex flex-col items-center justify-center flex-1 py-1 text-center transition group touch-press cursor-pointer text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium"
+                >
+                    <div class="relative">
+                        <span class="text-xl" :class="sidebarOpen ? 'text-emerald-500' : ''">☰</span>
+                    </div>
+                    <span class="text-[10px] tracking-tight mt-1" x-text="sidebarOpen ? 'Tutup' : 'Menu'"></span>
+                </button>
+
+            </div>
+        </nav>
     </div>
 
 @endif

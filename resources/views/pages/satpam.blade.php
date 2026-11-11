@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="bg-slate-900 text-slate-100 min-h-screen py-8 -mt-4">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+<div class="bg-slate-900 text-slate-100 min-h-screen py-4 sm:py-8 -mt-4">
+    <div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
         
         <!-- Guard Post Tactical Header -->
         <div class="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-slate-800 gap-4">
@@ -11,21 +11,21 @@
                     <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
                     <span class="text-xs font-bold text-emerald-400 uppercase tracking-widest">SISTEM KONTROL POS KEAMANAN</span>
                 </div>
-                <h1 class="text-3xl font-black text-white mt-1">Console Pos Jaga - {{ $smartGate->name ?? 'Gerbang Utama' }}</h1>
+                <h1 class="text-2xl sm:text-3xl font-black text-white mt-1">Console Pos Jaga - {{ $smartGate->name ?? 'Gerbang Utama' }}</h1>
                 <p class="text-xs text-slate-400 mt-1">Cluster Melati Mas • Status Perangkat: <span class="text-emerald-400 font-bold">ONLINE (ESP32-GATE-01)</span></p>
             </div>
 
-            <div class="flex items-center gap-3">
+            <div class="flex flex-wrap items-center gap-2 sm:gap-3">
                 <!-- Tombol Buka Manual Darurat -->
-                <form action="{{ route('satpam.trigger-manual') }}" method="POST">
+                <form action="{{ route('satpam.trigger-manual') }}" method="POST" class="flex-1 sm:flex-initial">
                     @csrf
                     <input type="hidden" name="reason" value="Buka Darurat Petugas Satpam">
-                    <button type="submit" class="px-5 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-sm rounded-xl shadow-lg shadow-emerald-600/30 transition flex items-center gap-2">
+                    <button type="submit" class="w-full sm:w-auto px-5 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-sm rounded-xl shadow-lg shadow-emerald-600/30 transition flex items-center justify-center gap-2 touch-press cursor-pointer">
                         <span>🟢 BUKA PALANG MANUAL</span>
                     </button>
                 </form>
 
-                <a href="{{ route('simulator') }}" class="px-4 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl border border-slate-700 transition">
+                <a href="{{ route('simulator') }}" class="px-4 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl border border-slate-700 transition touch-press flex items-center justify-center">
                     🧪 Buka Simulator
                 </a>
             </div>

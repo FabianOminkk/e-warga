@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8" x-data="gateSimulator()">
+<div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-6 sm:space-y-8" x-data="gateSimulator()">
 
     <!-- Header Simulator -->
     <div class="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-slate-200 dark:border-slate-800 gap-4">
@@ -10,8 +10,8 @@
                 <span class="w-3 h-3 rounded-full bg-cyan-500 animate-ping"></span>
                 <span class="text-xs font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-widest">DEVELOPER ENVIRONMENT TOOL</span>
             </div>
-            <h1 class="text-3xl font-black text-slate-900 dark:text-white mt-1">Virtual Smart Gate Simulator</h1>
-            <p class="text-sm text-slate-500 dark:text-slate-400">Uji coba respon palang pintu otomatis secara lokal tanpa perlu menyambungkan hardware fisik.</p>
+            <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-1">Virtual Smart Gate Simulator</h1>
+            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Uji coba respon palang pintu otomatis secara lokal tanpa perlu menyambungkan hardware fisik.</p>
         </div>
 
         <div class="flex items-center gap-3">
@@ -23,7 +23,7 @@
     </div>
 
     <!-- Main Visual Stage: Animated Barrier Gate -->
-    <div class="bg-gradient-to-b from-slate-900 to-slate-800 rounded-3xl p-8 lg:p-12 text-white shadow-2xl relative overflow-hidden">
+    <div class="bg-gradient-to-b from-slate-900 to-slate-800 rounded-3xl p-5 sm:p-8 lg:p-12 text-white shadow-2xl relative overflow-hidden">
         
         <!-- Overhead Signal Lamp & Timer -->
         <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
@@ -47,7 +47,7 @@
         </div>
 
         <!-- Barrier Gate Graphic Canvas (CSS 3D Art) -->
-        <div class="w-full h-64 bg-slate-950/60 rounded-2xl border border-slate-700 relative flex items-end px-12 pb-6 overflow-hidden">
+        <div class="w-full h-56 sm:h-64 bg-slate-950/60 rounded-2xl border border-slate-700 relative flex items-end px-4 sm:px-12 pb-6 overflow-hidden">
             <!-- Road Asphalt Markings -->
             <div class="absolute inset-x-0 bottom-0 h-16 bg-slate-900 border-t-2 border-slate-700 flex items-center justify-around">
                 <div class="w-16 h-2 bg-amber-400"></div>
@@ -58,24 +58,24 @@
 
             <!-- Gate Housing (Tiang Portal) -->
             <div class="relative z-20 flex flex-col items-center">
-                <div class="w-14 h-36 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 rounded-t-xl border-2 border-amber-300 shadow-2xl flex flex-col items-center justify-between py-3">
+                <div class="w-12 sm:w-14 h-32 sm:h-36 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 rounded-t-xl border-2 border-amber-300 shadow-2xl flex flex-col items-center justify-between py-3">
                     <div class="w-6 h-6 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-[10px] font-bold text-cyan-400">IoT</div>
-                    <div class="w-10 h-10 rounded-lg bg-slate-900 border border-amber-300 flex items-center justify-center text-xs">📶</div>
+                    <div class="w-8 sm:w-10 h-8 sm:h-10 rounded-lg bg-slate-900 border border-amber-300 flex items-center justify-center text-xs">📶</div>
                     <div class="text-[8px] font-black text-slate-900 tracking-tighter">E-WARGA</div>
                 </div>
-                <div class="w-20 h-4 bg-slate-700 rounded-t"></div>
+                <div class="w-16 sm:w-20 h-4 bg-slate-700 rounded-t"></div>
             </div>
 
             <!-- Motor Pivot Axis & The Boom Arm (Palang Pintu Berputar) -->
-            <div class="absolute left-[110px] bottom-[115px] z-30">
+            <div class="absolute left-[70px] sm:left-[110px] bottom-[105px] sm:bottom-[115px] z-30">
                 <!-- Rotating Pivot Anchor -->
                 <div class="relative">
-                    <div class="w-8 h-8 rounded-full bg-slate-800 border-4 border-slate-400 shadow-xl flex items-center justify-center">
+                    <div class="w-7 sm:w-8 h-7 sm:h-8 rounded-full bg-slate-800 border-4 border-slate-400 shadow-xl flex items-center justify-center">
                         <div class="w-2 h-2 rounded-full bg-emerald-400"></div>
                     </div>
 
                     <!-- Boom Barrier Arm (Garis Merah Putih) -->
-                    <div class="absolute left-4 top-2 h-4 w-72 sm:w-96 rounded-r-md shadow-2xl transition-transform duration-700 ease-in-out origin-left flex overflow-hidden border border-slate-900"
+                    <div class="absolute left-4 top-2 h-3.5 sm:h-4 w-44 sm:w-80 md:w-96 rounded-r-md shadow-2xl transition-transform duration-700 ease-in-out origin-left flex overflow-hidden border border-slate-900"
                          :style="isOpen ? 'transform: rotate(-80deg);' : 'transform: rotate(0deg);'">
                         <!-- Striping Merah Putih -->
                         <div class="h-full w-12 bg-red-600"></div>
@@ -102,7 +102,7 @@
             <div class="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-950 p-4 rounded-xl border border-slate-700">
                 <div class="text-xs">
                     <label class="block font-bold text-slate-300 uppercase mb-1">Pilih Akun Warga Penguji Sensor RFID / HP:</label>
-                    <select x-model="selectedUserId" class="bg-slate-900 border border-slate-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold focus:border-emerald-500 outline-hidden">
+                    <select x-model="selectedUserId" class="w-full sm:w-auto bg-slate-900 border border-slate-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold focus:border-emerald-500 outline-hidden">
                         @foreach($wargaUsers as $wu)
                             <option value="{{ $wu->id }}">
                                 {{ $wu->name }} - {{ $wu->canAccessGate() ? '✅ Terverifikasi RW (Akses Aktif)' : ($wu->verification_status === 'pending_rw' ? '⏳ Menunggu ACC RW (Terkunci)' : '🔒 Belum Lengkap KTP (Terkunci)') }}
@@ -117,9 +117,9 @@
 
             <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Simulasikan Aksi Pemicu:</div>
             
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 <!-- Test 1: Tombol HP Warga -->
-                <button @click="triggerGate('mobile_button')" :disabled="isOpen" class="p-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-xs text-left shadow-lg transition flex items-center gap-3">
+                <button @click="triggerGate('mobile_button')" :disabled="isOpen" class="p-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-xs text-left shadow-lg transition flex items-center gap-3 touch-press cursor-pointer">
                     <span class="text-2xl">📱</span>
                     <div>
                         <div class="font-extrabold text-sm">Warga Buka via HP</div>
@@ -128,7 +128,7 @@
                 </button>
 
                 <!-- Test 2: Tap Kartu RFID -->
-                <button @click="triggerGate('rfid_card')" :disabled="isOpen" class="p-4 rounded-2xl bg-cyan-700 hover:bg-cyan-600 disabled:opacity-50 text-white font-bold text-xs text-left shadow-lg transition flex items-center gap-3">
+                <button @click="triggerGate('rfid_card')" :disabled="isOpen" class="p-4 rounded-2xl bg-cyan-700 hover:bg-cyan-600 disabled:opacity-50 text-white font-bold text-xs text-left shadow-lg transition flex items-center gap-3 touch-press cursor-pointer">
                     <span class="text-2xl">💳</span>
                     <div>
                         <div class="font-extrabold text-sm">Warga Tap RFID</div>
@@ -137,7 +137,7 @@
                 </button>
 
                 <!-- Test 3: Scan QR Tamu / Kurir -->
-                <button @click="triggerGate('qr_code')" :disabled="isOpen" class="p-4 rounded-2xl bg-purple-700 hover:bg-purple-600 disabled:opacity-50 text-white font-bold text-xs text-left shadow-lg transition flex items-center gap-3">
+                <button @click="triggerGate('qr_code')" :disabled="isOpen" class="p-4 rounded-2xl bg-purple-700 hover:bg-purple-600 disabled:opacity-50 text-white font-bold text-xs text-left shadow-lg transition flex items-center gap-3 touch-press cursor-pointer">
                     <span class="text-2xl">🎫</span>
                     <div>
                         <div class="font-extrabold text-sm">Scan QR Tamu/Kurir</div>
@@ -146,7 +146,7 @@
                 </button>
 
                 <!-- Test 4: Satpam Manual Override -->
-                <button @click="triggerGate('satpam_manual')" :disabled="isOpen" class="p-4 rounded-2xl bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-white font-bold text-xs text-left shadow-lg transition flex items-center gap-3">
+                <button @click="triggerGate('satpam_manual')" :disabled="isOpen" class="p-4 rounded-2xl bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-white font-bold text-xs text-left shadow-lg transition flex items-center gap-3 touch-press cursor-pointer">
                     <span class="text-2xl">🛡️</span>
                     <div>
                         <div class="font-extrabold text-sm">Satpam Buka Manual</div>

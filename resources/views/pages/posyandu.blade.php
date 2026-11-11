@@ -139,8 +139,8 @@
             </div>
         </div>
 
-        <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm">
+        <div class="overflow-x-auto -mx-2 sm:mx-0 px-2 sm:px-0">
+            <table class="w-full text-left text-sm min-w-[650px]">
                 <thead class="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 text-xs uppercase font-bold tracking-wider">
                     <tr>
                         <th class="py-3 px-6">Warga / NIK</th>

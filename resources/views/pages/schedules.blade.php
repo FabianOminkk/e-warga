@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8" x-data="{ openAddModal: false, openSwapModal: false, selectedScheduleId: null, selectedOfficerName: '' }">
+<div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-6 sm:space-y-8" x-data="{ openAddModal: false, openSwapModal: false, selectedScheduleId: null, selectedOfficerName: '' }">
 
     <!-- Header & Mode Lingkungan Switcher -->
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-slate-200 dark:border-slate-800">
@@ -114,8 +114,8 @@
                 </button>
             </div>
         @else
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs">
+            <div class="overflow-x-auto -mx-2 sm:mx-0 px-2 sm:px-0">
+                <table class="w-full text-left text-xs min-w-[620px]">
                     <thead>
                         <tr class="border-b border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500 uppercase tracking-wider">
                             <th class="py-3">Tanggal Dinas</th>

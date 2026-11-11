@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+<div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-6 sm:space-y-8">
 
     <!-- Header Pusat Kendali Super Admin -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200 dark:border-slate-800">
@@ -11,14 +11,14 @@
                 <span>•</span>
                 <span>SUPER ADMIN HUB</span>
             </div>
-            <h1 class="text-3xl font-black text-slate-900 dark:text-white">Pusat Pengelolaan Seluruh Wilayah</h1>
+            <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">Pusat Pengelolaan Seluruh Wilayah</h1>
             <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
                 Sebagai Super Admin (Pusat/Kepala), Anda mengawasi seluruh cluster perumahan dan desa/kampung yang terdaftar di platform E-WARGA.
             </p>
         </div>
 
-        <div class="flex items-center gap-3">
-            <a href="{{ route('dashboard') }}" class="px-5 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-xs rounded-2xl shadow-lg shadow-emerald-600/20 transition flex items-center gap-2 cursor-pointer" title="Buka Dashboard operasional untuk wilayah yang sedang aktif">
+        <div class="flex items-center gap-3 w-full sm:w-auto">
+            <a href="{{ route('dashboard') }}" class="w-full sm:w-auto text-center justify-center px-5 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-xs rounded-2xl shadow-lg shadow-emerald-600/20 transition flex items-center gap-2 cursor-pointer touch-press" title="Buka Dashboard operasional untuk wilayah yang sedang aktif">
                 <span>Masuk ke Dashboard ({{ $activeTenantId == $desaTenant?->id ? ($desaTenant?->name ?? 'Desa Sukamaju Guyub') : ($clusterTenant?->name ?? 'Cluster Melati Mas') }})</span>
                 <span>➔</span>
             </a>
@@ -26,7 +26,7 @@
     </div>
 
     <!-- Metrik Agregat Platform (Pusat) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <!-- Total Lingkungan Terdaftar -->
         <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs">
             <div class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Total Wilayah Demo</div>

@@ -1,36 +1,36 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+<div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-6 sm:space-y-8">
 
     <!-- Header & Lingkungan Info -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200 dark:border-slate-800">
         <div>
             @if(Auth::user()?->role === 'ketua_rw')
                 <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/70 border border-indigo-200 dark:border-indigo-800 text-indigo-800 dark:text-indigo-300 text-xs font-black uppercase tracking-wider mb-1.5">
-                    <span>🏛️ TINGKAT JABATAN: KETUA RW (LEBIH TINGGI DARI RT)</span>
+                    <span>🏛️ TINGKAT JABATAN: KETUA RW</span>
                     <span>•</span>
                     <span>SUPERVISI SELURUH RT</span>
                 </div>
-                <h1 class="text-3xl font-extrabold text-slate-900 dark:text-white mt-1">Dashboard Supervisi Wilayah RW</h1>
-                <p class="text-sm text-slate-500 dark:text-slate-400">Sebagai Ketua RW, Anda membina seluruh RT di wilayah ini, memantau kas lingkungan, keamanan pos jaga utama, dan legalisasi surat rekomendasi warga.</p>
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-1">Dashboard Supervisi Wilayah RW</h1>
+                <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Sebagai Ketua RW, Anda membina seluruh RT di wilayah ini, memantau kas lingkungan, keamanan pos jaga utama, dan legalisasi surat rekomendasi warga.</p>
             @else
                 <div class="flex items-center gap-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
                     <span>{{ $tenant->name ?? 'Cluster Melati Mas' }}</span>
                     <span>•</span>
                     <span>{{ $tenant->rt_rw ?? 'RT 05 / RW 12' }}</span>
                 </div>
-                <h1 class="text-3xl font-extrabold text-slate-900 dark:text-white mt-1">Dashboard Pengurus Lingkungan</h1>
-                <p class="text-sm text-slate-500 dark:text-slate-400">Pusat kendali keuangan kas, persetujuan iuran warga, dan analisis grafik keuangan.</p>
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-1">Dashboard Pengurus Lingkungan</h1>
+                <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Pusat kendali keuangan kas, persetujuan iuran warga, dan analisis grafik keuangan.</p>
             @endif
         </div>
 
-        <div class="flex items-center gap-3">
-            <a href="{{ route('simulator') }}" class="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center gap-2 border border-transparent dark:border-slate-700">
-                <span>🧪 Buka Simulator Gerbang</span>
+        <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+            <a href="{{ route('simulator') }}" class="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center gap-2 border border-transparent dark:border-slate-700 touch-press">
+                <span>🧪 Buka Simulator</span>
             </a>
-            <a href="{{ route('satpam.console') }}" class="px-4 py-2.5 bg-[#1B365D] hover:bg-slate-800 dark:bg-emerald-700 dark:hover:bg-emerald-600 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center gap-2">
-                <span>🛡️ Monitor Pos Satpam</span>
+            <a href="{{ route('satpam.console') }}" class="px-4 py-2.5 bg-[#1B365D] hover:bg-slate-800 dark:bg-emerald-700 dark:hover:bg-emerald-600 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center gap-2 touch-press">
+                <span>🛡️ Monitor Satpam</span>
             </a>
         </div>
     </div>
@@ -196,8 +196,8 @@
         </div>
 
         <!-- Tabel Warga & Status Pengesahan RW -->
-        <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
+        <div class="overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0">
+            <table class="w-full text-left text-xs min-w-[680px]">
                 <thead>
                     <tr class="border-b border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500 uppercase tracking-wider">
                         <th class="py-3 px-3">Warga & Foto KTP</th>
@@ -397,8 +397,8 @@
                 </button>
             </div>
 
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs">
+            <div class="overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0">
+                <table class="w-full text-left text-xs min-w-[500px]">
                     <thead>
                         <tr class="border-b border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500 uppercase tracking-wider">
                             <th class="py-2">Tanggal</th>

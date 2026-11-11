@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto" x-data="wargaApp()">
+<div class="py-4 sm:py-8 px-2 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-6" x-data="wargaApp()">
 
     <!-- ======================================================== -->
     <!-- 1. HEADER UTAMA PORTAL WARGA (DESKTOP-FIRST HERO BAR)    -->
     <!-- ======================================================== -->
-    <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 shadow-xs border border-slate-200 dark:border-slate-800 mb-8 transition">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-8 shadow-xs border border-slate-200 dark:border-slate-800 transition">
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             
             <!-- Info Profil Warga -->
