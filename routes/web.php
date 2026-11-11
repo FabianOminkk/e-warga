@@ -68,3 +68,8 @@ Route::post('/surat-pengantar', [LetterController::class, 'store'])->name('lette
 Route::post('/surat-pengantar/{id}/approve', [LetterController::class, 'approve'])->name('letters.approve');
 Route::post('/surat-pengantar/{id}/reject', [LetterController::class, 'reject'])->name('letters.reject');
 Route::get('/surat-pengantar/verifikasi/{code}', [LetterController::class, 'verify'])->name('letters.verify');
+
+// Halaman Fallback Ramah Pengguna (Coming Soon / Sedang Disiapkan)
+Route::fallback(function () {
+    return response()->view('errors.404', [], 404);
+});

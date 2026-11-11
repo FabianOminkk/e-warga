@@ -383,8 +383,18 @@
         <!-- Buku Kas Terbuka -->
         <div class="lg:col-span-7 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-4">
             <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-                <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Buku Kas Terbuka RT</h3>
-                <span class="text-xs text-slate-400 dark:text-slate-500">8 Transaksi Terakhir</span>
+                <div class="flex items-center gap-2.5">
+                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Buku Kas Terbuka RT</h3>
+                    <span class="text-xs text-slate-400 dark:text-slate-500">8 Terakhir</span>
+                </div>
+                <button 
+                    type="button" 
+                    @click="triggerComingSoon('Ekspor Laporan Kas RT (PDF & Excel)', 'Fitur cetak rekap pembukuan kas format PDF berstempel resmi Pengurus & ekspor Excel sedang dalam tahap finalisasi template akuntansi lingkungan (Coming Soon).')" 
+                    class="text-xs font-bold px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                >
+                    <span>📥 Ekspor Rekap</span>
+                    <span class="text-[10px] text-amber-500 font-extrabold">(Coming Soon)</span>
+                </button>
             </div>
 
             <div class="overflow-x-auto">

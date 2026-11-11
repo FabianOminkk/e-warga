@@ -47,7 +47,7 @@ class SuperAdminController extends Controller
         ));
     }
 
-    public function switchTenant($id)
+    public function switchTenant(Request $request, $id)
     {
         $user = Auth::user();
         if (!$user || $user->role !== 'super_admin') {
@@ -56,6 +56,10 @@ class SuperAdminController extends Controller
 
         $tenant = Tenant::findOrFail($id);
         session(['active_tenant_id' => $tenant->id]);
+
+        if ($request->boolean('redirect_to_dashboard') || $request->input('open_dashboard')) {
+            return redirect()->route('dashboard')->with('success', "Pusat Kendali dialihkan ke: {$tenant->name}. Selamat datang di Dashboard!");
+        }
 
         return redirect()->back()->with('success', "Pusat Kendali beralih ke lingkungan: {$tenant->name} (" . strtoupper($tenant->environment_type) . ")");
     }

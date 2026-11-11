@@ -241,28 +241,52 @@
                 <!-- Card 2: Status Iuran Kas Lingkungan -->
                 <div 
                     id="step-billing" 
-                    class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs relative"
+                    class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs relative flex flex-col justify-between"
                 >
-                    <div class="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center text-2xl mb-4">
-                        💳
+                    <div>
+                        <div class="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center text-2xl mb-4">
+                            💳
+                        </div>
+                        <div class="font-black text-base text-slate-900 dark:text-white">Iuran Lingkungan Bulan Ini</div>
+                        <div class="mt-2">
+                            @if($billing && $billing->status === 'paid')
+                                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 text-xs font-black">
+                                    <span>✅ LUNAS</span>
+                                    <span class="font-normal">({{ $billing->formatted_amount }})</span>
+                                </div>
+                                <div class="text-[11px] text-slate-400 dark:text-slate-500 mt-2">
+                                    IPL & Kas Terverifikasi oleh Bendahara RT
+                                </div>
+                            @else
+                                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 text-xs font-black">
+                                    <span>⏳ MENUNGGU PEMBAYARAN</span>
+                                </div>
+                                <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-2">
+                                    Nominal: Rp 150.000 / Bulan (Transfer ke Rekening Kas RT)
+                                </div>
+                            @endif
+                        </div>
                     </div>
-                    <div class="font-black text-base text-slate-900 dark:text-white">Iuran Lingkungan Bulan Ini</div>
-                    <div class="mt-2">
+
+                    <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
                         @if($billing && $billing->status === 'paid')
-                            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 text-xs font-black">
-                                <span>✅ LUNAS</span>
-                                <span class="font-normal">({{ $billing->formatted_amount }})</span>
-                            </div>
-                            <div class="text-[11px] text-slate-400 dark:text-slate-500 mt-2">
-                                IPL & Kas Terverifikasi oleh Bendahara (Bpk. Joko Wardoyo)
-                            </div>
+                            <button 
+                                type="button" 
+                                @click="triggerComingSoon('E-Kwitansi & Tanda Terima Kas Resmi', 'Fitur unduh e-Kwitansi PDF berstempel QR digital resmi dari Bendahara lingkungan sedang disiapkan (Coming Soon). Bukti pembayaran Anda telah tercatat aman di sistem.')" 
+                                class="w-full px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                            >
+                                <span>📄 Unduh E-Kwitansi</span>
+                                <span class="text-[10px] text-slate-400 font-extrabold">(Coming Soon)</span>
+                            </button>
                         @else
-                            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 text-xs font-black">
-                                <span>⏳ MENUNGGU PEMBAYARAN</span>
-                            </div>
-                            <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-2">
-                                Nominal: Rp 150.000 / Bulan (Transfer ke Rekening Kas RT)
-                            </div>
+                            <button 
+                                type="button" 
+                                @click="triggerComingSoon('Pembayaran Online via QRIS & Virtual Account', 'Fitur pembayaran iuran otomatis melalui QRIS statis/dinamis dan Virtual Account Bank BCA/BRI/Mandiri sedang dalam integrasi gateway resmi (Coming Soon). Untuk saat ini silakan setor tunai ke Bendahara atau transfer bank manual.')" 
+                                class="w-full px-3 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 dark:bg-blue-950 dark:hover:bg-blue-900 text-blue-700 dark:text-blue-300 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                            >
+                                <span>💳 Bayar via QRIS</span>
+                                <span class="text-[10px] text-amber-600 dark:text-amber-400 font-black">(Coming Soon)</span>
+                            </button>
                         @endif
                     </div>
                 </div>

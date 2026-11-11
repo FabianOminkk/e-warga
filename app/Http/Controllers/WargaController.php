@@ -240,8 +240,12 @@ class WargaController extends Controller
         // Upload Foto KTP jika dilampirkan
         if ($request->hasFile('ktp_photo')) {
             $file = $request->file('ktp_photo');
+            $uploadDir = public_path('uploads/ktp');
+            if (!file_exists($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
             $fileName = 'ktp_' . $user->id . '_' . time() . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path('uploads/ktp'), $fileName);
+            $file->move($uploadDir, $fileName);
             $dataToUpdate['ktp_photo'] = 'uploads/ktp/' . $fileName;
         } elseif (!$user->ktp_photo) {
             // Pasang sample svg jika baru pertama kali mengisi dan tidak upload manual

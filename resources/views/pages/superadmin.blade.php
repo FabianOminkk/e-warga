@@ -18,8 +18,8 @@
         </div>
 
         <div class="flex items-center gap-3">
-            <a href="{{ route('dashboard') }}" class="px-5 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-xs rounded-2xl shadow-lg shadow-emerald-600/20 transition flex items-center gap-2 cursor-pointer">
-                <span>Masuk ke Dashboard Wilayah Aktif</span>
+            <a href="{{ route('dashboard') }}" class="px-5 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-xs rounded-2xl shadow-lg shadow-emerald-600/20 transition flex items-center gap-2 cursor-pointer" title="Buka Dashboard operasional untuk wilayah yang sedang aktif">
+                <span>Masuk ke Dashboard ({{ $activeTenantId == $desaTenant?->id ? ($desaTenant?->name ?? 'Desa Sukamaju Guyub') : ($clusterTenant?->name ?? 'Cluster Melati Mas') }})</span>
                 <span>➔</span>
             </a>
         </div>
@@ -131,14 +131,22 @@
                     </ul>
                 </div>
 
-                <!-- Tombol Pilih & Beralih -->
-                <form action="{{ route('superadmin.switch-tenant', $clusterTenant?->id ?? 1) }}" method="POST">
-                    @csrf
-                    <button type="submit" class="w-full py-3.5 px-6 rounded-2xl font-black text-xs sm:text-sm transition flex items-center justify-center gap-2 cursor-pointer {{ $activeTenantId == $clusterTenant?->id ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-600/30' : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200' }}">
-                        <span>{{ $activeTenantId == $clusterTenant?->id ? '✓ Sedang Dikelola — Buka Dashboard Cluster' : 'Beralih & Kelola Cluster Ini' }}</span>
+                <!-- Tombol Buka Dashboard / Beralih -->
+                @if($activeTenantId == $clusterTenant?->id)
+                    <a href="{{ route('dashboard') }}" class="w-full py-3.5 px-6 rounded-2xl font-black text-xs sm:text-sm bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-600/30 transition flex items-center justify-center gap-2 cursor-pointer">
+                        <span>✓ Sedang Aktif — Buka Dashboard Cluster Ini</span>
                         <span>➔</span>
-                    </button>
-                </form>
+                    </a>
+                @else
+                    <form action="{{ route('superadmin.switch-tenant', $clusterTenant?->id ?? 1) }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="redirect_to_dashboard" value="1">
+                        <button type="submit" class="w-full py-3.5 px-6 rounded-2xl font-black text-xs sm:text-sm bg-blue-600 hover:bg-blue-700 text-white shadow-md transition flex items-center justify-center gap-2 cursor-pointer">
+                            <span>Beralih & Buka Dashboard Cluster Ini</span>
+                            <span>➔</span>
+                        </button>
+                    </form>
+                @endif
             </div>
 
             <!-- KARTU 2: PERKAMPUNGAN / DESA (DESA SUKAMAJU GUYUB) -->
@@ -186,14 +194,22 @@
                     </ul>
                 </div>
 
-                <!-- Tombol Pilih & Beralih -->
-                <form action="{{ route('superadmin.switch-tenant', $desaTenant?->id ?? 2) }}" method="POST">
-                    @csrf
-                    <button type="submit" class="w-full py-3.5 px-6 rounded-2xl font-black text-xs sm:text-sm transition flex items-center justify-center gap-2 cursor-pointer {{ $activeTenantId == $desaTenant?->id ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-600/30' : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200' }}">
-                        <span>{{ $activeTenantId == $desaTenant?->id ? '✓ Sedang Dikelola — Buka Dashboard Desa' : 'Beralih & Kelola Desa Ini' }}</span>
+                <!-- Tombol Buka Dashboard / Beralih -->
+                @if($activeTenantId == $desaTenant?->id)
+                    <a href="{{ route('dashboard') }}" class="w-full py-3.5 px-6 rounded-2xl font-black text-xs sm:text-sm bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-600/30 transition flex items-center justify-center gap-2 cursor-pointer">
+                        <span>✓ Sedang Aktif — Buka Dashboard Desa Ini</span>
                         <span>➔</span>
-                    </button>
-                </form>
+                    </a>
+                @else
+                    <form action="{{ route('superadmin.switch-tenant', $desaTenant?->id ?? 2) }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="redirect_to_dashboard" value="1">
+                        <button type="submit" class="w-full py-3.5 px-6 rounded-2xl font-black text-xs sm:text-sm bg-emerald-600 hover:bg-emerald-700 text-white shadow-md transition flex items-center justify-center gap-2 cursor-pointer">
+                            <span>Beralih & Buka Dashboard Desa Ini</span>
+                            <span>➔</span>
+                        </button>
+                    </form>
+                @endif
             </div>
 
         </div>

@@ -82,7 +82,8 @@ class ScheduleController extends Controller
             'checked_in_at' => now(),
         ]);
 
-        return redirect()->back()->with('success', "Absensi siaga berhasil dicatat untuk: {$schedule->officer->name}.");
+        $officerName = $schedule->officer ? $schedule->officer->name : 'Petugas';
+        return redirect()->back()->with('success', "Absensi siaga berhasil dicatat untuk: {$officerName}.");
     }
 
     public function requestSwap(Request $request, $id)
@@ -93,10 +94,13 @@ class ScheduleController extends Controller
         ]);
 
         $schedule = SecuritySchedule::findOrFail($id);
+        $replacementUser = User::find($validated['replacement_user_id']);
+        $replacementName = $replacementUser ? $replacementUser->name : 'Petugas Pengganti';
+
         $schedule->update([
             'status' => 'swapped',
             'replacement_user_id' => $validated['replacement_user_id'],
-            'notes' => 'Tukar dinas dengan ' . User::find($validated['replacement_user_id'])->name . '. ' . ($validated['notes'] ?? ''),
+            'notes' => 'Tukar dinas dengan ' . $replacementName . '. ' . ($validated['notes'] ?? ''),
         ]);
 
         return redirect()->back()->with('success', 'Permintaan tukar jadwal berhasil diproses.');

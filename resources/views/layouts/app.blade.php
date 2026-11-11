@@ -51,6 +51,10 @@
 <body 
     x-data="{
         sidebarOpen: localStorage.getItem('ewarga_drawer_open') !== 'false',
+        openComingSoon: false,
+        comingSoonTitle: '',
+        comingSoonDesc: '',
+        showUserAccountModal: false,
         toggleDrawer() {
             this.sidebarOpen = !this.sidebarOpen;
             localStorage.setItem('ewarga_drawer_open', this.sidebarOpen);
@@ -62,6 +66,11 @@
         openDrawer() {
             this.sidebarOpen = true;
             localStorage.setItem('ewarga_drawer_open', 'true');
+        },
+        triggerComingSoon(title, desc) {
+            this.comingSoonTitle = title || 'Fitur Sedang Dalam Pengembangan';
+            this.comingSoonDesc = desc || 'Maaf, fitur ini belum tersedia saat ini dan sedang dalam tahap pengembangan (Coming Soon). Tim teknis kami sedang mengintegrasikannya agar segera dapat Anda gunakan.';
+            this.openComingSoon = true;
         }
     }"
     class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 antialiased min-h-screen transition-colors duration-200"
@@ -313,9 +322,16 @@
                         <span class="text-[9px] font-black uppercase tracking-wider text-amber-800 dark:text-amber-300 flex items-center gap-1">
                             <span>⚡</span> WILAYAH AKTIF KENDALI:
                         </span>
-                        <a href="{{ route('superadmin.index') }}" class="text-[9px] font-extrabold text-amber-600 dark:text-amber-400 hover:underline">
-                            Pusat Hub ➔
-                        </a>
+                        @if(request()->routeIs('superadmin.index'))
+                            <span class="text-[9px] font-black text-amber-700 dark:text-amber-300 bg-amber-200/60 dark:bg-amber-900/60 px-2 py-0.5 rounded-full border border-amber-300 dark:border-amber-700" title="Anda sedang berada di halaman Pusat Hub Multi-Wilayah">
+                                ● Halaman Hub
+                            </span>
+                        @else
+                            <a href="{{ route('superadmin.index') }}" class="text-[9px] font-extrabold text-amber-700 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-100 bg-amber-100 dark:bg-amber-900/50 hover:bg-amber-200 px-2 py-0.5 rounded-full border border-amber-300 dark:border-amber-700 transition flex items-center gap-1 shadow-2xs" title="Buka Pusat Pengelolaan Seluruh Wilayah (Hub)">
+                                <span>Pusat Hub</span>
+                                <span>➔</span>
+                            </a>
+                        @endif
                     </div>
                     <div class="font-extrabold text-xs text-slate-900 dark:text-white truncate">
                         {{ $activeTenant?->name ?? 'Cluster Melati Mas' }}
@@ -665,7 +681,7 @@
             <!-- PROFIL PENGGUNA YANG SEDANG AKTIF -->
             @auth
                 <div class="flex items-center justify-between pt-2 border-t border-slate-200/80 dark:border-slate-800/80">
-                    <a href="{{ $currentUser->role === 'warga' ? route('warga.profile') : 'javascript:void(0)' }}" class="flex items-center gap-2.5 truncate hover:opacity-80 transition" title="Pengaturan Akun">
+                    <button type="button" @click="showUserAccountModal = true" class="flex items-center gap-2.5 truncate hover:opacity-80 transition text-left cursor-pointer" title="Lihat Profil Akun & Hak Akses">
                         <div class="w-7 h-7 rounded-full {{ $currentUser->isSuperAdmin() ? 'bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-700' : 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300' }} flex items-center justify-center font-black text-xs shrink-0">
                             {{ $currentUser->isSuperAdmin() ? '⚡' : substr($currentUser->name, 0, 1) }}
                         </div>
@@ -675,7 +691,7 @@
                                 {{ $currentUser->role_label }}
                             </div>
                         </div>
-                    </a>
+                    </button>
                     <form action="{{ route('logout') }}" method="POST" class="inline shrink-0">
                         @csrf
                         <button type="submit" class="p-1 rounded-lg text-slate-400 hover:text-rose-600 transition cursor-pointer" title="Keluar dari Sistem">
@@ -720,10 +736,17 @@
             <!-- Kanan: Tanggal & Wilayah Aktif -->
             <div class="flex items-center gap-3">
                 @if(($currentUser?->role ?? '') === 'super_admin')
-                    <a href="{{ route('superadmin.index') }}" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/70 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 text-xs font-bold hover:bg-amber-100 transition">
-                        <span>⚡</span>
-                        <span>Super Admin Hub</span>
-                    </a>
+                    @if(request()->routeIs('superadmin.index'))
+                        <a href="{{ route('dashboard') }}" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-bold hover:bg-emerald-100 transition" title="Buka Dashboard Lingkungan Aktif">
+                            <span>📊</span>
+                            <span>Buka Dashboard Operasional ➔</span>
+                        </a>
+                    @else
+                        <a href="{{ route('superadmin.index') }}" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/70 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 text-xs font-bold hover:bg-amber-100 transition" title="Buka Pusat Pengelolaan Seluruh Wilayah">
+                            <span>⚡</span>
+                            <span>Pusat Super Admin Hub ➔</span>
+                        </a>
+                    @endif
                 @endif
 
                 <div class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 text-xs font-semibold">
@@ -785,5 +808,135 @@
 
 @endif
 
+    <!-- ======================================================== -->
+    <!-- MODAL 1: GLOBAL POP-UP FITUR COMING SOON                 -->
+    <!-- ======================================================== -->
+    <div 
+        x-show="openComingSoon" 
+        x-cloak 
+        x-on:open-coming-soon.window="triggerComingSoon($event.detail.title, $event.detail.desc)"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs transition-opacity"
+    >
+        <div 
+            @click.away="openComingSoon = false" 
+            class="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-5 animate-in fade-in zoom-in-95 duration-200"
+        >
+            <div class="flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400 flex items-center justify-center text-2xl font-black shrink-0 shadow-xs">
+                    🚀
+                </div>
+                <div>
+                    <span class="text-[10px] font-black uppercase tracking-wider text-amber-600 dark:text-amber-400">INFORMASI SISTEM E-WARGA</span>
+                    <h3 class="text-base font-black text-slate-900 dark:text-white" x-text="comingSoonTitle || 'Maaf, Fitur Belum Tersedia'"></h3>
+                </div>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300 leading-relaxed" x-text="comingSoonDesc || 'Modul ini sedang dalam tahap pengembangan dan integrasi sistem. Silakan nantikan rilis pembaruan berikutnya.'">
+            </div>
+
+            <div class="flex items-center justify-end gap-2 pt-1">
+                <button 
+                    type="button" 
+                    @click="openComingSoon = false" 
+                    class="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-900 font-extrabold text-xs transition cursor-pointer shadow-sm"
+                >
+                    Siap, Saya Paham
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- MODAL 2: DETAIL PROFIL & HAK AKSES PENGGUNA              -->
+    <!-- ======================================================== -->
+    @auth
+    <div 
+        x-show="showUserAccountModal" 
+        x-cloak 
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs transition-opacity"
+    >
+        <div 
+            @click.away="showUserAccountModal = false" 
+            class="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-6"
+        >
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl {{ $currentUser->isSuperAdmin() ? 'bg-amber-100 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400 border border-amber-300 dark:border-amber-700' : 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300' }} flex items-center justify-center font-black text-xl shadow-xs">
+                        {{ $currentUser->isSuperAdmin() ? '⚡' : substr($currentUser->name, 0, 1) }}
+                    </div>
+                    <div>
+                        <h3 class="text-base font-black text-slate-900 dark:text-white">{{ $currentUser->name }}</h3>
+                        <span class="inline-flex items-center gap-1 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full {{ $currentUser->isSuperAdmin() ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300' : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' }}">
+                            {{ $currentUser->role_label }}
+                        </span>
+                    </div>
+                </div>
+                <button @click="showUserAccountModal = false" type="button" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xl font-bold cursor-pointer">&times;</button>
+            </div>
+
+            <div class="space-y-3 text-xs">
+                <div class="grid grid-cols-2 gap-3 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+                    <div>
+                        <span class="text-[10px] text-slate-400 font-bold uppercase block">Email Login:</span>
+                        <span class="font-mono font-bold text-slate-800 dark:text-slate-200 truncate block">{{ $currentUser->email ?? '-' }}</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 font-bold uppercase block">No. WhatsApp / HP:</span>
+                        <span class="font-mono font-bold text-slate-800 dark:text-slate-200 truncate block">{{ $currentUser->phone_number ?? '-' }}</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+                    <div>
+                        <span class="text-[10px] text-slate-400 font-bold uppercase block">Wilayah Aktif Tugas:</span>
+                        <span class="font-extrabold text-slate-900 dark:text-white truncate block">{{ $activeTenant?->name ?? 'Cluster Melati Mas' }}</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 font-bold uppercase block">Status Hak Akses:</span>
+                        <span class="font-extrabold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                            <span>●</span>
+                            <span>Aktif Terverifikasi</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-100 dark:border-slate-800">
+                @if($currentUser->role === 'warga')
+                    <a href="{{ route('warga.profile') }}" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs transition flex items-center justify-center gap-1.5 shadow-sm">
+                        <span>🪪 Atur Data Diri & KTP</span>
+                        <span>➔</span>
+                    </a>
+                @else
+                    <button 
+                        type="button" 
+                        @click="triggerComingSoon('Ubah Password Akun Staf', 'Untuk menjaga kepatuhan SOP keamanan lingkungan, pembaruan kata sandi akun pejabat/pengurus RT dapat dikoordinasikan langsung ke Administrator Utama Platform.'); showUserAccountModal = false;" 
+                        class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs transition cursor-pointer"
+                    >
+                        🔒 Ganti Kata Sandi
+                    </button>
+                @endif
+
+                <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                    <button type="button" @click="showUserAccountModal = false" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 font-bold text-xs transition cursor-pointer">
+                        Tutup
+                    </button>
+                    <form action="{{ route('logout') }}" method="POST" class="inline">
+                        @csrf
+                        <button type="submit" class="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs transition flex items-center gap-1 cursor-pointer shadow-sm" title="Keluar dari sesi ini">
+                            <span>Keluar</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endauth
+
+    <script>
+        window.triggerComingSoon = function(title, desc) {
+            window.dispatchEvent(new CustomEvent('open-coming-soon', { detail: { title: title, desc: desc } }));
+        };
+    </script>
 </body>
 </html>

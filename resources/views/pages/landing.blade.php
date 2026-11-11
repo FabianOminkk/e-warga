@@ -291,75 +291,111 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 <!-- CS 1: CCTV ANPR -->
-                <div class="p-6 rounded-3xl bg-slate-100/70 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-3 relative overflow-hidden group">
+                <div 
+                    @click="triggerComingSoon('Inovasi Hardware: CCTV ANPR (Auto Number Plate)', 'Fitur integrasi kamera AI pemindai plat nomor polisi kendaraan warga sedang dalam tahap pengujian integrasi firmware Edge-AI dan sinkronisasi basis data kendaraan (Coming Soon).')" 
+                    class="p-6 rounded-3xl bg-slate-100/70 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-3 relative overflow-hidden group cursor-pointer hover:border-blue-500 hover:shadow-lg transition transform hover:-translate-y-1"
+                >
                     <div class="flex items-center justify-between">
                         <span class="text-2xl">📹</span>
-                        <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300">Coming Soon</span>
+                        <span class="px-2.5 py-1 rounded-md text-[9px] font-black uppercase bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300">Coming Soon ➔</span>
                     </div>
-                    <h4 class="font-black text-sm text-slate-900 dark:text-white">CCTV ANPR (Auto Number Plate Recognition)</h4>
+                    <h4 class="font-black text-sm text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition">CCTV ANPR (Auto Number Plate Recognition)</h4>
                     <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                         Kamera AI resolusi tinggi yang otomatis memindai plat nomor polisi kendaraan warga saat mendekati gerbang. Palang terbuka tanpa perlu tap kartu sama sekali.
                     </p>
+                    <div class="pt-1 flex items-center text-[11px] font-bold text-blue-600 dark:text-blue-400">
+                        <span>Lihat Status R&D ➔</span>
+                    </div>
                 </div>
 
                 <!-- CS 2: Tiang Tombol Panik Publik -->
-                <div class="p-6 rounded-3xl bg-slate-100/70 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-3 relative overflow-hidden group">
+                <div 
+                    @click="triggerComingSoon('Inovasi Hardware: Tiang Tombol Panik Darurat (Public Pole)', 'Perangkat tiang tombol panik fisik dengan sirine piezoelektrik & interkom 2 arah sedang dalam prototipe perakitan modul telemetri LoRa/GSM (Coming Soon).')" 
+                    class="p-6 rounded-3xl bg-slate-100/70 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-3 relative overflow-hidden group cursor-pointer hover:border-rose-500 hover:shadow-lg transition transform hover:-translate-y-1"
+                >
                     <div class="flex items-center justify-between">
                         <span class="text-2xl">🚨</span>
-                        <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300">Coming Soon</span>
+                        <span class="px-2.5 py-1 rounded-md text-[9px] font-black uppercase bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300">Coming Soon ➔</span>
                     </div>
-                    <h4 class="font-black text-sm text-slate-900 dark:text-white">Tiang Tombol Panik Darurat (Public Pole)</h4>
+                    <h4 class="font-black text-sm text-slate-900 dark:text-white group-hover:text-rose-600 dark:group-hover:text-rose-400 transition">Tiang Tombol Panik Darurat (Public Pole)</h4>
                     <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                         Tiang panik fisik yang dipasang di taman/gang lingkungan. Dilengkapi sirine piezoelektrik, strobo merah 360°, dan interkom suara langsung terhubung ke pos satpam.
                     </p>
+                    <div class="pt-1 flex items-center text-[11px] font-bold text-rose-600 dark:text-rose-400">
+                        <span>Lihat Status R&D ➔</span>
+                    </div>
                 </div>
 
                 <!-- CS 3: Sensor Banjir Drainase -->
-                <div class="p-6 rounded-3xl bg-slate-100/70 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-3 relative overflow-hidden group">
+                <div 
+                    @click="triggerComingSoon('Inovasi Hardware: Sensor Banjir & Saluran Air IoT', 'Modul sensor ultrasonik pemantau debit drainase got dan early warning system banjir sedang dalam uji ketahanan cuaca ekstrim & kalibrasi ambang batas alarm (Coming Soon).')" 
+                    class="p-6 rounded-3xl bg-slate-100/70 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-3 relative overflow-hidden group cursor-pointer hover:border-teal-500 hover:shadow-lg transition transform hover:-translate-y-1"
+                >
                     <div class="flex items-center justify-between">
                         <span class="text-2xl">🌊</span>
-                        <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-300">Coming Soon</span>
+                        <span class="px-2.5 py-1 rounded-md text-[9px] font-black uppercase bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-300">Coming Soon ➔</span>
                     </div>
-                    <h4 class="font-black text-sm text-slate-900 dark:text-white">Sensor Banjir & Saluran Air IoT</h4>
+                    <h4 class="font-black text-sm text-slate-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 transition">Sensor Banjir & Saluran Air IoT</h4>
                     <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                         Sensor ultrasonik pengukur ketinggian debit saluran drainase got lingkungan warga. Otomatis membunyikan alarm dan mengirim broadcast notifikasi saat siaga 1.
                     </p>
+                    <div class="pt-1 flex items-center text-[11px] font-bold text-teal-600 dark:text-teal-400">
+                        <span>Lihat Status R&D ➔</span>
+                    </div>
                 </div>
 
                 <!-- CS 4: Smart PJU -->
-                <div class="p-6 rounded-3xl bg-slate-100/70 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-3 relative overflow-hidden group">
+                <div 
+                    @click="triggerComingSoon('Inovasi Hardware: Smart PJU (Lampu Jalan Pintar Otomatis)', 'Lampu PJU cerdas dengan sensor gerak radar microwave & panel surya sedang dalam pengujian baterai LiFePO4 dan efisiensi konsumsi daya malam hari (Coming Soon).')" 
+                    class="p-6 rounded-3xl bg-slate-100/70 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-3 relative overflow-hidden group cursor-pointer hover:border-amber-500 hover:shadow-lg transition transform hover:-translate-y-1"
+                >
                     <div class="flex items-center justify-between">
                         <span class="text-2xl">💡</span>
-                        <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300">Coming Soon</span>
+                        <span class="px-2.5 py-1 rounded-md text-[9px] font-black uppercase bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300">Coming Soon ➔</span>
                     </div>
-                    <h4 class="font-black text-sm text-slate-900 dark:text-white">Smart PJU (Lampu Jalan Pintar Otomatis)</h4>
+                    <h4 class="font-black text-sm text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition">Smart PJU (Lampu Jalan Pintar Otomatis)</h4>
                     <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                         Lampu penerangan jalan hemat daya bertenaga surya/listrik dengan sensor gerak microwave. Meredup saat jalanan sepi dan otomatis terang saat ada warga melintas.
                     </p>
+                    <div class="pt-1 flex items-center text-[11px] font-bold text-amber-600 dark:text-amber-400">
+                        <span>Lihat Status R&D ➔</span>
+                    </div>
                 </div>
 
                 <!-- CS 5: Smart TPS Bak Sampah -->
-                <div class="p-6 rounded-3xl bg-slate-100/70 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-3 relative overflow-hidden group">
+                <div 
+                    @click="triggerComingSoon('Inovasi Hardware: Smart TPS (Sensor Kapasitas Sampah)', 'Sensor monitoring kepenuhan kontainer bak sampah warga via sonar optik & notifikasi armada pengangkut sedang disiapkan untuk pilot project lingkungan (Coming Soon).')" 
+                    class="p-6 rounded-3xl bg-slate-100/70 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-3 relative overflow-hidden group cursor-pointer hover:border-emerald-500 hover:shadow-lg transition transform hover:-translate-y-1"
+                >
                     <div class="flex items-center justify-between">
                         <span class="text-2xl">🗑️</span>
-                        <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300">Coming Soon</span>
+                        <span class="px-2.5 py-1 rounded-md text-[9px] font-black uppercase bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300">Coming Soon ➔</span>
                     </div>
-                    <h4 class="font-black text-sm text-slate-900 dark:text-white">Smart TPS (Sensor Kapasitas Sampah)</h4>
+                    <h4 class="font-black text-sm text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition">Smart TPS (Sensor Kapasitas Sampah)</h4>
                     <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                         Monitoring tingkat kepenuhan bak sampah TPS warga menggunakan sensor sonar. Menghubungi armada pengangkut sampah secara otomatis sebelum sampah menumpuk.
                     </p>
+                    <div class="pt-1 flex items-center text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                        <span>Lihat Status R&D ➔</span>
+                    </div>
                 </div>
 
                 <!-- CS 6: Sub-Meter IoT Fasum -->
-                <div class="p-6 rounded-3xl bg-slate-100/70 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-3 relative overflow-hidden group">
+                <div 
+                    @click="triggerComingSoon('Inovasi Hardware: Sub-Meter IoT Air & Listrik Fasum', 'Perangkat meteran digital pintar RS485 Modbus untuk pencatatan otomatis konsumsi air & listrik balai warga sedang dalam uji coba integrasi dashboard kas (Coming Soon).')" 
+                    class="p-6 rounded-3xl bg-slate-100/70 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-3 relative overflow-hidden group cursor-pointer hover:border-indigo-500 hover:shadow-lg transition transform hover:-translate-y-1"
+                >
                     <div class="flex items-center justify-between">
                         <span class="text-2xl">⚡</span>
-                        <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase bg-indigo-100 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-300">Coming Soon</span>
+                        <span class="px-2.5 py-1 rounded-md text-[9px] font-black uppercase bg-indigo-100 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-300">Coming Soon ➔</span>
                     </div>
-                    <h4 class="font-black text-sm text-slate-900 dark:text-white">Sub-Meter IoT Air & Listrik Fasum</h4>
+                    <h4 class="font-black text-sm text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition">Sub-Meter IoT Air & Listrik Fasum</h4>
                     <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                         Pencatatan konsumsi listrik dan air otomatis untuk balai warga, musholla, dan lapangan olahraga. Mencegah lonjakan tagihan tak terduga pada kas lingkungan.
                     </p>
+                    <div class="pt-1 flex items-center text-[11px] font-bold text-indigo-600 dark:text-indigo-400">
+                        <span>Lihat Status R&D ➔</span>
+                    </div>
                 </div>
             </div>
         </div>

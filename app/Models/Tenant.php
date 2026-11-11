@@ -69,7 +69,23 @@ class Tenant extends Model
             }
         }
 
-        return self::first();
+        $defaultTenant = self::first();
+        if (!$defaultTenant) {
+            $defaultTenant = self::create([
+                'name' => 'Cluster Melati Mas Residence',
+                'slug' => 'cluster-melati-mas',
+                'rt_rw' => 'RT 003 / RW 012',
+                'province' => 'Jawa Barat',
+                'city' => 'Kota Tangerang Selatan',
+                'district' => 'Serpong',
+                'postal_code' => '15326',
+                'subscription_plan' => 'enterprise',
+                'environment_type' => 'cluster',
+                'is_active' => true,
+            ]);
+        }
+
+        return $defaultTenant;
     }
 
     public function isCluster(): bool

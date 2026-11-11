@@ -106,7 +106,7 @@ class SatpamController extends Controller
         ]);
 
         // Picu palang pintu terbuka
-        $gate = SmartGate::first();
+        $gate = SmartGate::where('tenant_id', $visitor->tenant_id)->first() ?? SmartGate::first();
         if ($gate) {
             GateLog::create([
                 'tenant_id' => $visitor->tenant_id,

@@ -50,4 +50,20 @@ class EwargaPagesTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('BUKA GERBANG PORTAL');
     }
+
+    public function test_superadmin_hub_page_renders_successfully(): void
+    {
+        $superAdmin = \App\Models\User::where('role', 'super_admin')->first();
+        $response = $this->actingAs($superAdmin)->get('/super-admin');
+        $response->assertStatus(200);
+        $response->assertSee('Pusat Pengelolaan Seluruh Wilayah');
+    }
+
+    public function test_unknown_url_renders_friendly_coming_soon_404_page(): void
+    {
+        $response = $this->get('/fitur-belum-ada-xyz');
+        $response->assertStatus(404);
+        $response->assertSee('Fitur Sedang Dalam Pengembangan (Coming Soon)');
+        $response->assertSee('Maaf, Halaman Ini Belum Tersedia');
+    }
 }
