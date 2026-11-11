@@ -69,6 +69,10 @@ Route::post('/surat-pengantar/{id}/approve', [LetterController::class, 'approve'
 Route::post('/surat-pengantar/{id}/reject', [LetterController::class, 'reject'])->name('letters.reject');
 Route::get('/surat-pengantar/verifikasi/{code}', [LetterController::class, 'verify'])->name('letters.verify');
 
+// Asisten AI Bang Warga (Tanya Jawab Lingkungan Interaktif)
+Route::post('/ai/chat', [\App\Http\Controllers\Api\AiAssistantController::class, 'chat'])->name('ai.chat');
+Route::get('/ai/suggestions', [\App\Http\Controllers\Api\AiAssistantController::class, 'suggestions'])->name('ai.suggestions');
+
 // Halaman Fallback Ramah Pengguna (Coming Soon / Sedang Disiapkan)
 Route::fallback(function () {
     return response()->view('errors.404', [], 404);

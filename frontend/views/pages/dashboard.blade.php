@@ -1,7 +1,10 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-6 sm:space-y-8">
+<div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-3 sm:py-8 space-y-5 sm:space-y-8">
+
+    <!-- Komponen Android Mobile Weather & Fast Status Bar (Tampil di Layar HP) -->
+    <x-mobile-android-header :tenant="$tenant" />
 
     <!-- Header & Lingkungan Info -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200 dark:border-slate-800">

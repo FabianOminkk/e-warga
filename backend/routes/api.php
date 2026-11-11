@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AiAssistantController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DashboardApiController;
 use App\Http\Controllers\Api\IoTGateController;
@@ -35,7 +36,11 @@ Route::prefix('v1')->group(function () {
         Route::post('/scan-qr', [IoTGateController::class, 'scanQr'])->name('api.gate.scan-qr');
     });
 
-    // --- C. PROTECTED BUSINESS APIS (BEARER TOKEN REQUIRED) ---
+    // --- C. AI ASSISTANT (BANG WARGA AI INTERACTIVE ENGINE) ---
+    Route::post('/ai/chat', [AiAssistantController::class, 'chat'])->name('api.ai.chat');
+    Route::get('/ai/suggestions', [AiAssistantController::class, 'suggestions'])->name('api.ai.suggestions');
+
+    // --- D. PROTECTED BUSINESS APIS (BEARER TOKEN REQUIRED) ---
     Route::middleware('auth.api')->group(function () {
 
         // 1. Session & Profil Pengguna

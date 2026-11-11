@@ -1,7 +1,10 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="py-4 sm:py-8 px-2 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-6" x-data="wargaApp()">
+<div class="py-3 sm:py-8 px-2 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-5" x-data="wargaApp()">
+
+    <!-- Komponen Android Mobile Weather & Fast Status Bar (Tampil di Layar HP) -->
+    <x-mobile-android-header :tenant="$tenant" :user="$user" />
 
     <!-- ======================================================== -->
     <!-- 1. HEADER UTAMA PORTAL WARGA (DESKTOP-FIRST HERO BAR)    -->

@@ -878,11 +878,11 @@
         </footer>
 
         <!-- ======================================================== -->
-        <!-- MOBILE BOTTOM NAVIGATION BAR (APP BAR KHUSUS SMARTPHONE) -->
+        <!-- MOBILE BOTTOM NAVIGATION BAR (ANDROID MATERIAL 3 DOCK)   -->
         <!-- ======================================================== -->
         <nav 
-            class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200/90 dark:border-slate-800/90 lg:hidden px-2 pt-2 pb-safe shadow-[0_-4px_25px_rgba(0,0,0,0.1)] transition-colors duration-200"
-            aria-label="Navigasi Cepat Smartphone"
+            class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200/90 dark:border-slate-800/90 lg:hidden px-3 pt-2 pb-safe shadow-[0_-4px_25px_rgba(0,0,0,0.12)] transition-colors duration-200"
+            aria-label="Navigasi Cepat Smartphone Android"
         >
             <div class="flex items-center justify-around max-w-lg mx-auto">
                 
@@ -895,62 +895,53 @@
                 @endphp
                 <a 
                     href="{{ $dashRoute }}" 
-                    class="flex flex-col items-center justify-center flex-1 py-1 text-center transition group touch-press {{ $activeDash ? 'text-emerald-600 dark:text-emerald-400 font-extrabold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium' }}"
+                    class="flex flex-col items-center justify-center flex-1 py-1 text-center transition group touch-press {{ $activeDash ? 'text-emerald-700 dark:text-emerald-300 font-extrabold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium' }}"
                 >
-                    <div class="relative">
+                    <div class="relative px-3 py-1 rounded-full {{ $activeDash ? 'bg-emerald-500/15 dark:bg-emerald-500/25' : '' }} transition-colors">
                         <span class="text-xl">📊</span>
-                        @if($activeDash)
-                            <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                        @endif
                     </div>
-                    <span class="text-[10px] tracking-tight mt-1">Dashboard</span>
+                    <span class="text-[10px] tracking-tight mt-0.5">Beranda</span>
                 </a>
 
                 <!-- Tab 2: Portal Warga / Buka Gerbang -->
                 <a 
                     href="{{ route('warga.index') }}" 
-                    class="flex flex-col items-center justify-center flex-1 py-1 text-center transition group touch-press {{ request()->routeIs('warga.*') ? 'text-emerald-600 dark:text-emerald-400 font-extrabold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium' }}"
+                    class="flex flex-col items-center justify-center flex-1 py-1 text-center transition group touch-press {{ request()->routeIs('warga.*') ? 'text-emerald-700 dark:text-emerald-300 font-extrabold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium' }}"
                 >
-                    <div class="relative">
+                    <div class="relative px-3 py-1 rounded-full {{ request()->routeIs('warga.*') ? 'bg-emerald-500/15 dark:bg-emerald-500/25' : '' }} transition-colors">
                         <span class="text-xl">🚪</span>
-                        @if(request()->routeIs('warga.*'))
-                            <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                        @endif
                     </div>
-                    <span class="text-[10px] tracking-tight mt-1">Warga & Pintu</span>
+                    <span class="text-[10px] tracking-tight mt-0.5">Pintu IoT</span>
                 </a>
 
-                <!-- Tab 3: Pos Satpam / Simulator -->
-                <a 
-                    href="{{ ($currentUser?->role ?? '') === 'satpam' ? route('satpam.console') : route('simulator') }}" 
-                    class="flex flex-col items-center justify-center flex-1 py-1 text-center transition group touch-press {{ request()->routeIs('satpam.*') || request()->routeIs('simulator') ? 'text-emerald-600 dark:text-emerald-400 font-extrabold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium' }}"
+                <!-- Tab 3: Bang Warga AI (Floating Agent Android Feature) -->
+                <button 
+                    type="button" 
+                    @click="$dispatch('open-ai-chat')" 
+                    class="flex flex-col items-center justify-center flex-1 py-1 text-center transition group touch-press cursor-pointer text-emerald-600 dark:text-emerald-400 font-extrabold"
+                    title="Tanya Bang Warga AI"
                 >
-                    <div class="relative">
-                        <span class="text-xl">👮</span>
-                        @if(request()->routeIs('satpam.*') || request()->routeIs('simulator'))
-                            <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                        @endif
+                    <div class="relative px-3 py-1 rounded-full bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 shadow-xs transition-transform group-active:scale-95">
+                        <span class="text-xl animate-bounce">🤖</span>
+                        <span class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
                     </div>
-                    <span class="text-[10px] tracking-tight mt-1">Pos Satpam</span>
-                </a>
+                    <span class="text-[10px] tracking-tight mt-0.5 text-emerald-700 dark:text-emerald-300">Tanya AI</span>
+                </button>
 
                 <!-- Tab 4: Surat Pengantar Online -->
                 <a 
                     href="{{ route('letters.index') }}" 
-                    class="flex flex-col items-center justify-center flex-1 py-1 text-center transition group touch-press relative {{ request()->routeIs('letters.*') ? 'text-emerald-600 dark:text-emerald-400 font-extrabold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium' }}"
+                    class="flex flex-col items-center justify-center flex-1 py-1 text-center transition group touch-press relative {{ request()->routeIs('letters.*') ? 'text-emerald-700 dark:text-emerald-300 font-extrabold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium' }}"
                 >
-                    <div class="relative">
+                    <div class="relative px-3 py-1 rounded-full {{ request()->routeIs('letters.*') ? 'bg-emerald-500/15 dark:bg-emerald-500/25' : '' }} transition-colors">
                         <span class="text-xl">📜</span>
                         @if($pendingLettersCount > 0)
-                            <span class="absolute -top-1 -right-2 px-1.5 py-0.2 bg-amber-500 text-slate-950 font-black text-[9px] rounded-full shadow-xs animate-pulse">
+                            <span class="absolute -top-1 -right-1 px-1.5 py-0.2 bg-amber-500 text-slate-950 font-black text-[9px] rounded-full shadow-xs animate-pulse">
                                 {{ $pendingLettersCount }}
                             </span>
                         @endif
-                        @if(request()->routeIs('letters.*'))
-                            <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                        @endif
                     </div>
-                    <span class="text-[10px] tracking-tight mt-1">Surat RT</span>
+                    <span class="text-[10px] tracking-tight mt-0.5">Surat RT</span>
                 </a>
 
                 <!-- Tab 5: Menu Lengkap Drawer -->
@@ -959,10 +950,10 @@
                     @click="toggleDrawer()" 
                     class="flex flex-col items-center justify-center flex-1 py-1 text-center transition group touch-press cursor-pointer text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium"
                 >
-                    <div class="relative">
+                    <div class="relative px-3 py-1 rounded-full" :class="sidebarOpen ? 'bg-emerald-500/15 text-emerald-600' : ''">
                         <span class="text-xl" :class="sidebarOpen ? 'text-emerald-500' : ''">☰</span>
                     </div>
-                    <span class="text-[10px] tracking-tight mt-1" x-text="sidebarOpen ? 'Tutup' : 'Menu'"></span>
+                    <span class="text-[10px] tracking-tight mt-0.5" x-text="sidebarOpen ? 'Tutup' : 'Menu'"></span>
                 </button>
 
             </div>
@@ -970,6 +961,11 @@
     </div>
 
 @endif
+
+    <!-- ======================================================== -->
+    <!-- ASISTEN AI BANG WARGA (KOMPONEN HYBRID GLOBAL)           -->
+    <!-- ======================================================== -->
+    <x-ai-assistant />
 
     <!-- ======================================================== -->
     <!-- MODAL 1: GLOBAL POP-UP FITUR COMING SOON                 -->

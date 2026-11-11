@@ -1,7 +1,10 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="space-y-8" x-data="{ showRequestModal: false, showRejectModal: false, selectedLetterId: null, selectedLetterTitle: '', previewLetter: null }">
+<div class="space-y-6 sm:space-y-8" x-data="{ showRequestModal: false, showRejectModal: false, selectedLetterId: null, selectedLetterTitle: '', previewLetter: null }">
+    <!-- Komponen Android Mobile Weather & Fast Status Bar (Tampil di Layar HP) -->
+    <x-mobile-android-header />
+
     <!-- Header Page -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
         <div>
