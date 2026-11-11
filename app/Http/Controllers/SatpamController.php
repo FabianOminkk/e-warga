@@ -64,6 +64,18 @@ class SatpamController extends Controller
             'triggered_at' => now(),
         ]);
 
+        // Kirim sinyal pemicu instan ke perangkat IoT fisik ESP32
+        \Illuminate\Support\Facades\Cache::put("gate_remote_open_{$gate->id}", [
+            'user_name' => 'Petugas Satpam',
+            'reason' => $reason,
+            'time' => now()->toIso8601String(),
+        ], 15);
+        \Illuminate\Support\Facades\Cache::put("gate_remote_open_global", [
+            'user_name' => 'Petugas Satpam',
+            'reason' => $reason,
+            'time' => now()->toIso8601String(),
+        ], 15);
+
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
