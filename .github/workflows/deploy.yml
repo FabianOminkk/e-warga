@@ -1,0 +1,61 @@
+name: Auto Deploy E-WARGA to VPS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to Production VPS
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Automated Deployment via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          timeout: 180s
+          command_timeout: 20m
+          script_stop: true
+          script: |
+            TARGET_DIR="${{ secrets.VPS_TARGET_DIR || '/var/www/e-warga' }}"
+            echo "🚀 [CI/CD] Terhubung ke server VPS: $(hostname)"
+            echo "📂 Direktori aplikasi: $TARGET_DIR"
+
+            if [ ! -d "$TARGET_DIR" ]; then
+              echo "❌ Error: Direktori $TARGET_DIR tidak ditemukan di VPS!"
+              exit 1
+            fi
+
+            cd "$TARGET_DIR"
+            git config --global --add safe.directory "$TARGET_DIR"
+
+            if [ -f "./deploy.sh" ]; then
+              echo "⚡ Menjalankan deployment via ./deploy.sh ..."
+              chmod +x ./deploy.sh
+              ./deploy.sh
+            else
+              echo "⚡ Menjalankan deployment perintah bawaan..."
+              php artisan down --refresh=15 || true
+              git fetch origin main
+              git reset --hard origin/main
+              composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+              php artisan migrate --force
+              npm ci
+              npm run build
+              php artisan optimize:clear
+              php artisan config:cache
+              php artisan route:cache
+              php artisan view:cache
+              php artisan storage:link || true
+              php artisan up
+            fi
+
+            echo "========================================================"
+            echo "✅ [CI/CD] DEPLOYMENT BERHASIL! Website E-WARGA telah live."
+            echo "========================================================"

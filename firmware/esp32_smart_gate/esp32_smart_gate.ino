@@ -298,3 +298,4 @@ void loop() {
     rfid.PCD_StopCrypto1();
     delay(500);
 }
+

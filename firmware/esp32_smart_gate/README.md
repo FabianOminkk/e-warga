@@ -80,3 +80,4 @@ Buka **Arduino IDE** &rarr; Menu **Sketch** &rarr; **Include Library** &rarr; **
 2. **Buka Palang via Tombol HP Warga:**
    - Saat warga menekan tombol hijau di portal web HP `http://.../warga`, server mencatat perintah buka.
    - Dalam 1-2 detik saat ESP32 melakukan *ping*, servo otomatis membuka palang secara nirkabel!
+

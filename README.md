@@ -10,15 +10,17 @@ Dokumentasi teknis proyek **E-WARGA** telah dipisahkan secara mendalam agar rapi
 | Dokumen | Deskripsi & Isi Utama |
 | :--- | :--- |
 | 📘 **[README.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README.md)** *(File Ini)* | **Master Blueprint**: Visi bisnis, struktur role (RBAC), roadmap pengembangan, dan arsitektur ekosistem. |
-| 🏘️ **[README_DUAL_MODE.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_DUAL_MODE.md)** | **Dual-Mode Lingkungan**: Mode Perumahan / Cluster modern vs Mode Perkampungan / Desa / RT tradisional. |
-| 🛡️ **[README_JADWAL_KEAMANAN.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_JADWAL_KEAMANAN.md)** | **Modul Jadwal Keamanan**: Penugasan Satpam bulanan, presensi check-in, tukar shift, dan Siskamling Ronda Malam Warga. |
-| 🩺 **[README_POSYANDU.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_POSYANDU.md)** | **Modul Posyandu Digital**: Tracking demografi 5 kategori (balita, anak, ibu hamil, ibu/kader, lansia) & deteksi dini stunting. |
-| 📜 **[README_SURAT_PENGANTAR.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_SURAT_PENGANTAR.md)** | **Surat Pengantar RT Online**: Pengajuan digital, persetujuan RT 1-klik, penomoran resmi, QR Code verifikasi anti-pemalsuan & cetak. |
-| 🖼️ **[README_PICTURE.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_PICTURE.md)** | **Brand & Visual Blueprint**: Logo resmi, App Icon mobile (1:1), filosofi visual, dan palet warna (Clean PropTech). |
-| 🧠 **[README_BACKEND.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_BACKEND.md)** | **Backend Blueprint**: Arsitektur Laravel 12, skema database lengkap, spesifikasi REST API, logika multi-tenancy, dan IoT gate protocol. |
-| 🎨 **[README_FRONTEND.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_FRONTEND.md)** | **Frontend & UX Blueprint**: Wireframe Web Desktop, antarmuka Mobile, visualisasi Chart.js keuangan, dan sistem tutorial (*Onboarding Tour*). |
-| 🌓 **[README_DARK_MODE.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_DARK_MODE.md)** | **Theme Blueprint (Dark & Light Mode)**: Arsitektur Tailwind CSS v4, pencegahan FOUC, tombol toggle reaktif Alpine.js, dan sinkronisasi Chart.js. |
-| 🛠️ **[README_PROBLEMSOLVING.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_PROBLEMSOLVING.md)** | **Problem Solving & Troubleshooting**: Katalog analisis bug, solusi pencegahan error, dan panduan teknis operasional. |
+| 🚀 **[docs/DEPLOYMENT_VPS.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/docs/DEPLOYMENT_VPS.md)** | **Deploy VPS & Auto-Update GitHub CI/CD**: Setup domain, Nginx, SSL Let's Encrypt, dan otomatisasi update saat push. |
+| ⚡ **[firmware/esp32_smart_gate/README.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/firmware/esp32_smart_gate/README.md)** | **Firmware IoT ESP32 Smart Gate**: Skema wiring hardware, library Arduino, dan pengujian RFID RC522 & Servo. |
+| 🏘️ **[docs/DUAL_MODE.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/docs/DUAL_MODE.md)** | **Dual-Mode Lingkungan**: Mode Perumahan / Cluster modern vs Mode Perkampungan / Desa / RT tradisional. |
+| 🛡️ **[docs/JADWAL_KEAMANAN.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/docs/JADWAL_KEAMANAN.md)** | **Modul Jadwal Keamanan**: Penugasan Satpam bulanan, presensi check-in, tukar shift, dan Siskamling Ronda Malam Warga. |
+| 🩺 **[docs/POSYANDU.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/docs/POSYANDU.md)** | **Modul Posyandu Digital**: Tracking demografi 5 kategori (balita, anak, ibu hamil, ibu/kader, lansia) & deteksi dini stunting. |
+| 📜 **[docs/SURAT_PENGANTAR.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/docs/SURAT_PENGANTAR.md)** | **Surat Pengantar RT Online**: Pengajuan digital, persetujuan RT 1-klik, penomoran resmi, QR Code verifikasi anti-pemalsuan & cetak. |
+| 🖼️ **[docs/BRANDING_PICTURE.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/docs/BRANDING_PICTURE.md)** | **Brand & Visual Blueprint**: Logo resmi, App Icon mobile (1:1), filosofi visual, dan palet warna (Clean PropTech). |
+| 🧠 **[docs/BACKEND.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/docs/BACKEND.md)** | **Backend Blueprint**: Arsitektur Laravel 12, skema database lengkap, spesifikasi REST API, logika multi-tenancy, dan IoT gate protocol. |
+| 🎨 **[docs/FRONTEND.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/docs/FRONTEND.md)** | **Frontend & UX Blueprint**: Wireframe Web Desktop, antarmuka Mobile, visualisasi Chart.js keuangan, dan sistem tutorial (*Onboarding Tour*). |
+| 🌓 **[docs/DARK_MODE.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/docs/DARK_MODE.md)** | **Theme Blueprint (Dark & Light Mode)**: Arsitektur Tailwind CSS v4, pencegahan FOUC, tombol toggle reaktif Alpine.js, dan sinkronisasi Chart.js. |
+| 🛠️ **[docs/TROUBLESHOOTING.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/docs/TROUBLESHOOTING.md)** | **Problem Solving & Troubleshooting**: Katalog analisis bug, solusi pencegahan error, dan panduan teknis operasional. |
 
 ---
 
@@ -154,16 +156,18 @@ Setiap fitur dan subsistem pada E-WARGA didokumentasikan dalam file markdown khu
 
 | Dokumen | Topik / Modul | Deskripsi |
 | :--- | :--- | :--- |
-| [README_SIDEBAR_UI.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_SIDEBAR_UI.md) | **Desktop Sidebar & Landing Page** | Arsitektur UI/UX desktop-first (`w-72`), navigasi terkelompok, dan landing page konversi B2B/klien. |
-| [README_FRONTEND.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_FRONTEND.md) | **Frontend & UI/UX Dasar** | Filosofi gaptek-friendly, palet warna, tipografi, dan wireframe awal. |
-| [README_BACKEND.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_BACKEND.md) | **Backend Architecture & Database** | ERD skema relasi, arsitektur multi-tenancy, dan integrasi hardware smart gate. |
-| [README_DARK_MODE.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_DARK_MODE.md) | **Dark & Light Mode Engine** | Spesifikasi tema kontras tinggi, anti-FOUC, dan integrasi reaktif Chart.js. |
-| [README_DUAL_MODE.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_DUAL_MODE.md) | **Dual Environment (Cluster vs Guyub)** | Toggle 1-klik komplek perumahan modern vs rukun warga perkampungan. |
-| [README_POSYANDU.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_POSYANDU.md) | **Posyandu & Stunting Tracking** | Pencatatan balita, ibu hamil, lansia, imunisasi, dan deteksi dini stunting. |
-| [README_SURAT_PENGANTAR.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_SURAT_PENGANTAR.md) | **Surat Pengantar RT Online** | Alur permohonan digital, verifikasi TTD Ketua RT, dan verifikasi QR publik. |
-| [README_JADWAL_KEAMANAN.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_JADWAL_KEAMANAN.md) | **Jadwal Keamanan & Siskamling** | Shift satpam komplek vs regu ronda malam warga perkampungan. |
-| [README_PROBLEMSOLVING.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_PROBLEMSOLVING.md) | **Problem Solving & Troubleshooting** | 12 log audit bug/masalah, solusi perbaikan kode, dan panduan teknis operasional. |
-| [README_PICTURE.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README_PICTURE.md) | **Brand & Visual Assets** | Spesifikasi visual, logo aplikasi, favicon, dan maskot "Bang Warga". |
+| [docs/DEPLOYMENT_VPS.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/docs/DEPLOYMENT_VPS.md) | **Deploy VPS & Auto-Update CI/CD** | Setup domain, Nginx, SSL Let's Encrypt, dan otomatisasi GitHub Actions saat push. |
+| [firmware/esp32_smart_gate/README.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/firmware/esp32_smart_gate/README.md) | **Firmware IoT ESP32 Smart Gate** | Panduan hardware mikrokontroler ESP32, RFID RC522, Servo SG90, LCD I2C & REST API. |
+| [docs/SIDEBAR_UI.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/docs/SIDEBAR_UI.md) | **Desktop Sidebar & Landing Page** | Arsitektur UI/UX desktop-first (`w-72`), navigasi terkelompok, dan landing page konversi B2B/klien. |
+| [docs/FRONTEND.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/docs/FRONTEND.md) | **Frontend & UI/UX Dasar** | Filosofi gaptek-friendly, palet warna, tipografi, dan wireframe awal. |
+| [docs/BACKEND.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/docs/BACKEND.md) | **Backend Architecture & Database** | ERD skema relasi, arsitektur multi-tenancy, dan integrasi hardware smart gate. |
+| [docs/DARK_MODE.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/docs/DARK_MODE.md) | **Dark & Light Mode Engine** | Spesifikasi tema kontras tinggi, anti-FOUC, dan integrasi reaktif Chart.js. |
+| [docs/DUAL_MODE.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/docs/DUAL_MODE.md) | **Dual Environment (Cluster vs Guyub)** | Toggle 1-klik komplek perumahan modern vs rukun warga perkampungan. |
+| [docs/POSYANDU.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/docs/POSYANDU.md) | **Posyandu & Stunting Tracking** | Pencatatan balita, ibu hamil, lansia, imunisasi, dan deteksi dini stunting. |
+| [docs/SURAT_PENGANTAR.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/docs/SURAT_PENGANTAR.md) | **Surat Pengantar RT Online** | Alur permohonan digital, verifikasi TTD Ketua RT, dan verifikasi QR publik. |
+| [docs/JADWAL_KEAMANAN.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/docs/JADWAL_KEAMANAN.md) | **Jadwal Keamanan & Siskamling** | Shift satpam komplek vs regu ronda malam warga perkampungan. |
+| [docs/TROUBLESHOOTING.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/docs/TROUBLESHOOTING.md) | **Problem Solving & Troubleshooting** | 12 log audit bug/masalah, solusi perbaikan kode, dan panduan teknis operasional. |
+| [docs/BRANDING_PICTURE.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/docs/BRANDING_PICTURE.md) | **Brand & Visual Assets** | Spesifikasi visual, logo aplikasi, favicon, dan maskot "Bang Warga". |
 
 ---
 *Silakan baca dokumen di atas sesuai modul yang sedang dipelajari atau dikembangkan.*

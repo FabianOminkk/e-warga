@@ -23,3 +23,4 @@ Route::prefix('v1/gate')->group(function () {
     // 3. Scan ticket QR from barcode/camera reader
     Route::post('/scan-qr', [IoTGateController::class, 'scanQr'])->name('api.gate.scan-qr');
 });
+
