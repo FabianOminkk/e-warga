@@ -235,3 +235,4 @@ class DashboardApiController extends BaseApiController
         return $this->success($targetUser, "Verifikasi identitas {$targetUser->name} ditolak.");
     }
 }
+

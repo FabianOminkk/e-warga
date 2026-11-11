@@ -112,34 +112,38 @@ sudo git clone https://github.com/FabianOminkk/e-warga.git
 # 3. Masuk ke folder project
 cd /var/www/e-warga
 
-# 4. Buat file .env produksi
-sudo cp .env.example .env
+# 4. Buat file .env produksi di backend
+sudo cp backend/.env.example backend/.env
 
-# 5. Pasang dependensi PHP & Generate App Key
+# 5. Pasang dependensi Backend (PHP) & Generate App Key
+cd /var/www/e-warga/backend
 sudo composer install --no-dev --optimize-autoloader
+cd /var/www/e-warga
 sudo php artisan key:generate
 
 # 6. Siapkan Database SQLite (atau MySQL)
-sudo touch database/database.sqlite
+sudo touch backend/database/database.sqlite
 sudo php artisan migrate --force --seed
 
-# 7. Kompilasi Aset Frontend
+# 7. Kompilasi Aset Frontend (UI/UX)
+cd /var/www/e-warga/frontend
 sudo npm install
 sudo npm run build
+cd /var/www/e-warga
 
 # 8. Buat Symlink Storage
 sudo php artisan storage:link
 
 # 9. Atur Hak Akses Folder (PENTING AGAR TIDAK ERROR PERMISSION)
 sudo chown -R www-data:www-data /var/www/e-warga
-sudo chmod -R 775 /var/www/e-warga/storage /var/www/e-warga/bootstrap/cache /var/www/e-warga/database
+sudo chmod -R 775 /var/www/e-warga/backend/storage /var/www/e-warga/backend/bootstrap/cache /var/www/e-warga/backend/database
 sudo chmod +x /var/www/e-warga/deploy.sh
 ```
 
 ### Edit File `.env` di VPS:
 Buka file konfigurasi `.env`:
 ```bash
-sudo nano .env
+sudo nano backend/.env
 ```
 Sesuaikan bagian ini:
 ```env
@@ -166,7 +170,7 @@ Paste konfigurasi berikut (ganti `namadomain.com` dengan domain Anda):
 server {
     listen 80;
     server_name namadomain.com www.namadomain.com;
-    root /var/www/e-warga/public;
+    root /var/www/e-warga/backend/public;
 
     add_header X-Frame-Options "SAMEORIGIN";
     add_header X-Content-Type-Options "nosniff";

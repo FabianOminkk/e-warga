@@ -38,3 +38,4 @@ class ApiTokenAuthenticate
         ], Response::HTTP_UNAUTHORIZED);
     }
 }
+

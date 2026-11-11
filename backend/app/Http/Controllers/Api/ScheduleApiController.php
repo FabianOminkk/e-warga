@@ -136,3 +136,4 @@ class ScheduleApiController extends BaseApiController
         ], "Mode lingkungan berhasil diubah menjadi: " . strtoupper($newMode));
     }
 }
+

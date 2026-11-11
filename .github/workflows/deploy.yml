@@ -40,14 +40,13 @@ jobs:
               chmod +x ./deploy.sh
               ./deploy.sh
             else
-              echo "⚡ Menjalankan deployment perintah bawaan..."
+              echo "⚡ Menjalankan deployment perintah bawaan (Decoupled)..."
               php artisan down --refresh=15 || true
               git fetch origin main
               git reset --hard origin/main
-              composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+              cd backend && composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction && cd ..
               php artisan migrate --force
-              npm ci
-              npm run build
+              cd frontend && npm ci && npm run build && cd ..
               php artisan optimize:clear
               php artisan config:cache
               php artisan route:cache

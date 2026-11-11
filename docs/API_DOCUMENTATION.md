@@ -205,3 +205,4 @@ Untuk menghubungkan aplikasi mobile baru ke E-WARGA Backend:
    )
    ```
 3. Backend telah dilengkapi penanganan token otomatis, rate limiting, dan format exception standar JSON.
+

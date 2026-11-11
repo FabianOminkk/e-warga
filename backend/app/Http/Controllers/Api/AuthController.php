@@ -77,3 +77,4 @@ class AuthController extends BaseApiController
         return $this->success(null, 'Logout berhasil. Sesi API telah diakhiri.');
     }
 }
+

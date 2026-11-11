@@ -25,6 +25,42 @@ Dokumentasi teknis proyek **E-WARGA** telah dipisahkan secara mendalam agar rapi
 
 ---
 
+## 📁 Arsitektur Terpisah (Decoupled Workspace: FE & BE Non-Monolit)
+
+Repositori **E-WARGA** memisahkan secara tegas berkas antarmuka pengguna (Frontend) dan logika data/server (Backend) tanpa merusak fungsi sistem:
+
+```text
+E-WARGA/
+├── frontend/                       <-- KHUSUS FRONTEND (UI/UX)
+│   ├── views/                      (Semua UI/UX: pages, layouts, components, errors)
+│   ├── css/                        (Semua styling Tailwind CSS, dark mode, animasi)
+│   ├── js/                         (Semua script interaktif Alpine.js & Chart.js)
+│   ├── package.json                (Frontend tooling dependencies)
+│   └── vite.config.js              (Frontend asset bundler)
+│
+├── backend/                        <-- KHUSUS BACKEND (SERVER & DATABASE)
+│   ├── app/                        (Controllers, Models, Middleware, REST API)
+│   ├── database/                   (Database SQLite, Migrations, Seeders, Factories)
+│   ├── routes/                     (api.php [37 REST API], web.php, console.php)
+│   ├── config/                     (Konfigurasi backend & view paths)
+│   ├── bootstrap/                  (Bootstrapper framework)
+│   ├── storage/                    (Storage log, cache, sessions)
+│   ├── tests/                      (Automated tests [50 tests])
+│   ├── public/                     (Public web server entrypoint & compiled build)
+│   ├── artisan                     (CLI backend)
+│   ├── composer.json               (Backend PHP dependencies)
+│   └── .env                        (Environment backend)
+│
+├── docs/                           <-- DOKUMENTASI LENGKAP
+├── firmware/                       <-- IOT HARDWARE ESP32
+├── artisan                         <-- Root CLI Proxy (Delegasi otomatis ke backend)
+├── package.json                    <-- Root Script Proxy (Delegasi otomatis ke frontend)
+├── deploy.sh                       <-- SCRIPT AUTO-DEPLOY VPS (CI/CD)
+└── sync-github.bat                 <-- SYNC GITHUB DARI WINDOWS
+```
+
+---
+
 ## 📌 1. Visi Produk & Filosofi Sistem
 
 **E-WARGA** adalah platform *Smart Community* komprehensif yang dirancang untuk modernisasi tata kelola lingkungan perumahan/RT/RW di seluruh Indonesia. Sistem ini menggabungkan:
