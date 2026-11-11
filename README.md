@@ -10,6 +10,7 @@ Dokumentasi teknis proyek **E-WARGA** telah dipisahkan secara mendalam agar rapi
 | Dokumen | Deskripsi & Isi Utama |
 | :--- | :--- |
 | 📘 **[README.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/README.md)** *(File Ini)* | **Master Blueprint**: Visi bisnis, struktur role (RBAC), roadmap pengembangan, dan arsitektur ekosistem. |
+| 📡 **[docs/API_DOCUMENTATION.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/docs/API_DOCUMENTATION.md)** | **Dokumentasi REST API (Pemisahan FE & BE)**: Spesifikasi endpoint JSON lengkap untuk integrasi Mobile App & SPA. |
 | 🚀 **[docs/DEPLOYMENT_VPS.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/docs/DEPLOYMENT_VPS.md)** | **Deploy VPS & Auto-Update GitHub CI/CD**: Setup domain, Nginx, SSL Let's Encrypt, dan otomatisasi update saat push. |
 | ⚡ **[firmware/esp32_smart_gate/README.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/firmware/esp32_smart_gate/README.md)** | **Firmware IoT ESP32 Smart Gate**: Skema wiring hardware, library Arduino, dan pengujian RFID RC522 & Servo. |
 | 🏘️ **[docs/DUAL_MODE.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/docs/DUAL_MODE.md)** | **Dual-Mode Lingkungan**: Mode Perumahan / Cluster modern vs Mode Perkampungan / Desa / RT tradisional. |
@@ -156,6 +157,7 @@ Setiap fitur dan subsistem pada E-WARGA didokumentasikan dalam file markdown khu
 
 | Dokumen | Topik / Modul | Deskripsi |
 | :--- | :--- | :--- |
+| [docs/API_DOCUMENTATION.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/docs/API_DOCUMENTATION.md) | **Dokumentasi REST API (Pemisahan FE & BE)** | Spesifikasi endpoint JSON lengkap untuk integrasi Mobile App (Flutter/RN) & SPA. |
 | [docs/DEPLOYMENT_VPS.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/docs/DEPLOYMENT_VPS.md) | **Deploy VPS & Auto-Update CI/CD** | Setup domain, Nginx, SSL Let's Encrypt, dan otomatisasi GitHub Actions saat push. |
 | [firmware/esp32_smart_gate/README.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/firmware/esp32_smart_gate/README.md) | **Firmware IoT ESP32 Smart Gate** | Panduan hardware mikrokontroler ESP32, RFID RC522, Servo SG90, LCD I2C & REST API. |
 | [docs/SIDEBAR_UI.md](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/docs/SIDEBAR_UI.md) | **Desktop Sidebar & Landing Page** | Arsitektur UI/UX desktop-first (`w-72`), navigasi terkelompok, dan landing page konversi B2B/klien. |

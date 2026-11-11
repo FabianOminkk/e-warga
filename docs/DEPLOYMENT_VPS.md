@@ -296,3 +296,4 @@ Setelah domain live aktif (`https://namadomain.com`), Anda dapat menghubungkan a
 | **Cek Log Web Server Nginx** | `tail -f /var/log/nginx/error.log` |
 | **Reset Cache Manual** | `sudo php artisan optimize:clear` |
 | **Restart Web Server** | `sudo systemctl restart nginx php8.3-fpm` |
+
