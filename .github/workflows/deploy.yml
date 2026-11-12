@@ -1,4 +1,4 @@
-name: CI/CD Pipeline & Build
+name: CI/CD Pipeline & VPS Auto-Deploy
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: ci-build-${{ github.ref }}
+  group: deploy-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -51,32 +51,81 @@ jobs:
         run: php artisan test --compact
 
   # ========================================================
-  # JOB 2: Production Readiness Verification & Webhook Trigger
+  # JOB 2: Auto-Deploy to Production VPS
   # ========================================================
-  production-readiness:
-    name: Production Release Ready
+  deploy:
+    name: Deploy to Production VPS
     needs: ci
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
 
     steps:
-      - name: Trigger Webhook Auto-Deploy (Optional HTTPS Sync)
-        run: |
-          echo "🌐 Memeriksa kesiapan sinkronisasi web produksi..."
-          TOKEN="${{ secrets.DEPLOY_TOKEN || 'ewarga-secret-deploy-token-2026' }}"
-          HTTP_STATUS=$(curl -s -k -o /tmp/deploy_res.json -w "%{http_code}" -X POST "https://e-warga.unique-monsters.my.id/api/v1/system/deploy-webhook" \
-            -H "X-Deploy-Token: $TOKEN" || echo "000")
+      - name: Connect to VPS and Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST || '43.157.230.29' }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          username: ${{ secrets.VPS_USER || 'root' }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          timeout: 120s
+          command_timeout: 20m
+          script_stop: true
+          script: |
+            echo "🚀 [CI/CD] Terhubung ke VPS: $(hostname)"
+            echo "👤 User aktif: $(whoami)"
 
-          if [ "$HTTP_STATUS" = "200" ]; then
-            echo "🎉 Webhook Deploy Berhasil! Web produksi otomatis tersinkronisasi."
-          else
-            echo "ℹ️ Kode aplikasi sudah 100% siap di GitHub. Admin dapat menarik pembaruan (git pull) di VPS kapan saja."
-          fi
+            # 1. Deteksi otomatis direktori aplikasi di VPS
+            APP_DIR="${{ secrets.VPS_APP_DIR }}"
+            if [ -z "$APP_DIR" ] || [ ! -d "$APP_DIR" ]; then
+              for candidate in \
+                "/home/unique-monsters/htdocs/e-warga.unique-monsters.my.id" \
+                "/home/*/htdocs/e-warga.unique-monsters.my.id" \
+                "/htdocs/e-warga.unique-monsters.my.id" \
+                "/var/www/e-warga.unique-monsters.my.id" \
+                "/var/www/html"; do
+                found=$(ls -d $candidate 2>/dev/null | head -n 1)
+                if [ -n "$found" ] && [ -d "$found" ]; then
+                  APP_DIR="$found"
+                  break
+                fi
+              done
+            fi
 
-      - name: Release Summary
-        run: |
-          echo "=========================================================="
-          echo "🎉 [E-WARGA] SELURUH KODE & BUILD SIAP PRODUKSI (100% LULUS)!"
-          echo "🔗 Repository: https://github.com/FabianOminkk/e-warga"
-          echo "🌐 Live URL  : https://e-warga.unique-monsters.my.id"
-          echo "=========================================================="
+            echo "📂 Target direktori: $APP_DIR"
+            if [ -z "$APP_DIR" ] || [ ! -d "$APP_DIR" ]; then
+              echo "❌ Error: Direktori aplikasi tidak ditemukan di VPS!"
+              exit 1
+            fi
+
+            cd "$APP_DIR"
+
+            # 2. Update kode dan build di VPS
+            echo "📥 Menarik kode terbaru dari GitHub..."
+            git config core.fileMode false
+            git pull origin main
+
+            echo "📦 Menginstall dependensi Composer..."
+            composer install --no-dev --optimize-autoloader --no-interaction
+
+            echo "🗄️ Menjalankan migrasi database..."
+            php artisan migrate --force
+
+            echo "🎨 Mengompilasi aset frontend (Vite)..."
+            if command -v npm >/dev/null 2>&1; then
+              npm ci --no-audit --no-fund 2>/dev/null || npm install --no-audit --no-fund
+              npm run build
+            fi
+
+            echo "⚡ Menyegarkan cache sistem..."
+            php artisan optimize:clear
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+
+            echo "🔗 Memastikan storage link..."
+            php artisan storage:link 2>/dev/null || true
+
+            echo "=========================================================="
+            echo "🎉 [CI/CD] DEPLOYMENT BERHASIL! E-WARGA telah live di VPS."
+            echo "=========================================================="
