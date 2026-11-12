@@ -20,13 +20,20 @@
     <!-- Compiled Assets (Vite Engine) -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    <!-- Dark / Light Mode Early Bootstrapper (Mencegah FOUC) -->
+    <!-- Dark / Light Mode & 3-Theme Accessibility Bootstrapper (Mencegah FOUC) -->
     <script>
+        // 1. Dark / Light Mode
         if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
         } else {
             document.documentElement.classList.remove('dark');
         }
+
+        // 2. 3-Theme Colorblind & Contrast Mode
+        const savedColorTheme = localStorage.getItem('ewarga_color_theme') || 'default';
+        document.documentElement.classList.remove('theme-default', 'theme-colorblind', 'theme-contrast');
+        document.documentElement.classList.add('theme-' + savedColorTheme);
+        document.documentElement.setAttribute('data-color-theme', savedColorTheme);
     </script>
 
     <style>
@@ -131,7 +138,10 @@
             </nav>
 
             <!-- Topbar Right Controls -->
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2 sm:gap-3">
+                <!-- 3-Theme Accessibility Switcher (Colorblind & Contrast Safe) -->
+                <x-theme-switcher />
+
                 <!-- Dark / Light Theme Toggle -->
                 <div x-data="{
                     isDark: document.documentElement.classList.contains('dark'),
@@ -603,6 +613,11 @@
         <div class="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/95 shrink-0 space-y-3">
             
             <div class="flex items-center justify-between gap-2">
+                <!-- 3-Theme Accessibility Switcher (Colorblind & Contrast Safe) -->
+                <div>
+                    <x-theme-switcher compact="true" />
+                </div>
+
                 <!-- Dark / Light Mode Toggle -->
                 <div x-data="{
                     isDark: document.documentElement.classList.contains('dark'),
@@ -805,8 +820,11 @@
                 </div>
             </div>
 
-            <!-- Kanan: Tanggal & Wilayah Aktif -->
-            <div class="flex items-center gap-3">
+            <!-- Kanan: Aksesibilitas Tema, Tanggal & Wilayah Aktif -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <!-- 3-Theme Accessibility Switcher (Colorblind & Contrast Safe) -->
+                <x-theme-switcher />
+
                 @if(($currentUser?->role ?? '') === 'super_admin')
                     @if(request()->routeIs('superadmin.index'))
                         <a href="{{ route('dashboard') }}" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-bold hover:bg-emerald-100 transition" title="Buka Dashboard Lingkungan Aktif">

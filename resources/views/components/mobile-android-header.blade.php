@@ -112,6 +112,11 @@
 
         <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 px-0.5">
             
+            <!-- Quick Chip 0: Ganti Tema Aksesibilitas & Buta Warna -->
+            <div class="shrink-0">
+                <x-theme-switcher compact="false" />
+            </div>
+
             <!-- Quick Chip 1: Buka Gerbang -->
             <a 
                 href="{{ route('warga.index') }}" 
