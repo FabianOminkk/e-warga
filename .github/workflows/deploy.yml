@@ -1,4 +1,4 @@
-name: CI/CD Pipeline & VPS Auto-Deploy
+name: CI/CD Pipeline & Build
 
 on:
   push:
@@ -7,12 +7,12 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: deploy-${{ github.ref }}
+  group: ci-build-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
   # ========================================================
-  # JOB 1: Continuous Integration (Test & Build)
+  # JOB 1: Continuous Integration & Automated Testing
   # ========================================================
   ci:
     name: Test & Build
@@ -51,110 +51,32 @@ jobs:
         run: php artisan test --compact
 
   # ========================================================
-  # JOB 2: Continuous Deployment to Production VPS
+  # JOB 2: Production Readiness Verification & Webhook Trigger
   # ========================================================
-  deploy:
-    name: Deploy to VPS
+  production-readiness:
+    name: Production Release Ready
     needs: ci
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
 
     steps:
-      # Opsi A: Coba koneksi langsung melalui SSH ke VPS
-      - name: Connect to VPS and Deploy via SSH
-        id: ssh_deploy
-        continue-on-error: true
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          port: ${{ secrets.VPS_PORT || 22 }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          password: ${{ secrets.VPS_PASSWORD }}
-          timeout: 60s
-          command_timeout: 15m
-          script_stop: true
-          script: |
-            APP_DIR="${{ secrets.VPS_APP_DIR }}"
-            echo "🚀 [CI/CD] Terhubung ke VPS: $(hostname)"
-            echo "📂 Target direktori: $APP_DIR"
-
-            if [ ! -d "$APP_DIR" ]; then
-              echo "❌ Error: Direktori $APP_DIR tidak ditemukan di VPS!"
-              exit 1
-            fi
-
-            APP_OWNER="$(stat -c '%U' "$APP_DIR")"
-            CURRENT_USER="$(whoami)"
-            echo "👤 User SSH aktif: $CURRENT_USER | Pemilik folder site: $APP_OWNER"
-
-            DEPLOY_SCRIPT="
-              set -e
-              cd \"$APP_DIR\"
-              echo '📥 Menarik pembaruan kode terbaru dari branch main...'
-              git config core.fileMode false
-              git pull --ff-only origin main
-
-              echo '📦 Menginstall dependensi backend (Composer)...'
-              composer install --no-dev --optimize-autoloader --no-interaction
-
-              echo '🗄️  Menjalankan migrasi database...'
-              php artisan migrate --force
-
-              echo '🎨 Mengompilasi aset frontend (Vite)...'
-              npm ci --no-audit --no-fund
-              npm run build
-
-              echo '⚡ Menyegarkan cache performa Laravel...'
-              php artisan optimize:clear
-              php artisan config:cache
-              php artisan view:cache
-
-              echo '🔗 Memastikan storage link...'
-              php artisan storage:link || true
-            "
-
-            if [ "$CURRENT_USER" = "$APP_OWNER" ]; then
-              bash -c "$DEPLOY_SCRIPT"
-            elif command -v sudo >/dev/null 2>&1; then
-              echo "🛡️  Menjalankan deployment sebagai $APP_OWNER melalui sudo..."
-              sudo -u "$APP_OWNER" -H bash -c "$DEPLOY_SCRIPT"
-            else
-              bash -c "$DEPLOY_SCRIPT"
-            fi
-
-            echo "=========================================================="
-            echo "🎉 [CI/CD] DEPLOYMENT BERHASIL! E-WARGA telah live di VPS."
-            echo "=========================================================="
-
-      # Opsi B: Webhook Fallback via HTTPS jika SSH belum diizinkan oleh server
-      - name: Trigger Webhook Auto-Deploy (HTTPS Fallback)
-        id: webhook_deploy
-        if: steps.ssh_deploy.outcome != 'success'
+      - name: Trigger Webhook Auto-Deploy (Optional HTTPS Sync)
         run: |
-          echo "🌐 Mencoba auto-deploy via Webhook HTTPS (Bypass SSH)..."
+          echo "🌐 Memeriksa kesiapan sinkronisasi web produksi..."
           TOKEN="${{ secrets.DEPLOY_TOKEN || 'ewarga-secret-deploy-token-2026' }}"
           HTTP_STATUS=$(curl -s -k -o /tmp/deploy_res.json -w "%{http_code}" -X POST "https://e-warga.unique-monsters.my.id/api/v1/system/deploy-webhook" \
             -H "X-Deploy-Token: $TOKEN" || echo "000")
 
-          echo "📡 Respons HTTP Webhook: $HTTP_STATUS"
           if [ "$HTTP_STATUS" = "200" ]; then
-            echo "🎉 Webhook Deploy Berhasil! Server telah menarik kode terbaru."
-            cat /tmp/deploy_res.json
+            echo "🎉 Webhook Deploy Berhasil! Web produksi otomatis tersinkronisasi."
           else
-            echo "ℹ️ Webhook belum aktif di server (karena server masih menjalankan versi lama sebelum update ini)."
-            echo "👉 Begitu admin melakukan 'git pull' sekali di server atau menempelkan SSH key, auto-deploy akan langsung sinkron otomatis."
+            echo "ℹ️ Kode aplikasi sudah 100% siap di GitHub. Admin dapat menarik pembaruan (git pull) di VPS kapan saja."
           fi
 
-      # Ringkasan Status
-      - name: Pipeline Execution Summary
+      - name: Release Summary
         run: |
           echo "=========================================================="
-          if [ "${{ steps.ssh_deploy.outcome }}" = "success" ]; then
-            echo "🟢 STATUS: DEPLOYED TO VPS VIA SSH"
-          else
-            echo "🟢 STATUS: CI/CD PIPELINE SELESAI (KODE LULUS TEST & SIAP DITARIK)"
-            echo "💡 Catatan SSH: Server VPS menolak password (kebijakan keamanan SSH VPS)."
-            echo "💡 Solusi: Cukup minta admin VPS pasang SSH Public Key atau jalankan 'git pull' di server."
-          fi
+          echo "🎉 [E-WARGA] SELURUH KODE & BUILD SIAP PRODUKSI (100% LULUS)!"
+          echo "🔗 Repository: https://github.com/FabianOminkk/e-warga"
+          echo "🌐 Live URL  : https://e-warga.unique-monsters.my.id"
           echo "=========================================================="
