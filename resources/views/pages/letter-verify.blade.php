@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $letter->letter_type_title }} - {{ $letter->letter_number }} | E-WARGA</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    @vite(['css/app.css', 'js/app.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         @media print {
             .no-print { display: none !important; }

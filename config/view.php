@@ -1,11 +1,5 @@
 <?php
 
-$paths = array_filter([
-    realpath(base_path('../frontend/views')),
-    realpath(base_path('frontend/views')),
-    realpath(resource_path('views')),
-]);
-
 return [
 
     /*
@@ -19,7 +13,9 @@ return [
     |
     */
 
-    'paths' => array_values($paths),
+    'paths' => [
+        resource_path('views'),
+    ],
 
     /*
     |--------------------------------------------------------------------------

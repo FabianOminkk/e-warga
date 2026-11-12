@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # ==============================================================================
 #  E-WARGA - Automated Production Deployment Script
-#  Kompatibel dengan VPS (Ubuntu/Debian) & GitHub Actions CI/CD
-#  Mendukung Arsitektur Terpisah: frontend/ (UI/UX) & backend/ (Database & API)
+#  Kompatibel dengan VPS (Ubuntu/Debian) & CloudPanel
 # ==============================================================================
 
 set -e # Hentikan eksekusi jika terjadi error kritis
@@ -11,83 +10,63 @@ echo "=========================================================="
 echo "🚀 [$(date '+%Y-%m-%d %H:%M:%S')] Memulai Deployment E-WARGA..."
 echo "=========================================================="
 
-# 1. Pastikan berada di root direktori project
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-# 2. Periksa keberadaan file konfigurasi .env backend
-if [ ! -f backend/.env ]; then
-    echo "⚠️  File backend/.env tidak ditemukan! Menyalin dari backend/.env.example..."
-    cp backend/.env.example backend/.env
+# 1. Pastikan file .env ada
+if [ ! -f .env ]; then
+    echo "⚠️  File .env tidak ditemukan! Menyalin dari .env.example..."
+    cp .env.example .env
     php artisan key:generate --force
 fi
 
-# 3. Pastikan database SQLite siap jika menggunakan driver sqlite
-if grep -q "DB_CONNECTION=sqlite" backend/.env 2>/dev/null || ! grep -q "DB_CONNECTION=" backend/.env 2>/dev/null; then
-    if [ ! -f backend/database/database.sqlite ]; then
-        echo "📦 Membuat file database SQLite (backend/database/database.sqlite)..."
-        touch backend/database/database.sqlite
+# 2. Pastikan database SQLite siap jika memakai sqlite
+if grep -q "DB_CONNECTION=sqlite" .env 2>/dev/null || ! grep -q "DB_CONNECTION=" .env 2>/dev/null; then
+    if [ ! -f database/database.sqlite ]; then
+        echo "📦 Membuat file database SQLite (database/database.sqlite)..."
+        touch database/database.sqlite
     fi
-    chmod 664 backend/database/database.sqlite 2>/dev/null || true
+    chmod 664 database/database.sqlite 2>/dev/null || true
 fi
 
-# 4. Aktifkan Maintenance Mode agar pengunjung tidak melihat proses update
+# 3. Aktifkan Maintenance Mode
 echo "🔒 Mengaktifkan Maintenance Mode..."
 php artisan down --retry=15 --refresh=5 || true
 
-# 5. Sinkronisasi kode terbaru dari cabang main GitHub
-echo "📥 Menarik perubahan kode terbaru dari GitHub (origin/main)..."
-git fetch origin main
-git reset --hard origin/main
+# 4. Sinkronisasi kode dari GitHub
+echo "📥 Menarik kode terbaru dari branch main..."
+git config core.fileMode false
+git pull --ff-only origin main
 
-# 6. Install dependensi Backend PHP (Composer)
-echo "📦 Menginstall dependensi Backend Composer..."
-cd "$SCRIPT_DIR/backend"
-composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
-cd "$SCRIPT_DIR"
+# 5. Install dependensi Composer
+echo "📦 Menginstall dependensi Composer..."
+composer install --no-dev --optimize-autoloader --no-interaction
 
-# 7. Eksekusi migrasi database jika ada tabel baru
+# 6. Migrasi database
 echo "🗄️  Menjalankan migrasi database..."
 php artisan migrate --force
 
-# 8. Kompilasi aset Frontend (Vite Tailwind CSS & JS)
+# 7. Kompilasi aset Frontend
 if command -v npm &> /dev/null; then
     echo "🎨 Mengompilasi aset Frontend (Vite)..."
-    cd "$SCRIPT_DIR/frontend"
-    if [ -f package-lock.json ]; then
-        npm ci --no-audit --prefer-offline 2>/dev/null || npm install
-    else
-        npm install
-    fi
+    npm ci --no-audit --no-fund 2>/dev/null || npm install --no-audit --no-fund
     npm run build
-    cd "$SCRIPT_DIR"
-else
-    echo "⚠️  NPM tidak ditemukan, melewatkan kompilasi frontend lokal."
 fi
 
-# 9. Bersihkan dan segarkan cache performa Laravel Backend
-echo "⚡ Mengoptimalkan cache sistem Laravel Backend..."
+# 8. Bersihkan dan segarkan cache Laravel
+echo "⚡ Mengoptimalkan cache sistem..."
 php artisan optimize:clear
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
-php artisan event:cache 2>/dev/null || true
 
-# 10. Pastikan storage symlink terhubung
-echo "🔗 Menghubungkan storage symlink..."
+# 9. Storage link
 php artisan storage:link 2>/dev/null || true
 
-# 11. Perbaiki permission folder storage & bootstrap
-echo "🛡️  Mengatur permission file & folder..."
-chmod -R 775 backend/storage backend/bootstrap/cache 2>/dev/null || true
-if id "www-data" &>/dev/null; then
-    chown -R www-data:www-data backend/storage backend/bootstrap/cache backend/public/uploads 2>/dev/null || true
-fi
+# 10. Permission
+chmod -R 775 storage bootstrap/cache 2>/dev/null || true
 
-# 12. Restart antrian worker jika aktif
-php artisan queue:restart 2>/dev/null || true
-
-# 13. Matikan Maintenance Mode (Sistem kembali online)
+# 11. Matikan Maintenance Mode
 echo "🔓 Mematikan Maintenance Mode..."
 php artisan up
 

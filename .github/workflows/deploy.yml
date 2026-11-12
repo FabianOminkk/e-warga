@@ -1,4 +1,4 @@
-name: Auto Deploy E-WARGA to VPS
+name: CI/CD Pipeline & VPS Auto-Deploy
 
 on:
   push:
@@ -6,56 +6,121 @@ on:
       - main
   workflow_dispatch:
 
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
-  deploy:
-    name: Deploy to Production VPS
+  # ========================================================
+  # JOB 1: Continuous Integration (Test & Build)
+  # ========================================================
+  ci:
+    name: Test & Build
     runs-on: ubuntu-latest
+
     steps:
-      - name: Trigger Automated Deployment via SSH
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP Environment
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, sqlite3, curl, bcmath, zip
+          coverage: none
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Setup Environment File & Install Composer Dependencies
+        run: |
+          cp .env.example .env
+          composer install --no-interaction --prefer-dist --optimize-autoloader
+          php artisan key:generate
+
+      - name: Install Frontend Dependencies & Build Assets
+        run: |
+          npm ci
+          npm test --if-present
+          npm run build
+
+      - name: Execute Automated Test Suite
+        run: php artisan test --compact
+
+  # ========================================================
+  # JOB 2: Continuous Deployment to Production VPS
+  # ========================================================
+  deploy:
+    name: Deploy to VPS
+    needs: ci
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Connect to VPS and Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USERNAME }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          password: ${{ secrets.VPS_PASSWORD }}
           port: ${{ secrets.VPS_PORT || 22 }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
           timeout: 180s
           command_timeout: 20m
           script_stop: true
           script: |
-            TARGET_DIR="${{ secrets.VPS_TARGET_DIR || '/var/www/e-warga' }}"
-            echo "🚀 [CI/CD] Terhubung ke server VPS: $(hostname)"
-            echo "📂 Direktori aplikasi: $TARGET_DIR"
+            APP_DIR="${{ secrets.VPS_APP_DIR }}"
+            echo "🚀 [CI/CD] Terhubung ke VPS: $(hostname)"
+            echo "📂 Target direktori: $APP_DIR"
 
-            if [ ! -d "$TARGET_DIR" ]; then
-              echo "❌ Error: Direktori $TARGET_DIR tidak ditemukan di VPS!"
+            if [ ! -d "$APP_DIR" ]; then
+              echo "❌ Error: Direktori $APP_DIR tidak ditemukan di VPS!"
               exit 1
             fi
 
-            cd "$TARGET_DIR"
-            git config --global --add safe.directory "$TARGET_DIR"
+            # Deteksi pemilik asli folder agar permission CloudPanel tetap terjaga
+            APP_OWNER="$(stat -c '%U' "$APP_DIR")"
+            CURRENT_USER="$(whoami)"
+            echo "👤 User SSH aktif: $CURRENT_USER | Pemilik folder site: $APP_OWNER"
 
-            if [ -f "./deploy.sh" ]; then
-              echo "⚡ Menjalankan deployment via ./deploy.sh ..."
-              chmod +x ./deploy.sh
-              ./deploy.sh
-            else
-              echo "⚡ Menjalankan deployment perintah bawaan (Decoupled)..."
-              php artisan down --refresh=15 || true
-              git fetch origin main
-              git reset --hard origin/main
-              cd backend && composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction && cd ..
+            # Perintah pembaruan produksi E-WARGA
+            DEPLOY_SCRIPT="
+              set -e
+              cd \"$APP_DIR\"
+              echo '📥 Menarik pembaruan kode terbaru dari branch main...'
+              git config core.fileMode false
+              git pull --ff-only origin main
+
+              echo '📦 Menginstall dependensi backend (Composer)...'
+              composer install --no-dev --optimize-autoloader --no-interaction
+
+              echo '🗄️  Menjalankan migrasi database...'
               php artisan migrate --force
-              cd frontend && npm ci && npm run build && cd ..
+
+              echo '🎨 Mengompilasi aset frontend (Vite)...'
+              npm ci --no-audit --no-fund
+              npm run build
+
+              echo '⚡ Menyegarkan cache performa Laravel...'
               php artisan optimize:clear
               php artisan config:cache
-              php artisan route:cache
               php artisan view:cache
+
+              echo '🔗 Memastikan storage link...'
               php artisan storage:link || true
-              php artisan up
+            "
+
+            if [ "$CURRENT_USER" = "$APP_OWNER" ]; then
+              bash -c "$DEPLOY_SCRIPT"
+            elif command -v sudo >/dev/null 2>&1; then
+              echo "🛡️  Menjalankan deployment sebagai $APP_OWNER melalui sudo..."
+              sudo -u "$APP_OWNER" -H bash -c "$DEPLOY_SCRIPT"
+            else
+              bash -c "$DEPLOY_SCRIPT"
             fi
 
-            echo "========================================================"
-            echo "✅ [CI/CD] DEPLOYMENT BERHASIL! Website E-WARGA telah live."
-            echo "========================================================"
-
+            echo "=========================================================="
+            echo "🎉 [CI/CD] DEPLOYMENT BERHASIL! E-WARGA telah live di VPS."
+            echo "=========================================================="

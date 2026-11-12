@@ -52,3 +52,4 @@ class AiAssistantController extends BaseApiController
         ], 'Daftar saran pertanyaan berhasil diambil');
     }
 }
+

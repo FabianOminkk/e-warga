@@ -114,3 +114,4 @@ class AiAssistantTest extends TestCase
         $this->assertStringContainsString('Bang Warga', $data['reply']);
     }
 }
+
