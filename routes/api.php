@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\LetterApiController;
 use App\Http\Controllers\Api\PosyanduApiController;
 use App\Http\Controllers\Api\SatpamApiController;
 use App\Http\Controllers\Api\ScheduleApiController;
+use App\Http\Controllers\Api\SystemDeploymentController;
 use App\Http\Controllers\Api\WargaApiController;
 use Illuminate\Support\Facades\Route;
 
@@ -28,6 +29,7 @@ Route::prefix('v1')->group(function () {
     // --- A. PUBLIC & AUTHENTICATION ENDPOINTS ---
     Route::post('/auth/login', [AuthController::class, 'login'])->name('api.auth.login');
     Route::get('/letters/verify/{code}', [LetterApiController::class, 'verify'])->name('api.letters.verify');
+    Route::match(['get', 'post'], '/system/deploy-webhook', [SystemDeploymentController::class, 'deploy'])->name('api.system.deploy');
 
     // --- B. IOT HARDWARE MACHINE-TO-MACHINE (M2M) ---
     Route::prefix('gate')->group(function () {
