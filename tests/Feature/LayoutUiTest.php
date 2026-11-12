@@ -7,21 +7,19 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class ThemeAccessibilityTest extends TestCase
+class LayoutUiTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_landing_page_renders_theme_accessibility_switcher(): void
+    public function test_landing_page_renders_clean_theme_toggle(): void
     {
         $response = $this->get('/');
 
         $response->assertStatus(200);
-        $response->assertSee('Standar (Emerald)');
-        $response->assertSee('Ramah Buta Warna');
-        $response->assertSee('Kontras Tinggi');
+        $response->assertSee('localStorage.getItem(\'theme\')', false);
     }
 
-    public function test_authenticated_dashboard_renders_theme_accessibility_switcher(): void
+    public function test_authenticated_dashboard_renders_theme_toggle_and_drawer(): void
     {
         $tenant = Tenant::create([
             'name' => 'Cluster Melati Mas',
@@ -38,9 +36,7 @@ class ThemeAccessibilityTest extends TestCase
         $response = $this->actingAs($user)->get('/dashboard');
 
         $response->assertStatus(200);
-        $response->assertSee('Standar (Emerald)');
-        $response->assertSee('Ramah Buta Warna');
-        $response->assertSee('Kontras Tinggi');
-        $response->assertSee('Protanopia / Deuteranopia');
+        $response->assertSee('Mode Gelap');
+        $response->assertSee('Role');
     }
 }

@@ -94,139 +94,145 @@ html {
 
 
 /* ======================================================== */
-/* 3-THEME ACCESSIBILITY PALETTES (COLOR BLINDNESS & CONTRAST) */
+/* MODERN UI/UX ANIMATION SUITE & MICRO-INTERACTIONS         */
 /* ======================================================== */
 
-/* 1. TEMA 1: STANDAR (EMERALD) - default behavior */
-
-/* 2. TEMA 2: PROTANOPIA & DEUTERANOPIA (RAMAH MERAH-HIJAU) */
-/* Menggunakan skema Biru Safir Kobalt (#2563EB) & Kuning Amber (#D97706) */
-html.theme-colorblind {
-    --color-ewarga-green: #2563EB;
-    --color-ewarga-teal: #1D4ED8;
-    --color-ewarga-red: #D97706;
+/* 1. Keyframe Animations */
+@keyframes float-slow {
+    0%, 100% {
+        transform: translateY(0px) rotate(0deg);
+    }
+    50% {
+        transform: translateY(-6px) rotate(1deg);
+    }
 }
 
-html.theme-colorblind .bg-emerald-600,
-html.theme-colorblind .bg-emerald-500,
-html.theme-colorblind .bg-teal-600,
-html.theme-colorblind .bg-teal-500 {
-    background-color: #2563EB !important;
+@keyframes pulse-soft {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 0.85;
+    }
 }
 
-html.theme-colorblind .hover\:bg-emerald-700:hover,
-html.theme-colorblind .hover\:bg-emerald-600:hover,
-html.theme-colorblind .hover\:bg-teal-700:hover {
-    background-color: #1D4ED8 !important;
+@keyframes shimmer-sweep {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
 }
 
-html.theme-colorblind .text-emerald-600,
-html.theme-colorblind .text-emerald-500,
-html.theme-colorblind .text-emerald-400,
-html.theme-colorblind .text-teal-600,
-html.theme-colorblind .text-teal-400 {
-    color: #2563EB !important;
+@keyframes aurora-flow {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
 }
 
-html.theme-colorblind .border-emerald-500,
-html.theme-colorblind .border-emerald-600,
-html.theme-colorblind .border-emerald-400 {
-    border-color: #2563EB !important;
+@keyframes bounce-subtle {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-4px);
+    }
 }
 
-html.theme-colorblind .bg-emerald-50,
-html.theme-colorblind .bg-emerald-100 {
-    background-color: #EFF6FF !important;
+/* 2. Utility Animation Classes */
+.animate-float-slow {
+    animation: float-slow 4s ease-in-out infinite;
 }
 
-html.theme-colorblind .dark .bg-emerald-950,
-html.theme-colorblind .dark .bg-emerald-950\/60,
-html.theme-colorblind .dark .bg-emerald-950\/70 {
-    background-color: rgba(30, 58, 138, 0.4) !important;
+.animate-pulse-soft {
+    animation: pulse-soft 2.5s ease-in-out infinite;
 }
 
-html.theme-colorblind .text-emerald-700,
-html.theme-colorblind .text-emerald-800 {
-    color: #1E40AF !important;
+.animate-bounce-subtle {
+    animation: bounce-subtle 2s ease-in-out infinite;
 }
 
-html.theme-colorblind .from-emerald-600 {
-    --tw-gradient-from: #2563EB var(--tw-gradient-from-position) !important;
+.animate-aurora {
+    background-size: 200% 200%;
+    animation: aurora-flow 12s ease infinite;
 }
 
-html.theme-colorblind .to-teal-600 {
-    --tw-gradient-to: #1D4ED8 var(--tw-gradient-to-position) !important;
+/* 3. Interactive Modern Cards (Hover Lift & Glow) */
+.card-interactive {
+    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), 
+                box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1), 
+                border-color 0.28s ease-in-out;
+    will-change: transform, box-shadow;
 }
 
-/* Penyesuaian Status Bahaya / Alert agar tidak tertukar dengan hijau */
-html.theme-colorblind .bg-rose-500,
-html.theme-colorblind .bg-red-500,
-html.theme-colorblind .bg-red-600 {
-    background-color: #D97706 !important;
+.card-interactive:hover {
+    transform: translateY(-4px) scale(1.006);
+    box-shadow: 0 16px 32px -8px rgba(16, 185, 129, 0.15), 0 4px 12px -2px rgba(0, 0, 0, 0.05);
 }
 
-html.theme-colorblind .text-rose-600,
-html.theme-colorblind .text-red-600 {
-    color: #B45309 !important;
+.dark .card-interactive:hover {
+    box-shadow: 0 16px 36px -8px rgba(16, 185, 129, 0.22), 0 4px 12px -2px rgba(0, 0, 0, 0.4);
+    border-color: rgba(52, 211, 153, 0.35);
 }
 
-html.theme-colorblind .border-rose-200,
-html.theme-colorblind .border-red-200 {
-    border-color: #FCD34D !important;
+/* 4. Button Glow & Shimmer Highlights */
+.btn-shimmer {
+    position: relative;
+    overflow: hidden;
 }
 
-/* 3. TEMA 3: TRITANOPIA & HIGH CONTRAST MONOCHROME */
-/* Kontras Luminansi Maksimal Hitam-Putih-Slate Tajam dengan Garis Tegas */
-html.theme-contrast {
-    filter: contrast(115%);
+.btn-shimmer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+    transform: skewX(-20deg);
+    transition: left 0.6s ease;
 }
 
-html.theme-contrast body {
-    font-weight: 500;
+.btn-shimmer:hover::after {
+    left: 150%;
 }
 
-html.theme-contrast .bg-emerald-600,
-html.theme-contrast .bg-emerald-500,
-html.theme-contrast .bg-teal-600 {
-    background-color: #0F172A !important;
-    border: 2px solid #334155 !important;
-    color: #FFFFFF !important;
+/* 5. Glassmorphism Accent */
+.glass-panel {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-html.dark.theme-contrast .bg-emerald-600,
-html.dark.theme-contrast .bg-emerald-500,
-html.dark.theme-contrast .bg-teal-600 {
-    background-color: #F8FAFC !important;
-    border: 2px solid #E2E8F0 !important;
-    color: #0F172A !important;
+.dark .glass-panel {
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-html.theme-contrast .text-emerald-600,
-html.theme-contrast .text-emerald-500,
-html.theme-contrast .text-emerald-400 {
-    color: #0F172A !important;
-    font-weight: 800 !important;
-    text-decoration: underline;
-    text-underline-offset: 3px;
+/* 6. Active Live Badge Indicator with Aura Ring */
+.live-beacon {
+    position: relative;
+    display: inline-flex;
 }
 
-html.dark.theme-contrast .text-emerald-600,
-html.dark.theme-contrast .text-emerald-500,
-html.dark.theme-contrast .text-emerald-400 {
-    color: #FFFFFF !important;
-    font-weight: 800 !important;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-}
-
-html.theme-contrast .border-slate-200,
-html.theme-contrast .border-slate-100 {
-    border-color: #475569 !important;
-    border-width: 1.5px !important;
-}
-
-html.dark.theme-contrast .border-slate-800,
-html.dark.theme-contrast .border-slate-700 {
-    border-color: #94A3B8 !important;
-    border-width: 1.5px !important;
+.live-beacon::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 9999px;
+    background: inherit;
+    opacity: 0.45;
+    animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }

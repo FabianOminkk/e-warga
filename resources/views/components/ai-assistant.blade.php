@@ -168,7 +168,7 @@
         <button 
             type="button" 
             @click="toggle()" 
-            class="group relative flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 text-white font-black text-xs shadow-xl shadow-emerald-600/30 hover:shadow-emerald-600/50 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer border border-white/20 touch-press"
+            class="group relative flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 text-white font-black text-xs shadow-xl shadow-emerald-600/30 hover:shadow-emerald-600/50 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer border border-white/20 touch-press card-interactive btn-shimmer"
             aria-label="Tanya Asisten AI Bang Warga"
             :title="isOpen ? 'Tutup Asisten Bang Warga AI' : 'Buka Asisten Bang Warga AI'"
         >
@@ -178,7 +178,7 @@
                 <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-cyan-100 text-[10px] items-center justify-center">✨</span>
             </span>
 
-            <span class="text-base">🤖</span>
+            <span class="text-base inline-block animate-bounce-subtle">🤖</span>
             <span class="tracking-wide">Tanya Bang Warga</span>
             
             <span class="hidden sm:inline-block px-1.5 py-0.5 rounded-full bg-white/20 text-[9px] font-extrabold uppercase tracking-wider backdrop-blur-xs">

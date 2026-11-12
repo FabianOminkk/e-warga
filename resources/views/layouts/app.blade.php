@@ -20,20 +20,13 @@
     <!-- Compiled Assets (Vite Engine) -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    <!-- Dark / Light Mode & 3-Theme Accessibility Bootstrapper (Mencegah FOUC) -->
+    <!-- Dark / Light Mode Early Bootstrapper (Mencegah FOUC) -->
     <script>
-        // 1. Dark / Light Mode
         if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
         } else {
             document.documentElement.classList.remove('dark');
         }
-
-        // 2. 3-Theme Colorblind & Contrast Mode
-        const savedColorTheme = localStorage.getItem('ewarga_color_theme') || 'default';
-        document.documentElement.classList.remove('theme-default', 'theme-colorblind', 'theme-contrast');
-        document.documentElement.classList.add('theme-' + savedColorTheme);
-        document.documentElement.setAttribute('data-color-theme', savedColorTheme);
     </script>
 
     <style>
@@ -138,10 +131,7 @@
             </nav>
 
             <!-- Topbar Right Controls -->
-            <div class="flex items-center gap-2 sm:gap-3">
-                <!-- 3-Theme Accessibility Switcher (Colorblind & Contrast Safe) -->
-                <x-theme-switcher />
-
+            <div class="flex items-center gap-3">
                 <!-- Dark / Light Theme Toggle -->
                 <div x-data="{
                     isDark: document.documentElement.classList.contains('dark'),
@@ -613,11 +603,6 @@
         <div class="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/95 shrink-0 space-y-3">
             
             <div class="flex items-center justify-between gap-2">
-                <!-- 3-Theme Accessibility Switcher (Colorblind & Contrast Safe) -->
-                <div>
-                    <x-theme-switcher compact="true" />
-                </div>
-
                 <!-- Dark / Light Mode Toggle -->
                 <div x-data="{
                     isDark: document.documentElement.classList.contains('dark'),
@@ -820,10 +805,35 @@
                 </div>
             </div>
 
-            <!-- Kanan: Aksesibilitas Tema, Tanggal & Wilayah Aktif -->
+            <!-- Kanan: Mode Gelap/Terang, Tanggal & Wilayah Aktif -->
             <div class="flex items-center gap-2 sm:gap-3">
-                <!-- 3-Theme Accessibility Switcher (Colorblind & Contrast Safe) -->
-                <x-theme-switcher />
+                <!-- Dark / Light Theme Toggle Topbar -->
+                <div x-data="{
+                    isDark: document.documentElement.classList.contains('dark'),
+                    toggle() {
+                        this.isDark = !this.isDark;
+                        if (this.isDark) {
+                            document.documentElement.classList.add('dark');
+                            localStorage.setItem('theme', 'dark');
+                            window.dispatchEvent(new CustomEvent('theme-changed', { detail: 'dark' }));
+                        } else {
+                            document.documentElement.classList.remove('dark');
+                            localStorage.setItem('theme', 'light');
+                            window.dispatchEvent(new CustomEvent('theme-changed', { detail: 'light' }));
+                        }
+                    }
+                }">
+                    <button 
+                        @click="toggle()" 
+                        type="button" 
+                        class="p-2 sm:px-3 sm:py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition flex items-center gap-1.5 shadow-xs cursor-pointer"
+                        :title="isDark ? 'Ganti ke Mode Terang' : 'Ganti ke Mode Gelap'"
+                    >
+                        <svg x-show="isDark" x-cloak class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                        <svg x-show="!isDark" x-cloak class="w-4 h-4 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+                        <span class="hidden sm:inline text-[11px]" x-text="isDark ? 'Mode Terang' : 'Mode Gelap'"></span>
+                    </button>
+                </div>
 
                 @if(($currentUser?->role ?? '') === 'super_admin')
                     @if(request()->routeIs('superadmin.index'))
