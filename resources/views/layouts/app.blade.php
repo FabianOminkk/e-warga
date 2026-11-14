@@ -101,142 +101,251 @@
     <!-- SAMA SEKALI TIDAK ADA SIDEBAR / LACI MENU DI LANDING PAGE         -->
     <!-- ================================================================= -->
 
-    <!-- TOPBAR NAVBAR KHUSUS LANDING PAGE (DESKTOP-FIRST ENTERPRISE) -->
-    <header class="sticky top-0 z-50 bg-white/90 dark:bg-slate-950/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 transition-colors duration-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-6">
-            
-            <!-- Brand Logo SVG (Match Dark & Light 100%) -->
-            <x-logo size="md" href="{{ route('home') }}" />
-
-            <!-- Desktop Anchor Nav Links -->
-            <nav class="hidden lg:flex items-center gap-7 text-xs font-bold text-slate-600 dark:text-slate-300">
-                <a href="#hero" class="hover:text-emerald-600 dark:hover:text-emerald-400 transition">Beranda</a>
-                <a href="#fitur" class="hover:text-emerald-600 dark:hover:text-emerald-400 transition">Fitur Solusi</a>
-                <a href="#hardware" class="hover:text-emerald-600 dark:hover:text-emerald-400 transition flex items-center gap-1.5">
-                    <span>Hardware IoT</span>
-                    <span class="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 font-extrabold uppercase">Siap + R&D</span>
-                </a>
-                <a href="#posyandu" class="hover:text-emerald-600 dark:hover:text-emerald-400 transition">Posyandu Digital</a>
-                <a href="#komparasi" class="hover:text-emerald-600 dark:hover:text-emerald-400 transition">Mengapa Kami</a>
-                <a href="#testimoni" class="hover:text-emerald-600 dark:hover:text-emerald-400 transition">Testimoni</a>
-                <a href="#kerjasama" class="hover:text-emerald-600 dark:hover:text-emerald-400 transition">Kemitraan & Kontak</a>
-            </nav>
-
-            <!-- Topbar Right Controls -->
-            <div class="flex items-center gap-3">
-                <!-- Dark / Light Theme Toggle -->
-                <div x-data="{
-                    isDark: document.documentElement.classList.contains('dark'),
-                    toggle() {
-                        this.isDark = !this.isDark;
-                        if (this.isDark) {
-                            document.documentElement.classList.add('dark');
-                            localStorage.setItem('theme', 'dark');
-                        } else {
-                            document.documentElement.classList.remove('dark');
-                            localStorage.setItem('theme', 'light');
+    <!-- TOPBAR NAVBAR KHUSUS LANDING PAGE (FLOATING GLASSMORPHISM CAPSULE DOCK) -->
+    <div 
+        x-data="{ 
+            isScrolled: false,
+            activeSection: 'hero',
+            landingMobileMenu: false,
+            init() {
+                const handleScroll = () => {
+                    this.isScrolled = window.scrollY > 20;
+                    const sections = ['hero', 'fitur', 'hardware', 'posyandu', 'komparasi', 'testimoni', 'kerjasama'];
+                    const scrollPos = window.scrollY + 140;
+                    for (const s of sections) {
+                        const el = document.getElementById(s);
+                        if (el) {
+                            const top = el.offsetTop;
+                            const height = el.offsetHeight;
+                            if (scrollPos >= top && scrollPos < top + height) {
+                                this.activeSection = s;
+                                break;
+                            }
                         }
                     }
-                }">
-                    <button 
-                        @click="toggle()" 
-                        type="button" 
-                        class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition shadow-xs cursor-pointer flex items-center justify-center" 
-                        :title="isDark ? 'Ganti ke Mode Terang' : 'Ganti ke Mode Gelap'"
-                        aria-label="Toggle Dark / Light Theme"
-                    >
-                        <svg x-show="isDark" x-cloak class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                        <svg x-show="!isDark" x-cloak class="w-4 h-4 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
-                    </button>
+                };
+                window.addEventListener('scroll', handleScroll, { passive: true });
+                handleScroll();
+            }
+        }"
+        class="sticky top-0 z-50 transition-all duration-300 px-3 sm:px-6 lg:px-8 w-full"
+        :class="isScrolled ? 'pt-2 sm:pt-3' : 'pt-3 sm:pt-5'"
+    >
+        <div class="max-w-7xl mx-auto relative">
+            <header 
+                class="relative rounded-2xl sm:rounded-full transition-all duration-300 px-3 sm:px-6 border flex items-center justify-between gap-3 sm:gap-6 backdrop-blur-xl"
+                :class="isScrolled 
+                    ? 'bg-white/90 dark:bg-slate-950/90 border-slate-200/90 dark:border-white/10 shadow-xl shadow-slate-900/5 dark:shadow-emerald-950/30 h-16 sm:h-17 ring-1 ring-slate-900/5 dark:ring-white/5' 
+                    : 'bg-white/75 dark:bg-slate-950/75 border-slate-200/60 dark:border-white/10 shadow-md shadow-slate-900/5 h-18 sm:h-20'"
+            >
+                <!-- Subtle Top Edge Light Bar -->
+                <div class="absolute inset-x-8 -top-px h-px bg-gradient-to-r from-transparent via-emerald-500/30 dark:via-emerald-400/30 to-transparent pointer-events-none"></div>
+
+                <!-- Brand Logo SVG dengan Micro-Hover Lift -->
+                <div class="shrink-0 transform hover:scale-[1.03] transition-all duration-200">
+                    <x-logo size="md" href="{{ route('home') }}" />
                 </div>
 
-                <!-- CTA Masuk Sistem / Dashboard -->
-                @auth
-                    @if($currentUser?->role === 'super_admin')
-                        <a href="{{ route('superadmin.index') }}" class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition flex items-center gap-2">
-                            <span>⚡ Pusat Super Admin</span>
-                            <span>➔</span>
-                        </a>
-                    @else
-                        <a href="{{ route('dashboard') }}" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-md shadow-emerald-600/20 transition flex items-center gap-2">
-                            <span>Buka Dashboard</span>
-                            <span>➔</span>
-                        </a>
-                    @endif
-                @else
-                    <a href="{{ route('login') }}" class="px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold text-xs transition">
-                        Masuk
+                <!-- Desktop Nav Items (Interactive Animated Capsule Pills with Active Spy) -->
+                <nav class="hidden lg:flex items-center gap-1 xl:gap-1.5 text-[13px] font-medium text-slate-600 dark:text-slate-300">
+                    <a href="#hero" 
+                       @click="activeSection = 'hero'"
+                       class="relative px-3.5 py-1.5 rounded-full transition-all duration-200 group flex items-center gap-1"
+                       :class="activeSection === 'hero' 
+                           ? 'text-emerald-600 dark:text-emerald-400 font-bold bg-slate-100 dark:bg-white/10 shadow-xs' 
+                           : 'hover:text-emerald-600 dark:hover:text-emerald-300 hover:bg-slate-100/70 dark:hover:bg-white/5'">
+                        <span>Beranda</span>
                     </a>
-                    <a href="#kerjasama" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-lg shadow-emerald-600/20 transition flex items-center gap-2">
-                        <span>Konsultasi & Survei</span>
-                        <span>➔</span>
+
+                    <a href="#fitur" 
+                       @click="activeSection = 'fitur'"
+                       class="relative px-3.5 py-1.5 rounded-full transition-all duration-200 group flex items-center gap-1"
+                       :class="activeSection === 'fitur' 
+                           ? 'text-emerald-600 dark:text-emerald-400 font-bold bg-slate-100 dark:bg-white/10 shadow-xs' 
+                           : 'hover:text-emerald-600 dark:hover:text-emerald-300 hover:bg-slate-100/70 dark:hover:bg-white/5'">
+                        <span>Fitur Solusi</span>
                     </a>
-                @endauth
-                <!-- Mobile Menu Hamburger Button (Landing Page) -->
-                <button 
-                    @click="landingMobileMenu = !landingMobileMenu" 
-                    type="button" 
-                    class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 lg:hidden hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer touch-press"
-                    aria-label="Buka Menu Navigasi"
-                >
-                    <svg x-show="!landingMobileMenu" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-                    <svg x-show="landingMobileMenu" x-cloak class="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
-            </div>
-        </div>
 
-        <!-- Mobile Slide-Down Menu (Landing Page) -->
-        <div 
-            x-show="landingMobileMenu" 
-            x-cloak 
-            @click.away="landingMobileMenu = false"
-            class="lg:hidden border-t border-slate-200 dark:border-slate-800 bg-white/98 dark:bg-slate-950/98 backdrop-blur-md px-5 py-4 space-y-3 transition-all animate-in fade-in slide-in-from-top-2 duration-200 shadow-xl"
-        >
-            <div class="grid grid-cols-2 gap-2 text-xs font-bold text-slate-700 dark:text-slate-200">
-                <a @click="landingMobileMenu = false" href="#hero" class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 hover:text-emerald-600 transition flex items-center gap-2">
-                    <span>🏠</span> Beranda
-                </a>
-                <a @click="landingMobileMenu = false" href="#fitur" class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 hover:text-emerald-600 transition flex items-center gap-2">
-                    <span>⚡</span> Fitur Solusi
-                </a>
-                <a @click="landingMobileMenu = false" href="#hardware" class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 hover:text-emerald-600 transition flex items-center gap-2">
-                    <span>📹</span> Hardware IoT
-                </a>
-                <a @click="landingMobileMenu = false" href="#posyandu" class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 hover:text-emerald-600 transition flex items-center gap-2">
-                    <span>👶</span> Posyandu
-                </a>
-                <a @click="landingMobileMenu = false" href="#komparasi" class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 hover:text-emerald-600 transition flex items-center gap-2">
-                    <span>⚖️</span> Keunggulan
-                </a>
-                <a @click="landingMobileMenu = false" href="#testimoni" class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 hover:text-emerald-600 transition flex items-center gap-2">
-                    <span>💬</span> Testimoni
-                </a>
-            </div>
+                    <a href="#hardware" 
+                       @click="activeSection = 'hardware'"
+                       class="relative px-3.5 py-1.5 rounded-full transition-all duration-200 group inline-flex items-center gap-2"
+                       :class="activeSection === 'hardware' 
+                           ? 'text-emerald-600 dark:text-emerald-400 font-bold bg-slate-100 dark:bg-white/10 shadow-xs' 
+                           : 'hover:text-emerald-600 dark:hover:text-emerald-300 hover:bg-slate-100/70 dark:hover:bg-white/5'">
+                        <span>Hardware IoT</span>
+                        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-500/10 dark:bg-emerald-400/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 group-hover:border-emerald-500/40 transition-colors">
+                            <span class="relative flex h-1.5 w-1.5">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                            </span>
+                            <span>R&D</span>
+                        </span>
+                    </a>
 
-            <div class="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
-                @auth
-                    @if($currentUser?->role === 'super_admin')
-                        <a href="{{ route('superadmin.index') }}" class="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs shadow-md transition flex items-center justify-center gap-2 touch-press">
-                            <span>⚡ Buka Pusat Super Admin</span>
-                        </a>
-                    @else
-                        <a href="{{ route('dashboard') }}" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-md transition flex items-center justify-center gap-2 touch-press">
-                            <span>Buka Dashboard Operasional</span>
-                        </a>
-                    @endif
-                @else
-                    <div class="grid grid-cols-2 gap-2">
-                        <a href="{{ route('login') }}" class="py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-100 font-bold text-xs text-center transition touch-press">
-                            Masuk Akun
-                        </a>
-                        <a href="#kerjasama" @click="landingMobileMenu = false" class="py-2.5 rounded-xl bg-emerald-600 text-white font-extrabold text-xs text-center shadow-md transition touch-press">
-                            Konsultasi
-                        </a>
+                    <a href="#posyandu" 
+                       @click="activeSection = 'posyandu'"
+                       class="relative px-3.5 py-1.5 rounded-full transition-all duration-200 group flex items-center gap-1"
+                       :class="activeSection === 'posyandu' 
+                           ? 'text-emerald-600 dark:text-emerald-400 font-bold bg-slate-100 dark:bg-white/10 shadow-xs' 
+                           : 'hover:text-emerald-600 dark:hover:text-emerald-300 hover:bg-slate-100/70 dark:hover:bg-white/5'">
+                        <span>Posyandu Digital</span>
+                    </a>
+
+                    <a href="#komparasi" 
+                       @click="activeSection = 'komparasi'"
+                       class="relative px-3.5 py-1.5 rounded-full transition-all duration-200 group flex items-center gap-1"
+                       :class="activeSection === 'komparasi' 
+                           ? 'text-emerald-600 dark:text-emerald-400 font-bold bg-slate-100 dark:bg-white/10 shadow-xs' 
+                           : 'hover:text-emerald-600 dark:hover:text-emerald-300 hover:bg-slate-100/70 dark:hover:bg-white/5'">
+                        <span>Mengapa Kami</span>
+                    </a>
+
+                    <a href="#testimoni" 
+                       @click="activeSection = 'testimoni'"
+                       class="relative px-3.5 py-1.5 rounded-full transition-all duration-200 group flex items-center gap-1"
+                       :class="activeSection === 'testimoni' 
+                           ? 'text-emerald-600 dark:text-emerald-400 font-bold bg-slate-100 dark:bg-white/10 shadow-xs' 
+                           : 'hover:text-emerald-600 dark:hover:text-emerald-300 hover:bg-slate-100/70 dark:hover:bg-white/5'">
+                        <span>Testimoni</span>
+                    </a>
+
+                    <a href="#kerjasama" 
+                       @click="activeSection = 'kerjasama'"
+                       class="relative px-3.5 py-1.5 rounded-full transition-all duration-200 group flex items-center gap-1"
+                       :class="activeSection === 'kerjasama' 
+                           ? 'text-emerald-600 dark:text-emerald-400 font-bold bg-slate-100 dark:bg-white/10 shadow-xs' 
+                           : 'hover:text-emerald-600 dark:hover:text-emerald-300 hover:bg-slate-100/70 dark:hover:bg-white/5'">
+                        <span>Kemitraan</span>
+                    </a>
+                </nav>
+
+                <!-- Topbar Right Controls (Theme Toggle, Masuk & Flagship CTA) -->
+                <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                    <!-- Dark / Light Theme Toggle dengan Smooth Rotation Icon -->
+                    <div x-data="{
+                        isDark: document.documentElement.classList.contains('dark'),
+                        toggle() {
+                            this.isDark = !this.isDark;
+                            if (this.isDark) {
+                                document.documentElement.classList.add('dark');
+                                localStorage.setItem('theme', 'dark');
+                            } else {
+                                document.documentElement.classList.remove('dark');
+                                localStorage.setItem('theme', 'light');
+                            }
+                        }
+                    }">
+                        <button 
+                            @click="toggle()" 
+                            type="button" 
+                            class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-slate-200/80 dark:border-white/10 bg-slate-100/80 dark:bg-slate-900/80 hover:bg-slate-200/80 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition-all duration-300 shadow-xs cursor-pointer flex items-center justify-center hover:scale-105 active:scale-95 group" 
+                            :title="isDark ? 'Ganti ke Mode Terang' : 'Ganti ke Mode Gelap'"
+                            aria-label="Toggle Dark / Light Theme"
+                        >
+                            <svg x-show="isDark" x-cloak class="w-4 h-4 text-amber-400 transition-transform duration-500 group-hover:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                            <svg x-show="!isDark" x-cloak class="w-4 h-4 text-slate-700 transition-transform duration-500 group-hover:-rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+                        </button>
                     </div>
-                @endauth
+
+                    <!-- CTA Masuk Sistem / Dashboard -->
+                    @auth
+                        @if($currentUser?->role === 'super_admin')
+                            <a href="{{ route('superadmin.index') }}" class="px-4 sm:px-5 py-2 sm:py-2.5 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-md shadow-amber-500/25 transition-all duration-200 hover:scale-105 active:scale-95 flex items-center gap-1.5 sm:gap-2">
+                                <span>⚡ Super Admin</span>
+                                <span>➔</span>
+                            </a>
+                        @else
+                            <a href="{{ route('dashboard') }}" class="px-4 sm:px-5 py-2 sm:py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shadow-md shadow-emerald-600/25 transition-all duration-200 hover:scale-105 active:scale-95 flex items-center gap-1.5 sm:gap-2">
+                                <span>Buka Dashboard</span>
+                                <span>➔</span>
+                            </a>
+                        @endif
+                    @else
+                        <!-- Tombol Masuk Berprofil Frosted Glass -->
+                        <a href="{{ route('login') }}" class="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-slate-300/80 dark:border-white/15 bg-white/40 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-800 dark:text-slate-100 font-bold text-xs transition-all duration-200 active:scale-95 shadow-xs group">
+                            <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+                            <span>Masuk</span>
+                        </a>
+
+                        <!-- Tombol CTA Utama dengan Efek Linear Shimmer & Glide Arrow -->
+                        <a href="#kerjasama" class="relative group overflow-hidden px-4 sm:px-5 py-2 sm:py-2.5 rounded-full bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-400 text-white font-extrabold text-xs shadow-lg shadow-emerald-600/30 transition-all duration-300 transform hover:-translate-y-0.5 active:scale-95 flex items-center gap-2 cursor-pointer touch-press btn-shimmer">
+                            <span class="relative z-10">Konsultasi & Survei</span>
+                            <span class="relative z-10 transition-transform duration-300 group-hover:translate-x-1 font-bold">➔</span>
+                        </a>
+                    @endauth
+
+                    <!-- Mobile Menu Hamburger Button -->
+                    <button 
+                        @click="landingMobileMenu = !landingMobileMenu" 
+                        type="button" 
+                        class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 lg:hidden hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer touch-press flex items-center justify-center"
+                        aria-label="Toggle Navigation Menu"
+                    >
+                        <svg x-show="!landingMobileMenu" class="w-5 h-5 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                        <svg x-show="landingMobileMenu" x-cloak class="w-5 h-5 text-rose-500 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Mobile Floating Dropdown Sheet (Glassmorphism Modal) -->
+            <div 
+                x-show="landingMobileMenu" 
+                x-cloak 
+                x-transition:enter="transition ease-out duration-250"
+                x-transition:enter-start="opacity-0 -translate-y-3 scale-95"
+                x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                x-transition:leave-end="opacity-0 -translate-y-2 scale-95"
+                @click.away="landingMobileMenu = false"
+                class="lg:hidden mt-2 rounded-3xl bg-white/95 dark:bg-slate-950/95 backdrop-blur-2xl border border-slate-200 dark:border-white/10 shadow-2xl p-4 space-y-3"
+            >
+                <div class="grid grid-cols-2 gap-2 text-xs font-bold text-slate-700 dark:text-slate-200">
+                    <a @click="landingMobileMenu = false" href="#hero" class="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 transition flex items-center gap-2">
+                        <span>🏠</span> Beranda
+                    </a>
+                    <a @click="landingMobileMenu = false" href="#fitur" class="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 transition flex items-center gap-2">
+                        <span>⚡</span> Fitur Solusi
+                    </a>
+                    <a @click="landingMobileMenu = false" href="#hardware" class="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 transition flex items-center gap-2">
+                        <span>📹</span> Hardware IoT
+                    </a>
+                    <a @click="landingMobileMenu = false" href="#posyandu" class="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 transition flex items-center gap-2">
+                        <span>👶</span> Posyandu
+                    </a>
+                    <a @click="landingMobileMenu = false" href="#komparasi" class="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 transition flex items-center gap-2">
+                        <span>⚖️</span> Keunggulan
+                    </a>
+                    <a @click="landingMobileMenu = false" href="#testimoni" class="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 transition flex items-center gap-2">
+                        <span>💬</span> Testimoni
+                    </a>
+                </div>
+
+                <div class="pt-2 border-t border-slate-100 dark:border-white/10 space-y-2">
+                    @auth
+                        @if($currentUser?->role === 'super_admin')
+                            <a href="{{ route('superadmin.index') }}" class="w-full py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs shadow-md transition flex items-center justify-center gap-2 touch-press">
+                                <span>⚡ Buka Pusat Super Admin</span>
+                            </a>
+                        @else
+                            <a href="{{ route('dashboard') }}" class="w-full py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-md transition flex items-center justify-center gap-2 touch-press">
+                                <span>Buka Dashboard Operasional</span>
+                            </a>
+                        @endif
+                    @else
+                        <div class="grid grid-cols-2 gap-2">
+                            <a href="{{ route('login') }}" class="py-2.5 rounded-2xl border border-slate-300 dark:border-white/15 text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 font-bold text-xs text-center transition touch-press">
+                                Masuk Akun
+                            </a>
+                            <a href="#kerjasama" @click="landingMobileMenu = false" class="py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs text-center shadow-md transition touch-press">
+                                Konsultasi
+                            </a>
+                        </div>
+                    @endauth
+                </div>
             </div>
         </div>
-    </header>
+    </div>
 
     <!-- Area Flash Message -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
