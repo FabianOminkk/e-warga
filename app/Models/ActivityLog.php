@@ -98,3 +98,4 @@ class ActivityLog extends Model
         return $query;
     }
 }
+

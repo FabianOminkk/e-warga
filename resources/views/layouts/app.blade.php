@@ -90,14 +90,6 @@
     $isLanding = request()->routeIs('home');
     $isLogin = request()->routeIs('login');
 
-    // Jika masuk ke area internal aplikasi ("di dalem"), pastikan otomatis login sebagai Super Admin jika belum ada sesi
-    if (!$isLanding && !$isLogin && !\Illuminate\Support\Facades\Auth::check()) {
-        $defaultAdmin = \App\Models\User::where('role', 'super_admin')->first();
-        if ($defaultAdmin) {
-            \Illuminate\Support\Facades\Auth::login($defaultAdmin);
-        }
-    }
-
     $activeTenant = \App\Models\Tenant::getActiveTenant();
     $pendingLettersCount = \App\Models\LetterRequest::where('status', 'pending')->count();
     $currentUser = \Illuminate\Support\Facades\Auth::user();

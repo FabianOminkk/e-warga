@@ -97,3 +97,4 @@ class ActivityLogger
         return $properties;
     }
 }
+
