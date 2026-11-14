@@ -429,7 +429,7 @@
             </div>
 
             <div class="pt-8 border-t border-slate-100 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-slate-400">
-                <div>&copy; {{ date('Y') }} E-WARGA by PT Smart Community Indonesia. Seluruh hak cipta dilindungi undang-undang.</div>
+                <div>&copy; {{ date('Y') }} E-WARGA by FabianGanteng-dilindungi undang-undang.</div>
                 <div class="flex items-center gap-4 text-[11px]">
                     <a href="#kerjasama" class="hover:text-slate-600 dark:hover:text-slate-300">Hubungi Konsultan</a>
                     <span>•</span>
