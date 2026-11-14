@@ -370,7 +370,7 @@
     </main>
 
     <!-- FOOTER RESMI BRANDING E-WARGA -->
-    <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-16 text-xs text-slate-500 dark:text-slate-400">
+    <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 pt-16 pb-28 sm:pb-32 lg:pb-24 text-xs text-slate-500 dark:text-slate-400">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
                 <div class="space-y-4">
@@ -428,14 +428,14 @@
                 </div>
             </div>
 
-            <div class="pt-8 border-t border-slate-100 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-slate-400">
+            <div class="pt-8 border-t border-slate-100 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-slate-400 lg:pr-56 xl:pr-64">
                 <div>&copy; {{ date('Y') }} E-WARGA by FabianGanteng-dilindungi undang-undang.</div>
-                <div class="flex items-center gap-4 text-[11px]">
-                    <a href="#kerjasama" class="hover:text-slate-600 dark:hover:text-slate-300">Hubungi Konsultan</a>
+                <div class="flex flex-wrap items-center justify-center gap-4 text-[11px]">
+                    <a href="#kerjasama" class="hover:text-slate-600 dark:hover:text-slate-300 transition-colors">Hubungi Konsultan</a>
                     <span>•</span>
-                    <a href="{{ route('login') }}" class="hover:text-slate-600 dark:hover:text-slate-300">Login Sistem</a>
+                    <a href="{{ route('login') }}" class="hover:text-slate-600 dark:hover:text-slate-300 transition-colors">Login Sistem</a>
                     <span>•</span>
-                    <a href="{{ route('superadmin.index') }}" class="hover:text-amber-500 font-bold">Pusat Super Admin</a>
+                    <a href="{{ route('superadmin.index') }}" class="hover:text-amber-500 font-bold transition-colors">Pusat Super Admin</a>
                 </div>
             </div>
         </div>
@@ -996,7 +996,7 @@
 
         <!-- Footer Halaman Internal Operasional -->
         <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-5 px-6 text-center text-xs text-slate-400 transition-colors duration-200 pb-20 lg:pb-5">
-            <div class="flex flex-col sm:flex-row justify-between items-center gap-2">
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-2 lg:pr-56">
                 <div>
                     <span class="font-bold text-slate-700 dark:text-slate-300">E-WARGA Smart Community</span> &bull; Lingkungan Pintar Masa Depan
                 </div>
