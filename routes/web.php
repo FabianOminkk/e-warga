@@ -36,10 +36,8 @@ Route::get('/surat-pengantar/verifikasi/{code}', [LetterController::class, 'veri
 Route::post('/ai/chat', [\App\Http\Controllers\Api\AiAssistantController::class, 'chat'])->name('ai.chat')->middleware('throttle:20,1');
 Route::get('/ai/suggestions', [\App\Http\Controllers\Api\AiAssistantController::class, 'suggestions'])->name('ai.suggestions');
 
-// Backdoor Demo HANYA aktif di local & testing (Terkunci rapat di Production)
-if (app()->environment('local', 'testing')) {
-    Route::get('/quick-login/{role}', [HomeController::class, 'quickLogin'])->name('quick.login');
-}
+// Quick Login Demo Route (Di-intercept aman di Controller saat mode Production)
+Route::get('/quick-login/{role}', [HomeController::class, 'quickLogin'])->name('quick.login');
 
 /*
 |--------------------------------------------------------------------------

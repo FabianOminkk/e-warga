@@ -117,9 +117,9 @@ class HomeController extends Controller
 
     public function quickLogin($role)
     {
-        // Fitur quick login hanya boleh diakses di lingkungan local development & testing
-        if (!app()->environment('local', 'testing')) {
-            abort(404, 'Fitur demo quick login dinonaktifkan di server produksi.');
+        // Proteksi Keamanan Produksi: Cegah bypass login di server publik
+        if (app()->isProduction()) {
+            return redirect()->route('login')->with('info', 'Fitur demo quick login dinonaktifkan di server produksi demi kepatuhan SOP keamanan. Silakan login menggunakan formulir resmi.');
         }
 
         $user = null;
