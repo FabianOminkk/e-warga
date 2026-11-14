@@ -77,7 +77,7 @@ jobs:
 
             # 1. Tentukan target direktori aplikasi di CloudPanel / VPS
             APP_DIR="${{ secrets.VPS_APP_DIR }}"
-            if [ -z "$APP_DIR" ] || [ ! -d "$APP_DIR" ]; then
+            if [ -z "$APP_DIR" ] || ! sudo test -d "$APP_DIR" 2>/dev/null; then
               for candidate in \
                 "/home/unique-monsters-ewarga/htdocs/e-warga.unique-monsters.my.id" \
                 "/home/unique-monsters/htdocs/e-warga.unique-monsters.my.id" \
