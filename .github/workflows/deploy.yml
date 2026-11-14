@@ -62,21 +62,21 @@ jobs:
     steps:
       - name: Verify SSH Credentials
         run: |
-          if [ -z "${{ secrets.VPS_SSH_KEY }}" ] && [ -z "${{ secrets.VPS_PASSWORD }}" ]; then
-            echo "::error::Neither VPS_SSH_KEY nor VPS_PASSWORD is configured in GitHub Repository Secrets!"
+          if [ -z "${{ secrets.VPS_SSH_KEY }}" ]; then
+            echo "::error::Secret VPS_SSH_KEY belum terpasang di GitHub Repository Secrets!"
             echo "Silakan pastikan secret VPS_SSH_KEY telah ditambahkan di https://github.com/FabianOminkk/e-warga/settings/secrets/actions"
             exit 1
           fi
-          echo "✅ SSH Credentials secret terdeteksi di GitHub Actions."
+          echo "✅ Secret VPS_SSH_KEY terdeteksi di GitHub Actions."
 
       - name: Connect to VPS and Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.VPS_HOST || '43.157.230.29' }}
-          port: ${{ secrets.VPS_PORT || 22 }}
-          username: ${{ secrets.VPS_USER || 'ubuntu' }}
-          password: ${{ secrets.VPS_PASSWORD }}
+          host: 43.157.230.29
+          port: 22
+          username: ubuntu
           key: ${{ secrets.VPS_SSH_KEY }}
+          debug: true
           timeout: 120s
           command_timeout: 20m
           script_stop: true
