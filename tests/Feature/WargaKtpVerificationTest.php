@@ -252,5 +252,42 @@ class WargaKtpVerificationTest extends TestCase
         $simGranted->assertStatus(200);
         $simGranted->assertJson(['success' => true]);
     }
+
+    public function test_ktp_photo_privacy_controls_protect_citizen_identity(): void
+    {
+        $wargaOwner = User::create([
+            'tenant_id' => $this->tenant->id,
+            'house_id' => $this->house->id,
+            'name' => 'Warga Pemilik KTP',
+            'email' => 'owner@warga.id',
+            'password' => bcrypt('warga123'),
+            'role' => 'warga',
+            'ktp_photo' => 'uploads/ktp/sample_ktp_siti.svg',
+            'verification_status' => 'pending_rw',
+            'status' => 'active',
+        ]);
+
+        $otherWarga = User::create([
+            'tenant_id' => $this->tenant->id,
+            'house_id' => $this->house->id,
+            'name' => 'Warga Asing',
+            'email' => 'other@warga.id',
+            'password' => bcrypt('warga123'),
+            'role' => 'warga',
+            'status' => 'active',
+        ]);
+
+        // 1. Tamu tanpa login ditolak dan diarahkan ke login
+        $this->get(route('warga.ktp.show', $wargaOwner->id))->assertRedirect(route('login'));
+
+        // 2. Warga lain tidak boleh mengintip KTP orang lain (403 Forbidden - UU PDP)
+        $this->actingAs($otherWarga)->get(route('warga.ktp.show', $wargaOwner->id))->assertStatus(403);
+
+        // 3. Warga pemilik KTP dapat melihat berkasnya sendiri (200 OK)
+        $this->actingAs($wargaOwner)->get(route('warga.ktp.show', $wargaOwner->id))->assertStatus(200);
+
+        // 4. Pengurus RW yang bertugas berhak memeriksa KTP untuk verifikasi (200 OK)
+        $this->actingAs($this->ketuaRw)->get(route('warga.ktp.show', $wargaOwner->id))->assertStatus(200);
+    }
 }
 

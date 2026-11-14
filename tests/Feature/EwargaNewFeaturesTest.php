@@ -24,7 +24,8 @@ class EwargaNewFeaturesTest extends TestCase
 
     public function test_can_access_jadwal_keamanan_page(): void
     {
-        $response = $this->get('/jadwal-keamanan');
+        $user = User::where('role', 'warga')->first();
+        $response = $this->actingAs($user)->get('/jadwal-keamanan');
         $response->assertStatus(200);
         $response->assertSee('Jadwal Keamanan');
         $response->assertSee('Pak Slamet');
@@ -74,7 +75,8 @@ class EwargaNewFeaturesTest extends TestCase
         $schedule = SecuritySchedule::where('status', 'scheduled')->first();
         $this->assertNotNull($schedule);
 
-        $response = $this->post("/jadwal-keamanan/{$schedule->id}/checkin");
+        $user = User::where('role', 'satpam')->first() ?? User::first();
+        $response = $this->actingAs($user)->post("/jadwal-keamanan/{$schedule->id}/checkin");
         $response->assertRedirect();
 
         $schedule->refresh();
@@ -84,7 +86,8 @@ class EwargaNewFeaturesTest extends TestCase
 
     public function test_can_access_posyandu_page(): void
     {
-        $response = $this->get('/posyandu');
+        $user = User::where('role', 'warga')->first();
+        $response = $this->actingAs($user)->get('/posyandu');
         $response->assertStatus(200);
         $response->assertSee('Modul Posyandu Digital RT/RW');
         $response->assertSee('Balita');
@@ -93,7 +96,8 @@ class EwargaNewFeaturesTest extends TestCase
 
     public function test_can_register_new_posyandu_member(): void
     {
-        $response = $this->post('/posyandu/members', [
+        $user = User::where('role', 'ketua_rw')->first() ?? User::where('role', 'super_admin')->first();
+        $response = $this->actingAs($user)->post('/posyandu/members', [
             'name' => 'Fathan Al-Ghifari',
             'category' => 'balita',
             'gender' => 'L',
@@ -117,7 +121,8 @@ class EwargaNewFeaturesTest extends TestCase
         $member = PosyanduMember::where('category', 'balita')->first();
         $this->assertNotNull($member);
 
-        $response = $this->post('/posyandu/records', [
+        $user = User::where('role', 'ketua_rw')->first() ?? User::where('role', 'super_admin')->first();
+        $response = $this->actingAs($user)->post('/posyandu/records', [
             'posyandu_member_id' => $member->id,
             'checkup_date' => date('Y-m-d'),
             'weight_kg' => 12.5,
@@ -136,14 +141,16 @@ class EwargaNewFeaturesTest extends TestCase
 
     public function test_can_access_letters_page(): void
     {
-        $response = $this->get('/surat-pengantar');
+        $user = User::where('role', 'warga')->first();
+        $response = $this->actingAs($user)->get('/surat-pengantar');
         $response->assertStatus(200);
         $response->assertSee('Layanan Surat Pengantar RT Online');
     }
 
     public function test_can_request_rt_letter(): void
     {
-        $response = $this->post('/surat-pengantar', [
+        $user = User::where('role', 'warga')->first();
+        $response = $this->actingAs($user)->post('/surat-pengantar', [
             'letter_type' => 'pengantar_kk',
             'applicant_name' => 'Bambang Pamungkas',
             'nik' => '3216012903820001',
@@ -164,7 +171,8 @@ class EwargaNewFeaturesTest extends TestCase
         $letter = LetterRequest::where('status', 'pending')->first();
         $this->assertNotNull($letter);
 
-        $response = $this->post("/surat-pengantar/{$letter->id}/approve");
+        $admin = User::where('role', 'ketua_rw')->first() ?? User::where('role', 'super_admin')->first();
+        $response = $this->actingAs($admin)->post("/surat-pengantar/{$letter->id}/approve");
         $response->assertRedirect();
 
         $letter->refresh();
@@ -212,7 +220,8 @@ class EwargaNewFeaturesTest extends TestCase
 
     public function test_dashboard_is_pure_operational_without_promo_registration(): void
     {
-        $response = $this->get('/dashboard');
+        $admin = User::where('role', 'ketua_rt')->first() ?? User::where('role', 'pengurus_rt')->first();
+        $response = $this->actingAs($admin)->get('/dashboard');
         $response->assertStatus(200);
         $response->assertSee('Dashboard Pengurus Lingkungan');
         $response->assertSee('Saldo Kas RT Aktif');

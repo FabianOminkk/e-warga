@@ -15,29 +15,52 @@ use Illuminate\Support\Facades\Cache;
 class IoTGateController extends Controller
 {
     /**
-     * Resolves the SmartGate device from request headers or auto-registers default ESP32.
+     * Resolves and authenticates the SmartGate device from request headers or body.
      */
     private function resolveDevice(Request $request): SmartGate
     {
         $deviceUid = $request->header('X-Device-UID') 
-            ?? $request->input('device_uid', 'ESP32-GATE-01');
+            ?? $request->input('device_uid');
         $deviceToken = $request->header('X-Device-Token') 
-            ?? $request->input('device_token', 'SECRET-EW-GATE-2026');
+            ?? $request->input('device_token');
+
+        if (!$deviceUid) {
+            abort(response()->json([
+                'success' => false,
+                'message' => 'Missing device UID (X-Device-UID header or device_uid parameter required).',
+            ], 401));
+        }
 
         $gate = SmartGate::where('device_uid', $deviceUid)->first();
 
         if (!$gate) {
-            $tenant = Tenant::getActiveTenant() ?? Tenant::first();
-            $gate = SmartGate::create([
-                'tenant_id' => $tenant->id,
-                'name' => 'Gerbang Utama (ESP32 Gate)',
-                'device_uid' => $deviceUid,
-                'secret_token' => $deviceToken,
-                'status' => 'online',
-                'ip_address' => $request->ip(),
-                'last_ping_at' => now(),
-            ]);
+            // Dalam mode pengujian otomatis (testing/local), izinkan auto-create jika belum terdaftar
+            if (app()->environment('testing', 'local')) {
+                $tenant = Tenant::getActiveTenant() ?? Tenant::first();
+                $gate = SmartGate::create([
+                    'tenant_id' => $tenant?->id ?? 1,
+                    'name' => 'Gerbang Otomatis (' . $deviceUid . ')',
+                    'device_uid' => $deviceUid,
+                    'secret_token' => $deviceToken ?? 'TEST-TOKEN',
+                    'status' => 'online',
+                    'ip_address' => $request->ip(),
+                    'last_ping_at' => now(),
+                ]);
+            } else {
+                abort(response()->json([
+                    'success' => false,
+                    'message' => 'Device UID tidak terdaftar di sistem.',
+                ], 401));
+            }
         } else {
+            // Verifikasi secret token jika disetel di database
+            if ($gate->secret_token && $deviceToken && !hash_equals($gate->secret_token, (string) $deviceToken)) {
+                abort(response()->json([
+                    'success' => false,
+                    'message' => 'Invalid device token authentication.',
+                ], 401));
+            }
+
             $gate->update([
                 'status' => 'online',
                 'ip_address' => $request->ip(),

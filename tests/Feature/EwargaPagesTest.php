@@ -23,16 +23,29 @@ class EwargaPagesTest extends TestCase
         $response->assertSee('E-WARGA');
     }
 
+    public function test_unauthenticated_guests_are_redirected_to_login(): void
+    {
+        $this->get('/dashboard')->assertRedirect('/login');
+        $this->get('/warga')->assertRedirect('/login');
+        $this->get('/satpam')->assertRedirect('/login');
+        $this->get('/posyandu')->assertRedirect('/login');
+        $this->get('/surat-pengantar')->assertRedirect('/login');
+        $this->get('/jadwal-keamanan')->assertRedirect('/login');
+    }
+
     public function test_dashboard_renders_successfully(): void
     {
-        $response = $this->get('/dashboard');
+        $admin = \App\Models\User::where('role', 'ketua_rt')->first() 
+            ?? \App\Models\User::where('role', 'pengurus_rt')->first();
+        $response = $this->actingAs($admin)->get('/dashboard');
         $response->assertStatus(200);
         $response->assertSee('Dashboard Pengurus Lingkungan');
     }
 
     public function test_satpam_console_renders_successfully(): void
     {
-        $response = $this->get('/satpam');
+        $satpam = \App\Models\User::where('role', 'satpam')->first();
+        $response = $this->actingAs($satpam)->get('/satpam');
         $response->assertStatus(200);
         $response->assertSee('Console Pos Jaga');
     }
@@ -46,7 +59,8 @@ class EwargaPagesTest extends TestCase
 
     public function test_warga_mobile_view_renders_successfully(): void
     {
-        $response = $this->get('/warga');
+        $warga = \App\Models\User::where('role', 'warga')->first();
+        $response = $this->actingAs($warga)->get('/warga');
         $response->assertStatus(200);
         $response->assertSee('BUKA GERBANG PORTAL');
     }

@@ -13,10 +13,10 @@ class SystemDeploymentController extends BaseApiController
      */
     public function deploy(Request $request): JsonResponse
     {
-        $expectedToken = config('app.deploy_token') ?: env('DEPLOY_TOKEN', 'ewarga-secret-deploy-token-2026');
+        $expectedToken = config('app.deploy_token') ?: env('DEPLOY_TOKEN');
         $providedToken = $request->header('X-Deploy-Token') ?: $request->query('token');
 
-        if (!$providedToken || !hash_equals($expectedToken, (string) $providedToken)) {
+        if (!$expectedToken || !$providedToken || !hash_equals($expectedToken, (string) $providedToken)) {
             return $this->error('Unauthorized deployment token', null, 401);
         }
 

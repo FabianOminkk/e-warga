@@ -391,7 +391,7 @@
 
                 @if($user->ktp_photo)
                     <div class="mb-4 rounded-xl overflow-hidden border border-blue-700/50 bg-slate-950">
-                        <img src="{{ asset($user->ktp_photo) }}" alt="Foto KTP Warga" class="w-full h-32 object-cover">
+                        <img src="{{ $user->ktp_url }}" alt="Foto KTP Warga" class="w-full h-32 object-cover">
                     </div>
                 @endif
 

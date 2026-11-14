@@ -27,7 +27,7 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('v1')->group(function () {
 
     // --- A. PUBLIC & AUTHENTICATION ENDPOINTS ---
-    Route::post('/auth/login', [AuthController::class, 'login'])->name('api.auth.login');
+    Route::post('/auth/login', [AuthController::class, 'login'])->name('api.auth.login')->middleware('throttle:5,1');
     Route::get('/letters/verify/{code}', [LetterApiController::class, 'verify'])->name('api.letters.verify');
     Route::match(['get', 'post'], '/system/deploy-webhook', [SystemDeploymentController::class, 'deploy'])->name('api.system.deploy');
 
@@ -39,7 +39,7 @@ Route::prefix('v1')->group(function () {
     });
 
     // --- C. AI ASSISTANT (BANG WARGA AI INTERACTIVE ENGINE) ---
-    Route::post('/ai/chat', [AiAssistantController::class, 'chat'])->name('api.ai.chat');
+    Route::post('/ai/chat', [AiAssistantController::class, 'chat'])->name('api.ai.chat')->middleware('throttle:20,1');
     Route::get('/ai/suggestions', [AiAssistantController::class, 'suggestions'])->name('api.ai.suggestions');
 
     // --- D. PROTECTED BUSINESS APIS (BEARER TOKEN REQUIRED) ---

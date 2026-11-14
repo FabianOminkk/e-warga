@@ -55,6 +55,22 @@ class User extends Authenticatable
         ];
     }
 
+    /**
+     * URL aman untuk melihat berkas foto KTP sesuai standar UU PDP.
+     */
+    public function getKtpUrlAttribute(): string
+    {
+        if (!$this->ktp_photo) {
+            return asset('uploads/ktp/sample_ktp_siti.svg');
+        }
+
+        if (str_starts_with($this->ktp_photo, 'uploads/ktp/sample_')) {
+            return asset($this->ktp_photo);
+        }
+
+        return route('warga.ktp.show', $this->id);
+    }
+
     public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);

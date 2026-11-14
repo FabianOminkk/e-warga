@@ -20,14 +20,12 @@ class WargaController extends Controller
 {
     public function index()
     {
-        $tenant = Tenant::getActiveTenant() ?? Tenant::first();
         $user = Auth::user();
-
         if (!$user) {
-            $user = User::where('tenant_id', $tenant?->id)->where('role', 'warga')->with('house')->first() 
-                ?? User::where('role', 'warga')->first();
+            return redirect()->route('login');
         }
 
+        $tenant = Tenant::find($user->tenant_id) ?? Tenant::getActiveTenant() ?? Tenant::first();
         $smartGate = SmartGate::where('tenant_id', $tenant?->id)->first() ?? SmartGate::first();
 
         // Tagihan Warga
@@ -59,14 +57,12 @@ class WargaController extends Controller
 
     public function profile()
     {
-        $tenant = Tenant::getActiveTenant() ?? Tenant::first();
         $user = Auth::user();
-
         if (!$user) {
-            $user = User::where('tenant_id', $tenant?->id)->where('role', 'warga')->first() 
-                ?? User::where('role', 'warga')->first();
+            return redirect()->route('login');
         }
 
+        $tenant = Tenant::find($user->tenant_id) ?? Tenant::getActiveTenant() ?? Tenant::first();
         $houses = House::where('tenant_id', $tenant?->id)->orderBy('block_name')->orderBy('house_number')->get();
 
         return view('pages.warga-profile', compact('user', 'tenant', 'houses'));
@@ -249,16 +245,12 @@ class WargaController extends Controller
             $dataToUpdate['rfid_tag'] = 'RFID-' . $validated['nik'];
         }
 
-        // Upload Foto KTP jika dilampirkan
+        // Upload Foto KTP jika dilampirkan (Disimpan privat untuk privasi warga & UU PDP)
         if ($request->hasFile('ktp_photo')) {
             $file = $request->file('ktp_photo');
-            $uploadDir = public_path('uploads/ktp');
-            if (!file_exists($uploadDir)) {
-                mkdir($uploadDir, 0755, true);
-            }
             $fileName = 'ktp_' . $user->id . '_' . time() . '.' . $file->getClientOriginalExtension();
-            $file->move($uploadDir, $fileName);
-            $dataToUpdate['ktp_photo'] = 'uploads/ktp/' . $fileName;
+            $storedPath = $file->storeAs('ktp', $fileName, 'local');
+            $dataToUpdate['ktp_photo'] = $storedPath;
         } elseif (!$user->ktp_photo) {
             // Pasang sample svg jika baru pertama kali mengisi dan tidak upload manual
             $dataToUpdate['ktp_photo'] = 'uploads/ktp/sample_ktp_siti.svg';
@@ -273,6 +265,49 @@ class WargaController extends Controller
         $user->update($dataToUpdate);
 
         return redirect()->route('warga.profile')->with('success', 'Data identitas KTP berhasil disimpan! Berkas Anda saat ini masuk ke antrean verifikasi Ketua RW (Bpk. H. Rahmat Hidayat). Akses palang pintu & izin tamu akan aktif otomatis setelah disetujui Pak RW.');
+    }
+
+    /**
+     * Menampilkan foto KTP secara aman (hanya untuk pemilik KTP atau pengurus RW/RT/Super Admin).
+     * Mematuhi UU Perlindungan Data Pribadi (UU PDP No. 27/2022).
+     */
+    public function showKtpPhoto($id)
+    {
+        $currentUser = Auth::user();
+        if (!$currentUser) {
+            return redirect()->route('login');
+        }
+
+        $targetUser = User::findOrFail($id);
+
+        $isOwner = $currentUser->id === $targetUser->id;
+        $isOfficial = in_array($currentUser->role, ['super_admin', 'ketua_rw', 'ketua_rt', 'bendahara', 'satpam']);
+
+        if (!$isOwner && !$isOfficial) {
+            abort(403, 'Akses ditolak: Anda tidak memiliki wewenang untuk melihat berkas KTP warga ini.');
+        }
+
+        $photoPath = $targetUser->ktp_photo;
+        if (!$photoPath) {
+            abort(404, 'Berkas KTP tidak ditemukan.');
+        }
+
+        // 1. Cek di private storage local disk
+        if (\Illuminate\Support\Facades\Storage::disk('local')->exists($photoPath)) {
+            return response()->file(storage_path('app/' . $photoPath));
+        }
+
+        // 2. Cek di private storage dengan prefix storage/app/
+        if (\Illuminate\Support\Facades\Storage::disk('local')->exists('private/' . $photoPath)) {
+            return response()->file(storage_path('app/private/' . $photoPath));
+        }
+
+        // 3. Fallback jika masih berkas sample SVG di public/uploads
+        if (file_exists(public_path($photoPath))) {
+            return response()->file(public_path($photoPath));
+        }
+
+        abort(404, 'Berkas fisik KTP tidak ditemukan di server.');
     }
 
     public function changePassword(Request $request)

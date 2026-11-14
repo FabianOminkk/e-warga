@@ -217,8 +217,8 @@
                             <td class="py-3.5 px-3">
                                 <div class="flex items-center gap-3">
                                     @if($wv->ktp_photo)
-                                        <a href="{{ asset($wv->ktp_photo) }}" target="_blank" class="shrink-0" title="Klik untuk perbesar foto KTP">
-                                            <img src="{{ asset($wv->ktp_photo) }}" alt="Foto KTP" class="w-12 h-8 rounded-lg object-cover border border-slate-300 dark:border-slate-700 hover:scale-110 transition shadow-xs">
+                                        <a href="{{ $wv->ktp_url }}" target="_blank" class="shrink-0" title="Klik untuk perbesar foto KTP">
+                                            <img src="{{ $wv->ktp_url }}" alt="Foto KTP" class="w-12 h-8 rounded-lg object-cover border border-slate-300 dark:border-slate-700 hover:scale-110 transition shadow-xs">
                                         </a>
                                     @else
                                         <div class="w-12 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[10px] text-slate-400 font-bold border border-dashed border-slate-300 dark:border-slate-700 shrink-0">

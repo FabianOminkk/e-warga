@@ -17,3 +17,4 @@ if exist "id_ed25519_ewarga.key" (
 )
 echo.
 pause
+
