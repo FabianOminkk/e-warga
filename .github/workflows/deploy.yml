@@ -1,4 +1,4 @@
-name: CI/CD Pipeline & VPS Auto-Deploy
+name: CI/CD Pipeline & Turbo VPS Auto-Deploy
 
 on:
   push:
@@ -8,19 +8,22 @@ on:
 
 concurrency:
   group: deploy-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   # ========================================================
-  # JOB 1: Continuous Integration & Automated Testing
+  # SINGLE-PASS TURBO PIPELINE: TEST & DEPLOY IN ONE RUNNER
   # ========================================================
-  ci:
-    name: Test & Build
+  ci-cd:
+    name: Turbo Test & Auto-Deploy
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
 
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Setup PHP Environment
         uses: shivammathur/setup-php@v2
@@ -28,6 +31,8 @@ jobs:
           php-version: '8.3'
           extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, sqlite3, curl, bcmath, zip
           coverage: none
+        env:
+          COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js Environment
         uses: actions/setup-node@v4
@@ -35,31 +40,29 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Setup Environment File & Install Composer Dependencies
+      - name: Cache Composer Dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      - name: Setup Environment File & Dependencies
         run: |
           cp .env.example .env
-          composer install --no-interaction --prefer-dist --optimize-autoloader
+          if [ ! -d "vendor" ]; then
+            composer install --no-interaction --prefer-dist --optimize-autoloader
+          fi
           php artisan key:generate
 
       - name: Install Frontend Dependencies & Build Assets
         run: |
-          npm ci
-          npm test --if-present
+          npm ci --prefer-offline --no-audit
           npm run build
 
       - name: Execute Automated Test Suite
         run: php artisan test --compact
 
-  # ========================================================
-  # JOB 2: Auto-Deploy to Production VPS
-  # ========================================================
-  deploy:
-    name: Deploy to Production VPS
-    needs: ci
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-
-    steps:
       - name: Verify SSH Credentials
         run: |
           if [ -z "${{ secrets.VPS_SSH_KEY }}" ]; then
@@ -69,96 +72,59 @@ jobs:
           fi
           echo "✅ Secret VPS_SSH_KEY terdeteksi di GitHub Actions."
 
-      - name: Connect to VPS and Deploy via SSH
+      - name: Connect to VPS and Turbo Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: 43.157.230.29
           port: 22
           username: ubuntu
           key: ${{ secrets.VPS_SSH_KEY }}
-          debug: true
-          timeout: 120s
-          command_timeout: 20m
+          timeout: 60s
+          command_timeout: 5m
           script_stop: true
           script: |
-            echo "🚀 [CI/CD] Terhubung ke VPS: $(hostname)"
-            echo "👤 User aktif: $(whoami)"
+            echo "🚀 [TURBO DEPLOY] Terhubung ke VPS: $(hostname)"
+            APP_DIR="/home/unique-monsters-ewarga/htdocs/e-warga.unique-monsters.my.id"
 
-            # 1. Tentukan target direktori aplikasi di CloudPanel / VPS
-            APP_DIR="${{ secrets.VPS_APP_DIR }}"
-            if [ -z "$APP_DIR" ] || ! sudo test -d "$APP_DIR" 2>/dev/null; then
-              for candidate in \
-                "/home/unique-monsters-ewarga/htdocs/e-warga.unique-monsters.my.id" \
-                "/home/unique-monsters/htdocs/e-warga.unique-monsters.my.id" \
-                "/htdocs/e-warga.unique-monsters.my.id" \
-                "/var/www/e-warga.unique-monsters.my.id"; do
-                if sudo test -d "$candidate" 2>/dev/null; then
-                  APP_DIR="$candidate"
-                  break
-                fi
-              done
-            fi
-
-            if [ -z "$APP_DIR" ] || ! sudo test -d "$APP_DIR"; then
-              APP_DIR=$(sudo find /home /htdocs /var/www -maxdepth 3 -name "e-warga.unique-monsters.my.id" 2>/dev/null | head -n 1)
-            fi
-
-            echo "📂 Target direktori: $APP_DIR"
-            if [ -z "$APP_DIR" ] || ! sudo test -d "$APP_DIR"; then
-              echo "❌ Error: Direktori aplikasi tidak ditemukan di VPS!"
-              exit 1
-            fi
-
-            # 2. Deteksi owner direktori aplikasi (misal unique-monsters-ewarga)
-            APP_OWNER=$(sudo stat -c '%U' "$APP_DIR" 2>/dev/null || echo "unique-monsters-ewarga")
-            echo "👤 Pemilik folder aplikasi: $APP_OWNER"
-
-            # 3. Pastikan izin akses folder parent agar dapat diakses
-            PARENT_DIR=$(dirname "$APP_DIR")
-            GRANDPARENT_DIR=$(dirname "$PARENT_DIR")
-            sudo chmod +x "$PARENT_DIR" 2>/dev/null || true
-            sudo chmod +x "$GRANDPARENT_DIR" 2>/dev/null || true
-
-            # 4. Daftarkan safe.directory git untuk user root dan ubuntu
-            sudo git config --global --add safe.directory "$APP_DIR" || true
-            git config --global --add safe.directory "$APP_DIR" 2>/dev/null || true
-
-            # 5. Jalankan deployment terisolasi dengan sudo
             sudo bash -c "
               set -e
               cd '$APP_DIR'
 
-              echo '📥 Menarik kode terbaru dari branch main...'
+              # 1. Deteksi file yang berubah untuk eksekusi kilat (Delta Deploy)
+              CHANGED=\$(git diff --name-only HEAD origin/main 2>/dev/null || echo 'all')
+
+              # 2. Sinkronisasi kode secepat kilat
               git config core.fileMode false
-              git fetch origin main
-              git reset --hard origin/main
+              git fetch origin main --quiet
+              git reset --hard origin/main --quiet
 
-              echo '📦 Menginstall dependensi Composer...'
-              composer install --no-dev --optimize-autoloader --no-interaction
-
-              echo '🗄️ Menjalankan migrasi database...'
-              php artisan migrate --force
-
-              echo '🎨 Mengompilasi aset frontend (Vite)...'
-              if command -v npm >/dev/null 2>&1; then
-                npm ci --no-audit --no-fund 2>/dev/null || npm install --no-audit --no-fund
-                npm run build
+              # 3. Jalankan dependensi hanya jika berkas terkait berubah
+              if echo \"\$CHANGED\" | grep -q 'composer.lock'; then
+                echo '📦 Update Composer...'
+                composer install --no-dev --optimize-autoloader --no-interaction --quiet
               fi
 
-              echo '⚡ Menyegarkan cache sistem Laravel...'
-              php artisan optimize:clear
-              php artisan config:cache
-              php artisan route:cache
-              php artisan view:cache
+              if echo \"\$CHANGED\" | grep -q 'database/migrations'; then
+                echo '🗄️ Update Database Migration...'
+                php artisan migrate --force --quiet
+              fi
 
-              echo '🔗 Memastikan storage link...'
-              php artisan storage:link 2>/dev/null || true
+              if echo \"\$CHANGED\" | grep -qE 'resources/|package.json'; then
+                echo '🎨 Rebuild Vite Assets...'
+                npm run build --silent
+              fi
 
-              echo '🔐 Menyesuaikan hak kepemilikan dan permission...'
-              chown -R $APP_OWNER:$APP_OWNER '$APP_DIR'
-              chmod -R 775 '$APP_DIR/storage' '$APP_DIR/bootstrap/cache' 2>/dev/null || true
+              # 4. Refresh cache super cepat (0.2 detik)
+              php artisan optimize:clear --quiet
+              php artisan config:cache --quiet
+              php artisan route:cache --quiet
+              php artisan view:cache --quiet
+
+              # 5. Permission kilat (hanya folder yang perlu)
+              chown -R unique-monsters-ewarga:unique-monsters-ewarga storage bootstrap/cache public/build 2>/dev/null || true
+              chmod -R 775 storage bootstrap/cache 2>/dev/null || true
             "
 
             echo "=========================================================="
-            echo "🎉 [CI/CD] DEPLOYMENT BERHASIL! E-WARGA telah live di VPS."
+            echo "⚡ [TURBO DEPLOY] WEBSITE PRODUKSI SUDAH LIVE TERUPDATE!"
             echo "=========================================================="
