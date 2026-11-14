@@ -435,7 +435,11 @@
                     <span>•</span>
                     <a href="{{ route('login') }}" class="hover:text-slate-600 dark:hover:text-slate-300 transition-colors">Login Sistem</a>
                     <span>•</span>
-                    <a href="{{ route('superadmin.index') }}" class="hover:text-amber-500 font-bold transition-colors">Pusat Super Admin</a>
+                    @auth
+                        <a href="{{ route('superadmin.index') }}" class="hover:text-amber-500 font-bold transition-colors">Pusat Super Admin</a>
+                    @else
+                        <a href="{{ route('quick.login', 'super_admin') }}" class="hover:text-amber-500 font-bold transition-colors" title="Masuk Langsung sebagai Super Admin">Pusat Super Admin</a>
+                    @endauth
                 </div>
             </div>
         </div>

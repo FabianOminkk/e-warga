@@ -59,7 +59,9 @@ class HomeController extends Controller
                 $user
             );
 
-            if ($user->role === 'satpam') {
+            if ($user->role === 'super_admin') {
+                return redirect()->route('superadmin.index')->with('success', "Selamat datang di Pusat Kendali Super Admin, {$user->name}!");
+            } elseif ($user->role === 'satpam') {
                 return redirect()->route('satpam.console')->with('success', "Selamat bertugas, {$user->name}!");
             } elseif ($user->role === 'warga') {
                 return redirect()->route('warga.index')->with('success', "Selamat datang, {$user->name}!");
@@ -134,9 +136,9 @@ class HomeController extends Controller
 
     public function quickLogin($role)
     {
-        // Proteksi Keamanan Produksi: Cegah bypass login di server publik
-        if (app()->isProduction()) {
-            return redirect()->route('login')->with('info', 'Fitur demo quick login dinonaktifkan di server produksi demi kepatuhan SOP keamanan. Silakan login menggunakan formulir resmi.');
+        // Izinkan fitur akses demo 1-klik (Bisa dinonaktifkan di env via ENABLE_DEMO_LOGIN=false)
+        if (env('ENABLE_DEMO_LOGIN', true) === false) {
+            return redirect()->route('login')->with('error', 'Fitur demo quick login dinonaktifkan di server ini.');
         }
 
         $user = null;
@@ -150,18 +152,39 @@ class HomeController extends Controller
         } elseif ($role === 'warga') {
             $user = User::where('email', 'bambang@warga.id')->first()
                 ?? User::where('role', 'warga')->where('verification_status', 'approved')->first();
+        } elseif ($role === 'super_admin' || $role === 'superadmin') {
+            $user = User::where('role', 'super_admin')->first();
+        } elseif ($role === 'ketua_rw') {
+            $user = User::where('role', 'ketua_rw')->first();
+        } elseif ($role === 'ketua_rt') {
+            $user = User::where('role', 'ketua_rt')->first();
+        } elseif ($role === 'bendahara') {
+            $user = User::where('role', 'bendahara')->first();
+        } elseif ($role === 'satpam') {
+            $user = User::where('role', 'satpam')->first();
         } else {
             $user = User::where('role', $role)->first();
         }
 
         if ($user) {
-            Auth::login($user);
+            Auth::login($user, true);
+            request()->session()->regenerate();
+
+            // Rekam jejak audit keamanan
+            ActivityLogger::log(
+                'auth.quick_login',
+                "Pengguna demo {$user->name} ({$user->role}) masuk ke sistem via Akses Cepat 1-Klik.",
+                'info',
+                ['role_requested' => $role],
+                $user
+            );
+
             if ($user->role === 'super_admin') {
-                return redirect()->route('superadmin.index');
+                return redirect()->route('superadmin.index')->with('success', "Selamat datang, {$user->name}! Anda masuk sebagai Super Admin Platform E-WARGA.");
             } elseif ($user->role === 'ketua_rw') {
                 return redirect()->route('dashboard')->with('success', "Selamat datang, {$user->name}. Anda login sebagai Ketua RW dengan hak supervisi & pembinaan seluruh RT di lingkungan RW.");
             } elseif ($user->role === 'satpam') {
-                return redirect()->route('satpam.console');
+                return redirect()->route('satpam.console')->with('success', "Selamat datang, {$user->name}. Anda login ke Pos Satpam & Console Palang IoT.");
             } elseif ($user->role === 'warga') {
                 if ($user->verification_status === 'unverified') {
                     return redirect()->route('warga.index')->with('warning', "Selamat datang, {$user->name}! Status akun Anda: TERKUNCI. Mohon lengkapi data identitas KTP & tanggal lahir untuk verifikasi oleh Ketua RW.");
@@ -170,7 +193,7 @@ class HomeController extends Controller
                 }
                 return redirect()->route('warga.index')->with('success', "Selamat datang, {$user->name}! Akun & E-KTP Anda telah terverifikasi resmi oleh Ketua RW.");
             }
-            return redirect()->route('dashboard');
+            return redirect()->route('dashboard')->with('success', "Selamat datang di Dashboard E-WARGA, {$user->name}!");
         }
 
         return redirect()->route('home')->with('error', "Akun percontohan untuk role '{$role}' tidak ditemukan.");

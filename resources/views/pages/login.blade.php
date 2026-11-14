@@ -114,10 +114,20 @@
                     <p class="text-xs text-slate-500 dark:text-slate-400">Gunakan akun percontohan 1-klik di bawah atau masukkan email login Anda.</p>
                 </div>
 
-                <!-- Notifikasi Error / Sukses -->
+                <!-- Notifikasi Error / Sukses / Info -->
                 @if(session('success'))
                     <div class="mt-4 p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-medium leading-relaxed">
                         {{ session('success') }}
+                    </div>
+                @endif
+                @if(session('warning'))
+                    <div class="mt-4 p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 text-xs font-medium leading-relaxed">
+                        {{ session('warning') }}
+                    </div>
+                @endif
+                @if(session('info'))
+                    <div class="mt-4 p-3.5 rounded-2xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300 text-xs font-medium leading-relaxed">
+                        {{ session('info') }}
                     </div>
                 @endif
                 @if(session('error'))
