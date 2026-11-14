@@ -1,3 +1,7 @@
+@props([
+    'hasBottomBar' => false
+])
+
 {{-- 
     KOMPONEN ANDROID-STYLE IN-APP AI ASSISTANT ("BANG WARGA AI")
     Menggunakan Arsitektur Hybrid:
@@ -164,11 +168,11 @@
     <!-- ======================================================== -->
     <!-- 1. ANDROID FLOATING ACTION BUTTON (FAB) DOCK             -->
     <!-- ======================================================== -->
-    <div class="fixed bottom-20 lg:bottom-6 right-4 sm:right-6 z-40">
+    <div class="{{ $hasBottomBar ? 'hidden lg:flex fixed lg:bottom-6 right-4 sm:right-6 z-40' : 'fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-40 flex' }}">
         <button 
             type="button" 
             @click="toggle()" 
-            class="group relative flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 text-white font-black text-xs shadow-xl shadow-emerald-600/30 hover:shadow-emerald-600/50 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer border border-white/20 touch-press card-interactive btn-shimmer"
+            class="group relative flex items-center gap-2.5 px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-full bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 text-white font-black text-xs shadow-xl shadow-emerald-600/30 hover:shadow-emerald-600/50 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer border border-white/20 touch-press card-interactive btn-shimmer"
             aria-label="Tanya Asisten AI Bang Warga"
             :title="isOpen ? 'Tutup Asisten Bang Warga AI' : 'Buka Asisten Bang Warga AI'"
         >

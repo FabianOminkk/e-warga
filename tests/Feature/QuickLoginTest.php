@@ -102,3 +102,4 @@ class QuickLoginTest extends TestCase
         $this->assertEquals('warga', Auth::user()->role);
     }
 }
+

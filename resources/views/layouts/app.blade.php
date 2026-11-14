@@ -267,9 +267,9 @@
                             <span>Masuk</span>
                         </a>
 
-                        <!-- Tombol CTA Utama dengan Efek Linear Shimmer & Glide Arrow -->
-                        <a href="#kerjasama" class="relative group overflow-hidden px-4 sm:px-5 py-2 sm:py-2.5 rounded-full bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-400 text-white font-extrabold text-xs shadow-lg shadow-emerald-600/30 transition-all duration-300 transform hover:-translate-y-0.5 active:scale-95 flex items-center gap-2 cursor-pointer touch-press btn-shimmer">
-                            <span class="relative z-10">Konsultasi & Survei</span>
+                        <!-- Tombol CTA Utama dengan Efek Linear Shimmer & Glide Arrow (Responsif Mobile) -->
+                        <a href="#kerjasama" class="relative group overflow-hidden px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-full bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-400 text-white font-extrabold text-[11px] sm:text-xs shadow-lg shadow-emerald-600/30 transition-all duration-300 transform hover:-translate-y-0.5 active:scale-95 flex items-center gap-1.5 sm:gap-2 cursor-pointer touch-press btn-shimmer">
+                            <span class="relative z-10">Konsultasi<span class="hidden sm:inline"> & Survei</span></span>
                             <span class="relative z-10 transition-transform duration-300 group-hover:translate-x-1 font-bold">➔</span>
                         </a>
                     @endauth
@@ -370,7 +370,7 @@
     </main>
 
     <!-- FOOTER RESMI BRANDING E-WARGA -->
-    <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 pt-16 pb-28 sm:pb-32 lg:pb-24 text-xs text-slate-500 dark:text-slate-400">
+    <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 pt-16 pb-32 sm:pb-36 lg:pb-28 text-xs text-slate-500 dark:text-slate-400">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
                 <div class="space-y-4">
@@ -428,7 +428,7 @@
                 </div>
             </div>
 
-            <div class="pt-8 border-t border-slate-100 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-slate-400 lg:pr-56 xl:pr-64">
+            <div class="pt-8 border-t border-slate-100 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-slate-400 md:pr-64 lg:pr-72 pb-6 sm:pb-2">
                 <div>&copy; {{ date('Y') }} E-WARGA by FabianGanteng-dilindungi undang-undang.</div>
                 <div class="flex flex-wrap items-center justify-center gap-4 text-[11px]">
                     <a href="#kerjasama" class="hover:text-slate-600 dark:hover:text-slate-300 transition-colors">Hubungi Konsultan</a>
@@ -888,7 +888,7 @@
         class="flex-1 flex flex-col min-w-0 min-h-screen transition-all duration-300 ease-in-out"
     >
         <!-- TOPBAR TOOLBAR TIPIS OPERASIONAL -->
-        <header class="h-16 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 px-6 flex items-center justify-between gap-4 transition-colors duration-200">
+        <header class="h-16 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 px-3.5 sm:px-6 flex items-center justify-between gap-3 sm:gap-4 transition-colors duration-200">
             <!-- Kiri: Tombol Laci & Breadcrumb -->
             <div class="flex items-center gap-3">
                 <button 
@@ -1098,7 +1098,7 @@
     <!-- ======================================================== -->
     <!-- ASISTEN AI BANG WARGA (KOMPONEN HYBRID GLOBAL)           -->
     <!-- ======================================================== -->
-    <x-ai-assistant />
+    <x-ai-assistant :has-bottom-bar="!$isLanding && !$isLogin" />
 
     <!-- ======================================================== -->
     <!-- MODAL 1: GLOBAL POP-UP FITUR COMING SOON                 -->

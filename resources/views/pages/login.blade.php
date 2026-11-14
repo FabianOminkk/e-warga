@@ -33,18 +33,18 @@
                 </button>
             </div>
 
-            <a href="{{ route('home') }}" class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300 transition shadow-xs flex items-center gap-1.5">
+            <a href="{{ route('home') }}" class="px-3 sm:px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300 transition shadow-xs flex items-center gap-1.5">
                 <span>←</span>
-                <span>Kembali ke Beranda</span>
+                <span class="hidden sm:inline">Kembali ke </span><span>Beranda</span>
             </a>
         </div>
     </header>
 
-    <!-- Main Login Card (Desktop 2-Column Split View) -->
+    <!-- Main Login Card (Desktop 2-Column Split View, Mobile Form First) -->
     <div class="max-w-5xl w-full mx-auto my-auto grid grid-cols-1 lg:grid-cols-12 bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
         
-        <!-- SISI KIRI: BRANDING & BENEFIT SAAS (5 COLS) -->
-        <div class="lg:col-span-5 bg-gradient-to-br from-[#0F172A] via-[#1B365D] to-emerald-950 p-8 sm:p-10 text-white flex flex-col justify-between relative overflow-hidden">
+        <!-- SISI KIRI: BRANDING & BENEFIT SAAS (5 COLS, ORDER-2 PADA MOBILE) -->
+        <div class="order-2 lg:order-1 lg:col-span-5 bg-gradient-to-br from-[#0F172A] via-[#1B365D] to-emerald-950 p-6 sm:p-10 text-white flex flex-col justify-between relative overflow-hidden">
             <!-- Background Ambient Glow -->
             <div class="absolute -top-24 -left-24 w-64 h-64 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none"></div>
             <div class="absolute -bottom-24 -right-24 w-64 h-64 bg-cyan-500/15 rounded-full blur-3xl pointer-events-none"></div>
@@ -105,8 +105,8 @@
             </div>
         </div>
 
-        <!-- SISI KANAN: FORM LOGIN & 1-CLICK DEMO AKUN (7 COLS) -->
-        <div class="lg:col-span-7 p-8 sm:p-10 flex flex-col justify-between space-y-6">
+        <!-- SISI KANAN: FORM LOGIN & 1-CLICK DEMO AKUN (7 COLS, ORDER-1 PADA MOBILE) -->
+        <div class="order-1 lg:order-2 lg:col-span-7 p-6 sm:p-10 flex flex-col justify-between space-y-6">
             <div>
                 <!-- Header Form -->
                 <div class="pb-4 border-b border-slate-100 dark:border-slate-800 space-y-1">

@@ -24,7 +24,7 @@
                 </div>
                 
                 <!-- Main Headline (Hierarki Visual H1 Dominan & Jelas) -->
-                <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.12]">
+                <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.12]">
                     Modernisasi Lingkungan RT/RW, <span class="bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-500 bg-clip-text text-transparent">Cluster Perumahan</span> & Desa Mandiri.
                 </h1>
 
@@ -58,25 +58,25 @@
                     @endauth
                 </div>
 
-                <!-- Live Metrics Summary: Bukti Sosial Real-Time & Transparan (Count-Up Animation) -->
-                <div class="grid grid-cols-3 gap-4 sm:gap-6 pt-6 border-t border-slate-200 dark:border-slate-800">
+                <!-- Live Metrics Summary: Bukti Sosial Real-Time & Transparan (Count-Up Animation Responsif) -->
+                <div class="grid grid-cols-3 gap-2 sm:gap-6 pt-6 border-t border-slate-200 dark:border-slate-800">
                     <div class="space-y-1">
-                        <div x-data="countUp({{ $totalHouses }}, 1200)" x-text="displayValue + ' Unit'" class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white font-mono">
+                        <div x-data="countUp({{ $totalHouses }}, 1200)" x-text="displayValue + ' Unit'" class="text-base sm:text-2xl lg:text-3xl font-black text-slate-900 dark:text-white font-mono tracking-tight">
                             {{ $totalHouses }} Unit
                         </div>
-                        <div class="text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400">Rumah Terdata</div>
+                        <div class="text-[10px] sm:text-sm font-semibold text-slate-500 dark:text-slate-400 truncate">Rumah Terdata</div>
                     </div>
                     <div class="space-y-1">
-                        <div x-data="countUp({{ $totalUsers }}, 1500)" x-text="displayValue + ' Jiwa'" class="text-2xl sm:text-3xl font-black text-indigo-600 dark:text-indigo-400 font-mono">
+                        <div x-data="countUp({{ $totalUsers }}, 1500)" x-text="displayValue + ' Jiwa'" class="text-base sm:text-2xl lg:text-3xl font-black text-indigo-600 dark:text-indigo-400 font-mono tracking-tight">
                             {{ $totalUsers }} Jiwa
                         </div>
-                        <div class="text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400">Warga Terdaftar</div>
+                        <div class="text-[10px] sm:text-sm font-semibold text-slate-500 dark:text-slate-400 truncate">Warga Terdaftar</div>
                     </div>
                     <div class="space-y-1">
-                        <div x-data="countUp({{ (int) $totalCash }}, 1800, true)" x-text="displayValue" class="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400 font-mono">
+                        <div x-data="countUp({{ (int) $totalCash }}, 1800, true)" x-text="displayValue" class="text-base sm:text-2xl lg:text-3xl font-black text-emerald-600 dark:text-emerald-400 font-mono tracking-tight">
                             Rp {{ number_format($totalCash, 0, ',', '.') }}
                         </div>
-                        <div class="text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400">Kas Terbuka Live</div>
+                        <div class="text-[10px] sm:text-sm font-semibold text-slate-500 dark:text-slate-400 truncate">Kas Terbuka Live</div>
                     </div>
                 </div>
             </div>
@@ -128,10 +128,10 @@
                                     <span class="w-1.5 h-1.5 rounded-full mt-1" :class="isOpen ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'"></span>
                                 </div>
 
-                                <!-- Palang Bergaris Merah-Putih dengan CSS Rotate Animation -->
+                                <!-- Palang Bergaris Merah-Putih dengan CSS Rotate Animation (Responsif Mobile) -->
                                 <div class="pb-2">
                                     <div 
-                                        class="barrier-arm w-32 sm:w-44 h-3 bg-gradient-to-r from-red-600 via-white to-red-600 rounded-r-md shadow-lg border border-slate-700/60"
+                                        class="barrier-arm w-28 sm:w-44 h-3 bg-gradient-to-r from-red-600 via-white to-red-600 rounded-r-md shadow-lg border border-slate-700/60"
                                         :class="{ 'is-open': isOpen }"
                                     ></div>
                                 </div>
@@ -216,29 +216,29 @@
                         </span>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-2.5 text-xs">
-                        <a href="{{ route('quick.login', 'super_admin') }}" class="p-2.5 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50/40 dark:bg-amber-950/20 hover:bg-amber-100/60 transition flex items-center gap-2 group">
-                            <span class="text-base">⚡</span>
+                    <div class="grid grid-cols-2 gap-2 sm:gap-2.5 text-[11px] sm:text-xs">
+                        <a href="{{ route('quick.login', 'super_admin') }}" class="p-2 sm:p-2.5 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50/40 dark:bg-amber-950/20 hover:bg-amber-100/60 transition flex items-center gap-1.5 sm:gap-2 group">
+                            <span class="text-sm sm:text-base">⚡</span>
                             <span class="font-bold text-slate-900 dark:text-white group-hover:text-amber-600 truncate">Super Admin</span>
                         </a>
-                        <a href="{{ route('quick.login', 'ketua_rw') }}" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-indigo-500 hover:bg-indigo-50/40 transition flex items-center gap-2 group">
-                            <span class="text-base">🏛️</span>
+                        <a href="{{ route('quick.login', 'ketua_rw') }}" class="p-2 sm:p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-indigo-500 hover:bg-indigo-50/40 transition flex items-center gap-1.5 sm:gap-2 group">
+                            <span class="text-sm sm:text-base">🏛️</span>
                             <span class="font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 truncate">Ketua RW</span>
                         </a>
-                        <a href="{{ route('quick.login', 'ketua_rt') }}" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 hover:bg-emerald-50/40 transition flex items-center gap-2 group">
-                            <span class="text-base">👔</span>
+                        <a href="{{ route('quick.login', 'ketua_rt') }}" class="p-2 sm:p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 hover:bg-emerald-50/40 transition flex items-center gap-1.5 sm:gap-2 group">
+                            <span class="text-sm sm:text-base">👔</span>
                             <span class="font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 truncate">Ketua RT</span>
                         </a>
-                        <a href="{{ route('quick.login', 'bendahara') }}" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 hover:bg-emerald-50/40 transition flex items-center gap-2 group">
-                            <span class="text-base">💰</span>
+                        <a href="{{ route('quick.login', 'bendahara') }}" class="p-2 sm:p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 hover:bg-emerald-50/40 transition flex items-center gap-1.5 sm:gap-2 group">
+                            <span class="text-sm sm:text-base">💰</span>
                             <span class="font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 truncate">Bendahara</span>
                         </a>
-                        <a href="{{ route('quick.login', 'satpam') }}" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 hover:bg-emerald-50/40 transition flex items-center gap-2 group">
-                            <span class="text-base">🛡️</span>
+                        <a href="{{ route('quick.login', 'satpam') }}" class="p-2 sm:p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 hover:bg-emerald-50/40 transition flex items-center gap-1.5 sm:gap-2 group">
+                            <span class="text-sm sm:text-base">🛡️</span>
                             <span class="font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 truncate">Pos Satpam</span>
                         </a>
-                        <a href="{{ route('quick.login', 'warga') }}" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 hover:bg-emerald-50/40 transition flex items-center gap-2 group">
-                            <span class="text-base">🏡</span>
+                        <a href="{{ route('quick.login', 'warga') }}" class="p-2 sm:p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 hover:bg-emerald-50/40 transition flex items-center gap-1.5 sm:gap-2 group">
+                            <span class="text-sm sm:text-base">🏡</span>
                             <span class="font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 truncate">Portal Warga</span>
                         </a>
                     </div>
