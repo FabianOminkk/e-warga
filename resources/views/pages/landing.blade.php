@@ -7,7 +7,11 @@
     <!-- 1. HERO SECTION (HIGH-CONVERSION ENTERPRISE BRANDING)     -->
     <!-- Menjawab Solusi dalam 5 Detik Pertama Sesuai Konsep UI/UX-->
     <!-- ======================================================== -->
-    <section id="hero" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="hero" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+        
+        <!-- Ambient Background Glow Orb (Apple / Linear Aesthetic) -->
+        <div class="absolute -top-16 left-1/2 -translate-x-1/2 w-[650px] h-[320px] bg-gradient-to-tr from-emerald-500/15 via-teal-400/10 to-indigo-500/10 blur-3xl pointer-events-none rounded-full animate-float-ambient -z-10"></div>
+
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
             
             <!-- Left Hero Content: Hierarki Visual & Value Proposition -->
@@ -31,7 +35,7 @@
 
                 <!-- Action CTA Buttons (Alur Singkat / Friction Reduction) -->
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
-                    <a href="#kerjasama" class="px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-2xl shadow-xl shadow-emerald-600/30 text-base transition-all transform hover:-translate-y-0.5 text-center flex items-center justify-center gap-3 cursor-pointer touch-press">
+                    <a href="#kerjasama" class="px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-2xl shadow-xl shadow-emerald-600/30 text-base transition-all transform hover:-translate-y-0.5 text-center flex items-center justify-center gap-3 cursor-pointer touch-press btn-shimmer">
                         <span>Daftarkan Lingkungan Anda</span>
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                     </a>
@@ -54,70 +58,138 @@
                     @endauth
                 </div>
 
-                <!-- Live Metrics Summary: Bukti Sosial Real-Time & Transparan -->
+                <!-- Live Metrics Summary: Bukti Sosial Real-Time & Transparan (Count-Up Animation) -->
                 <div class="grid grid-cols-3 gap-4 sm:gap-6 pt-6 border-t border-slate-200 dark:border-slate-800">
                     <div class="space-y-1">
-                        <div class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white font-mono">{{ $totalHouses }} Unit</div>
+                        <div x-data="countUp({{ $totalHouses }}, 1200)" x-text="displayValue + ' Unit'" class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white font-mono">
+                            {{ $totalHouses }} Unit
+                        </div>
                         <div class="text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400">Rumah Terdata</div>
                     </div>
                     <div class="space-y-1">
-                        <div class="text-2xl sm:text-3xl font-black text-indigo-600 dark:text-indigo-400 font-mono">{{ $totalUsers }} Jiwa</div>
+                        <div x-data="countUp({{ $totalUsers }}, 1500)" x-text="displayValue + ' Jiwa'" class="text-2xl sm:text-3xl font-black text-indigo-600 dark:text-indigo-400 font-mono">
+                            {{ $totalUsers }} Jiwa
+                        </div>
                         <div class="text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400">Warga Terdaftar</div>
                     </div>
                     <div class="space-y-1">
-                        <div class="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400 font-mono">Rp {{ number_format($totalCash, 0, ',', '.') }}</div>
+                        <div x-data="countUp({{ (int) $totalCash }}, 1800, true)" x-text="displayValue" class="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400 font-mono">
+                            Rp {{ number_format($totalCash, 0, ',', '.') }}
+                        </div>
                         <div class="text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400">Kas Terbuka Live</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Right Hero Section: BENTO SHOWCASE (Visualisasi Cara Kerja Sistem) -->
+            <!-- Right Hero Section: BENTO SHOWCASE (Interactive Motion IoT Simulator) -->
             <div class="lg:col-span-5 space-y-6">
                 
-                <!-- KARTU 1: LIVE INTERACTIVE BENTO PREVIEW -->
-                <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-7 space-y-5 relative overflow-hidden">
+                <!-- KARTU 1: LIVE INTERACTIVE BENTO PREVIEW DENGAN SIMULASI PALANG PINTU -->
+                <div x-data="heroGateDemo" class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-7 space-y-5 relative overflow-hidden transition-all duration-300">
                     
                     <!-- Top Bar Kartu: Telemetri Gerbang -->
                     <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
                         <div class="flex items-center gap-2.5">
-                            <span class="w-3 h-3 rounded-full bg-emerald-500 animate-ping"></span>
+                            <span class="w-3 h-3 rounded-full" :class="isOpen ? 'bg-amber-400 animate-ping' : 'bg-emerald-500 animate-ping'"></span>
                             <span class="font-mono text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">
-                                TELEMETRI SMART GATE #01
+                                SMART GATE ESP32 #01
                             </span>
                         </div>
-                        <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                        <span 
+                            class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border transition-colors duration-200"
+                            :class="isOpen ? 'bg-amber-50 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800' : 'bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'"
+                            x-text="isOpen ? 'PALANG TERBUKA (' + timer + 's)' : 'ONLINE • AKTIF'"
+                        >
                             ONLINE • AKTIF
                         </span>
                     </div>
 
-                    <!-- Visual Mini-Simulator Gerbang -->
-                    <div class="p-4 rounded-2xl bg-slate-900 text-white space-y-3 font-mono text-xs">
-                        <div class="flex items-center justify-between text-[11px] text-slate-400 border-b border-slate-800 pb-2">
-                            <span>Sensor RFID 13.56MHz</span>
-                            <span class="text-emerald-400">Kecepatan: &lt; 0.3 dtk</span>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl shrink-0">
-                                🚗
+                    <!-- Visual Palang Pintu Fisik 2D Interaktif -->
+                    <div class="p-5 rounded-2xl bg-slate-950 text-white space-y-4 relative overflow-hidden border border-slate-800">
+                        
+                        <!-- Radar & Tiang Barrier Gate -->
+                        <div class="flex items-center justify-between pb-2 border-b border-slate-800/80 text-[11px] font-mono">
+                            <div class="flex items-center gap-2">
+                                <span class="relative flex h-2 w-2">
+                                    <span class="radar-pulse-ring absolute inline-flex h-full w-full rounded-full bg-cyan-400"></span>
+                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+                                </span>
+                                <span class="text-slate-300">Radar Sensor Anti-Bentur</span>
                             </div>
-                            <div class="truncate">
-                                <div class="font-bold text-white text-sm">B 1984 RFS • Honda CR-V</div>
-                                <div class="text-slate-400 text-[11px]">Bpk. Bambang Pamungkas (Blok B4/12)</div>
+                            <span class="text-cyan-400 font-bold">Respon: &lt; 0.3 dtk</span>
+                        </div>
+
+                        <!-- Palang Gerbang yang Terangkat saat isOpen = true -->
+                        <div class="flex items-end justify-between py-2 px-2">
+                            <!-- Tiang Barrier Motor Housing -->
+                            <div class="flex items-end gap-2">
+                                <div class="w-9 h-14 bg-gradient-to-t from-slate-800 via-amber-500 to-amber-400 rounded-t-lg shadow-md flex flex-col items-center justify-center p-1 text-[8px] font-black text-slate-950">
+                                    <span>IOT</span>
+                                    <span class="w-1.5 h-1.5 rounded-full mt-1" :class="isOpen ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'"></span>
+                                </div>
+
+                                <!-- Palang Bergaris Merah-Putih dengan CSS Rotate Animation -->
+                                <div class="pb-2">
+                                    <div 
+                                        class="barrier-arm w-32 sm:w-44 h-3 bg-gradient-to-r from-red-600 via-white to-red-600 rounded-r-md shadow-lg border border-slate-700/60"
+                                        :class="{ 'is-open': isOpen }"
+                                    ></div>
+                                </div>
+                            </div>
+
+                            <!-- Indikator Status Suara / Lampu Strobo -->
+                            <div class="text-right font-mono text-[11px]">
+                                <span class="block text-[10px] text-slate-400 uppercase">Status Palang:</span>
+                                <span class="font-extrabold" :class="isOpen ? 'text-amber-400' : 'text-emerald-400'" x-text="isOpen ? '▲ TERANGKAT' : '▼ MENUTUP'">
+                                    ▼ MENUTUP
+                                </span>
                             </div>
                         </div>
-                        <div class="flex items-center justify-between pt-1 text-[11px]">
-                            <span class="text-emerald-400 font-bold">✓ AKSES DIIZINKAN</span>
-                            <span class="text-slate-400">Palang Membuka 5 Detik</span>
+
+                        <!-- Event Log Riwayat yang Berganti Otomatis -->
+                        <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between gap-3 text-xs font-mono">
+                            <div class="flex items-center gap-3 truncate">
+                                <span class="text-xl shrink-0" x-text="events[activeEventIndex].icon">🚗</span>
+                                <div class="truncate">
+                                    <div class="font-bold text-white text-xs truncate" x-text="events[activeEventIndex].title">B 1984 RFS • Honda CR-V</div>
+                                    <div class="text-[10px] text-slate-400 truncate" x-text="events[activeEventIndex].subtitle">Bpk. Bambang Pamungkas (Blok B4/12)</div>
+                                </div>
+                            </div>
+                            <div class="text-right shrink-0">
+                                <span class="px-2 py-0.5 rounded-md text-[9px] font-bold bg-emerald-500/20 text-emerald-300 block" x-text="events[activeEventIndex].status">✓ DIIZINKAN</span>
+                                <span class="text-[9px] text-slate-400 block mt-0.5" x-text="events[activeEventIndex].type">RFID Tap</span>
+                            </div>
                         </div>
+
+                        <!-- Tombol Interaktif Uji Buka Palang Langsung di Hero -->
+                        <button 
+                            type="button" 
+                            @click="triggerOpen()" 
+                            :disabled="isOpen"
+                            class="w-full py-2.5 px-4 rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-slate-500 text-white shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer touch-press"
+                        >
+                            <span x-show="!isOpen">👆 Tekan untuk Uji Buka Palang (Live Demo)</span>
+                            <span x-show="isOpen" x-cloak>⚡ Palang Terbuka! Menutup otomatis dalam <strong x-text="timer + 's'"></strong></span>
+                        </button>
                     </div>
 
-                    <!-- Mini Widget 2 Kolom: Kas Live & Surat Pengantar -->
+                    <!-- Mini Widget 2 Kolom: Kas Live & Surat Pengantar dengan Animasi Progress -->
                     <div class="grid grid-cols-2 gap-3">
-                        <div class="p-3.5 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-800/60 space-y-1">
-                            <div class="text-[10px] font-black uppercase text-emerald-800 dark:text-emerald-300">Iuran Warga Bulan Ini</div>
-                            <div class="text-xl font-black text-emerald-700 dark:text-emerald-400 font-mono">92% Lunas</div>
-                            <div class="text-[10px] text-slate-500 dark:text-slate-400">Transparan di grafik kas</div>
+                        <div 
+                            x-data="{ progressWidth: '0%' }" 
+                            x-init="setTimeout(() => progressWidth = '92%', 300)"
+                            class="p-3.5 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-800/60 space-y-2"
+                        >
+                            <div class="flex items-center justify-between text-[10px] font-black uppercase text-emerald-800 dark:text-emerald-300">
+                                <span>Iuran Warga</span>
+                                <span>92%</span>
+                            </div>
+                            <div class="w-full h-2 rounded-full bg-emerald-200 dark:bg-emerald-900/60 overflow-hidden">
+                                <div class="h-full bg-emerald-500 rounded-full transition-all duration-1000 ease-out" :style="'width: ' + progressWidth"></div>
+                            </div>
+                            <div class="text-[10px] text-slate-500 dark:text-slate-400">Kas transparan anti-curiga</div>
                         </div>
+
                         <div class="p-3.5 rounded-2xl bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-200/60 dark:border-indigo-800/60 space-y-1">
                             <div class="text-[10px] font-black uppercase text-indigo-800 dark:text-indigo-300">Surat Pengantar RT</div>
                             <div class="text-xl font-black text-indigo-700 dark:text-indigo-400 font-mono">1-Klik TTD</div>
@@ -125,9 +197,9 @@
                         </div>
                     </div>
 
-                    <!-- Tombol Coba Simulator -->
+                    <!-- Tombol Coba Simulator Penuh -->
                     <a href="{{ route('simulator') }}" class="w-full py-3 px-4 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 transition flex items-center justify-center gap-2 cursor-pointer">
-                        <span>🧪 Uji Langsung Virtual Simulator Gerbang</span>
+                        <span>🧪 Buka Console Simulator Gerbang Lengkap</span>
                         <span>➔</span>
                     </a>
                 </div>
@@ -158,6 +230,24 @@
                             <span class="font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 truncate">Ketua RT</span>
                         </a>
                         <a href="{{ route('quick.login', 'bendahara') }}" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 hover:bg-emerald-50/40 transition flex items-center gap-2 group">
+                            <span class="text-base">💰</span>
+                            <span class="font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 truncate">Bendahara</span>
+                        </a>
+                        <a href="{{ route('quick.login', 'satpam') }}" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 hover:bg-emerald-50/40 transition flex items-center gap-2 group">
+                            <span class="text-base">🛡️</span>
+                            <span class="font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 truncate">Pos Satpam</span>
+                        </a>
+                        <a href="{{ route('quick.login', 'warga') }}" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 hover:bg-emerald-50/40 transition flex items-center gap-2 group">
+                            <span class="text-base">🏡</span>
+                            <span class="font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 truncate">Portal Warga</span>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
                             <span class="text-base">💰</span>
                             <span class="font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 truncate">Bendahara</span>
                         </a>
