@@ -248,24 +248,6 @@
 
         </div>
     </section>
-                            <span class="text-base">💰</span>
-                            <span class="font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 truncate">Bendahara</span>
-                        </a>
-                        <a href="{{ route('quick.login', 'satpam') }}" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 hover:bg-emerald-50/40 transition flex items-center gap-2 group">
-                            <span class="text-base">🛡️</span>
-                            <span class="font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 truncate">Pos Satpam</span>
-                        </a>
-                        <a href="{{ route('quick.login', 'warga') }}" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 hover:bg-emerald-50/40 transition flex items-center gap-2 group">
-                            <span class="text-base">🏡</span>
-                            <span class="font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 truncate">Portal Warga</span>
-                        </a>
-                    </div>
-                </div>
-
-            </div>
-
-        </div>
-    </section>
 
     <!-- ======================================================== -->
     <!-- 2. SOCIAL PROOF & ADAPTASI DUAL MODE (CLUSTER & KAMPUNG) -->
