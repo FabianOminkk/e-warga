@@ -411,11 +411,11 @@
                     <div class="space-y-2 text-xs">
                         <div>
                             <span class="text-slate-400 block text-[10px] uppercase font-bold">Email Kemitraan:</span>
-                            <a href="mailto:partnership@ewarga.id" class="text-emerald-600 dark:text-emerald-400 font-bold hover:underline">partnership@ewarga.id</a>
+                            <a href="mailto:partnership@ewarga.id" class="text-emerald-600 dark:text-emerald-400 font-bold hover:underline">FabianGanteng</a>
                         </div>
                         <div>
                             <span class="text-slate-400 block text-[10px] uppercase font-bold">Email Penjualan / Pengadaan:</span>
-                            <a href="mailto:sales@ewarga.id" class="text-emerald-600 dark:text-emerald-400 font-bold hover:underline">sales@ewarga.id</a>
+                            <a href="mailto:sales@ewarga.id" class="text-emerald-600 dark:text-emerald-400 font-bold hover:underline">FabianGanteng</a>
                         </div>
                         <div>
                             <span class="text-slate-400 block text-[10px] uppercase font-bold">Hotline WhatsApp Konsultan:</span>
