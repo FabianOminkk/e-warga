@@ -46,9 +46,10 @@ Route::get('/quick-login/{role}', [HomeController::class, 'quickLogin'])->name('
 */
 Route::middleware('auth')->group(function () {
 
-    // 1. Pusat Kendali Super Admin Platform (Multi-Tenant Demo Hub)
+    // 1. Pusat Kendali Super Admin Platform (Multi-Tenant Demo Hub & Audit Trail)
     Route::get('/super-admin', [SuperAdminController::class, 'index'])->name('superadmin.index');
     Route::post('/super-admin/switch-tenant/{id}', [SuperAdminController::class, 'switchTenant'])->name('superadmin.switch-tenant');
+    Route::get('/super-admin/activity-logs/export', [SuperAdminController::class, 'exportLogs'])->name('superadmin.logs.export');
 
     // 2. Dashboard Pengurus RT, RW, & Bendahara
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');

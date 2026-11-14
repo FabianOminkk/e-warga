@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\LetterRequest;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class LetterController extends Controller
@@ -62,10 +64,20 @@ class LetterController extends Controller
         ]);
 
         $validated['tenant_id'] = $tenant->id;
-        $validated['user_id'] = $wargaUser?->id ?? 1;
+        $validated['user_id'] = Auth::id() ?? $wargaUser?->id ?? 1;
         $validated['status'] = 'pending';
 
-        LetterRequest::create($validated);
+        $letter = LetterRequest::create($validated);
+
+        $applicant = Auth::user() ?? $wargaUser;
+        ActivityLogger::log(
+            'letter.requested',
+            "Pengajuan surat pengantar ({$validated['letter_type']}) oleh {$validated['applicant_name']}.",
+            'info',
+            ['letter_type' => $validated['letter_type'], 'purpose' => $validated['purpose']],
+            $applicant,
+            $letter
+        );
 
         return back()->with('success', 'Permohonan surat berhasil diajukan! Menunggu penandatanganan oleh Ketua RT.');
     }
@@ -84,13 +96,23 @@ class LetterController extends Controller
         $letterNumber = "470/{$letterSequence}/RT.04/RW.02/{$currentMonthRoman}/{$currentYear}";
         $qrCode = 'QR-SURAT-' . strtoupper(Str::random(10));
 
+        $signer = Auth::user() ?? $rtUser;
         $letter->update([
             'status' => 'approved',
             'letter_number' => $letterNumber,
             'qr_verification_code' => $qrCode,
             'signed_at' => now(),
-            'signed_by' => $rtUser?->id,
+            'signed_by' => $signer?->id,
         ]);
+
+        ActivityLogger::log(
+            'letter.approved',
+            "Surat pengantar resmi #{$letterNumber} ditandatangani digital oleh " . ($signer?->name ?? 'Ketua RT') . ".",
+            'info',
+            ['letter_id' => $letter->id, 'letter_number' => $letterNumber],
+            $signer,
+            $letter
+        );
 
         return back()->with('success', "Surat resmi nomor {$letterNumber} berhasil ditandatangani secara digital oleh Ketua RT!");
     }
@@ -98,6 +120,7 @@ class LetterController extends Controller
     public function reject(Request $request, $id)
     {
         $letter = LetterRequest::findOrFail($id);
+        $signer = Auth::user();
 
         $validated = $request->validate([
             'rejection_reason' => 'required|string|max:255',
@@ -107,6 +130,15 @@ class LetterController extends Controller
             'status' => 'rejected',
             'rejection_reason' => $validated['rejection_reason'],
         ]);
+
+        ActivityLogger::log(
+            'letter.rejected',
+            "Permohonan surat pengantar #{$letter->id} ditolak oleh " . ($signer?->name ?? 'Pengurus RT') . " (Alasan: {$validated['rejection_reason']}).",
+            'warning',
+            ['letter_id' => $letter->id, 'reason' => $validated['rejection_reason']],
+            $signer,
+            $letter
+        );
 
         return back()->with('success', "Permohonan surat telah ditolak dengan catatan: " . $validated['rejection_reason']);
     }

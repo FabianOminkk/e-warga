@@ -10,6 +10,7 @@ use App\Models\Payment;
 use App\Models\SmartGate;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -145,12 +146,33 @@ class DashboardController extends Controller
                 ]);
             }
 
+            $verifierUser = User::find($verifierId);
+            ActivityLogger::log(
+                'finance.payment_approved',
+                "Pembayaran iuran senilai Rp " . number_format($payment->amount_paid, 0, ',', '.') . " disetujui oleh " . ($verifierUser?->name ?? 'Bendahara') . ".",
+                'info',
+                ['payment_id' => $payment->id, 'amount' => $payment->amount_paid],
+                $verifierUser,
+                $payment
+            );
+
             return redirect()->back()->with('success', 'Pembayaran berhasil diverifikasi dan masuk ke kas RT.');
         } else {
+            $reason = $request->input('reason', 'Bukti transfer tidak sesuai / tidak terbaca.');
             $payment->update([
                 'verified_by_user_id' => $verifierId,
-                'rejection_reason' => $request->input('reason', 'Bukti transfer tidak sesuai / tidak terbaca.'),
+                'rejection_reason' => $reason,
             ]);
+
+            $verifierUser = User::find($verifierId);
+            ActivityLogger::log(
+                'finance.payment_rejected',
+                "Bukti pembayaran iuran ditolak oleh " . ($verifierUser?->name ?? 'Bendahara') . " (Catatan: {$reason}).",
+                'warning',
+                ['payment_id' => $payment->id, 'reason' => $reason],
+                $verifierUser,
+                $payment
+            );
 
             return redirect()->back()->with('warning', 'Pembayaran ditolak.');
         }
@@ -173,7 +195,7 @@ class DashboardController extends Controller
 
         $userId = Auth::id() ?? User::where('role', 'bendahara')->value('id') ?? User::first()?->id;
 
-        CashBook::create([
+        $cashBook = CashBook::create([
             'tenant_id' => $tenant->id,
             'created_by_user_id' => $userId,
             'type' => $validated['type'],
@@ -183,6 +205,16 @@ class DashboardController extends Controller
             'transaction_date' => now(),
             'notes' => $validated['notes'],
         ]);
+
+        $author = User::find($userId);
+        ActivityLogger::log(
+            'finance.cashbook_stored',
+            "Pencatatan kas (" . strtoupper($validated['type']) . ") Rp " . number_format($validated['amount'], 0, ',', '.') . " - {$validated['title']} oleh " . ($author?->name ?? 'Pengurus') . ".",
+            'info',
+            ['type' => $validated['type'], 'amount' => $validated['amount'], 'category' => $validated['category']],
+            $author,
+            $cashBook
+        );
 
         return redirect()->back()->with('success', 'Transaksi kas berhasil dicatat!');
     }
@@ -223,12 +255,22 @@ class DashboardController extends Controller
             ]);
         }
 
+        ActivityLogger::log(
+            'warga.ktp_approved',
+            "Ketua RW (" . ($approver?->name ?? 'Pengurus') . ") menyetujui verifikasi E-KTP warga: {$targetUser->name}.",
+            'info',
+            ['target_user_id' => $targetUser->id, 'rfid' => $rfid],
+            $approver,
+            $targetUser
+        );
+
         return redirect()->back()->with('success', "Identitas KTP & RFID Bpk/Ibu {$targetUser->name} berhasil DI-ACC OLEH KETUA RW! Akses palang pintu otomatis telah aktif dan disinkronkan ke Pos Satpam.");
     }
 
     public function rejectWargaVerification(Request $request, $id)
     {
         $targetUser = User::where('role', 'warga')->findOrFail($id);
+        $approver = Auth::user() ?? User::where('role', 'ketua_rw')->first();
         $reason = $request->input('reason', 'Foto KTP tidak jelas / NIK tidak cocok dengan data kependudukan.');
 
         $targetUser->update([
@@ -236,6 +278,15 @@ class DashboardController extends Controller
             'gate_access_enabled' => false,
             'rejection_reason' => $reason,
         ]);
+
+        ActivityLogger::log(
+            'warga.ktp_rejected',
+            "Ketua RW (" . ($approver?->name ?? 'Pengurus') . ") menolak verifikasi E-KTP warga: {$targetUser->name} (Catatan: {$reason}).",
+            'warning',
+            ['target_user_id' => $targetUser->id, 'reason' => $reason],
+            $approver,
+            $targetUser
+        );
 
         return redirect()->back()->with('warning', "Pengajuan verifikasi KTP untuk {$targetUser->name} telah ditolak dengan catatan: {$reason}");
     }

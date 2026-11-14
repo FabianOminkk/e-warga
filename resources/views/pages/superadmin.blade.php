@@ -215,6 +215,250 @@
         </div>
     </div>
 
+    <!-- SEKSI AUDIT TRAIL & LOG AKTIVITAS KEAMANAN WARGA (KHUSUS SUPER ADMIN) -->
+    <div id="audit-trail" class="pt-8 border-t border-slate-200 dark:border-slate-800 space-y-6">
+        
+        <!-- Header & Kontrol Ekspor -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/70 border border-indigo-200 dark:border-indigo-800 text-indigo-800 dark:text-indigo-300 text-xs font-black uppercase tracking-wider mb-2">
+                    <span>🛡️ AUDIT TRAIL & FORENSIK DIGITAL</span>
+                    <span>•</span>
+                    <span>UU PDP NO. 27/2022</span>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
+                    <span>Log Aktivitas & Audit Keamanan Sistem</span>
+                    <span class="text-xs px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-bold">
+                        {{ $activityLogs->total() }} Catatan
+                    </span>
+                </h2>
+                <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+                    Rekam jejak forensik seluruh interaksi: autentikasi, akses berkas KTP sensitif, mutasi data warga, keuangan, dan palang pintu IoT.
+                </p>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <a href="{{ route('superadmin.logs.export', request()->query()) }}" class="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 font-bold text-xs rounded-xl shadow-xs transition flex items-center gap-2 cursor-pointer touch-press" title="Unduh data audit terfilter dalam format berkas CSV">
+                    <span>📥 Unduh CSV Audit</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- 4 Kartu Metrik Keamanan -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+                <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Riwayat</div>
+                <div class="text-2xl font-black text-slate-900 dark:text-white mt-1">
+                    {{ number_format($auditStats['total_logs']) }}
+                </div>
+                <div class="text-[10px] text-slate-500 mt-0.5">Semua aksi terekam</div>
+            </div>
+
+            <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-rose-200 dark:border-rose-950/80 bg-rose-50/20">
+                <div class="text-[11px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider">Insiden Kritis</div>
+                <div class="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">
+                    {{ number_format($auditStats['total_danger']) }}
+                </div>
+                <div class="text-[10px] text-rose-600/80 mt-0.5">Gagal login / tombol panik</div>
+            </div>
+
+            <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-amber-200 dark:border-amber-950/80 bg-amber-50/20">
+                <div class="text-[11px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">Akses Sensitif / Audit</div>
+                <div class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">
+                    {{ number_format($auditStats['total_warning']) }}
+                </div>
+                <div class="text-[10px] text-amber-600/80 mt-0.5">Akses berkas KTP & penolakan</div>
+            </div>
+
+            <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-emerald-200 dark:border-emerald-950/80 bg-emerald-50/20">
+                <div class="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Login Hari Ini</div>
+                <div class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
+                    {{ number_format($auditStats['logins_today']) }}
+                </div>
+                <div class="text-[10px] text-emerald-600/80 mt-0.5">Sesi aktif terdaftar</div>
+            </div>
+        </div>
+
+        <!-- Filter Bar & Form Pencarian -->
+        <div class="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs">
+            <form method="GET" action="{{ route('superadmin.index') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                
+                <!-- Pencarian Kata Kunci -->
+                <div class="lg:col-span-2">
+                    <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Cari Aksi / Warga / IP</label>
+                    <div class="relative">
+                        <input type="text" name="search" value="{{ $filters['search'] ?? '' }}" placeholder="Ketik nama, IP (cth 127.0.0.1), atau aksi..." class="w-full text-xs py-2.5 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+
+                <!-- Filter Tingkat Urgensi (Severity) -->
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Tingkat Urgensi</label>
+                    <select name="severity" class="w-full text-xs py-2.5 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500">
+                        <option value="">Semua Tingkat</option>
+                        <option value="info" {{ ($filters['severity'] ?? '') === 'info' ? 'selected' : '' }}>🟢 Info / Reguler</option>
+                        <option value="warning" {{ ($filters['severity'] ?? '') === 'warning' ? 'selected' : '' }}>🟡 Warning / Audit</option>
+                        <option value="danger" {{ ($filters['severity'] ?? '') === 'danger' ? 'selected' : '' }}>🔴 Danger / Kritis</option>
+                    </select>
+                </div>
+
+                <!-- Filter Kode Aksi -->
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Kode Aksi</label>
+                    <select name="action" class="w-full text-xs py-2.5 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500">
+                        <option value="">Semua Aksi</option>
+                        @foreach($availableActions as $actionItem)
+                            <option value="{{ $actionItem }}" {{ ($filters['action'] ?? '') === $actionItem ? 'selected' : '' }}>
+                                {{ $actionItem }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Tombol Aksi Form -->
+                <div class="flex items-end gap-2">
+                    <button type="submit" class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer">
+                        Filter Log
+                    </button>
+                    @if(!empty(array_filter($filters ?? [])))
+                        <a href="{{ route('superadmin.index') }}" class="py-2.5 px-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold rounded-xl transition" title="Reset filter">
+                            ↺
+                        </a>
+                    @endif
+                </div>
+            </form>
+        </div>
+
+        <!-- Tabel Riwayat Audit Log -->
+        <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-800 text-slate-500 uppercase tracking-wider font-bold">
+                            <th class="py-3 px-4">Waktu (WIB)</th>
+                            <th class="py-3 px-4">Urgensi</th>
+                            <th class="py-3 px-4">Pengguna / Aktor</th>
+                            <th class="py-3 px-4">Aksi & Deskripsi</th>
+                            <th class="py-3 px-4">IP Address & Device</th>
+                            <th class="py-3 px-4 text-center">Metadata</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
+                        @forelse($activityLogs as $log)
+                            @php
+                                $badge = $log->severity_badge;
+                            @endphp
+                            <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition">
+                                <!-- Waktu -->
+                                <td class="py-3.5 px-4 whitespace-nowrap">
+                                    <div class="font-bold text-slate-900 dark:text-white">
+                                        {{ $log->created_at?->timezone('Asia/Jakarta')->format('d M Y') }}
+                                    </div>
+                                    <div class="text-[11px] text-slate-400 font-mono">
+                                        {{ $log->created_at?->timezone('Asia/Jakarta')->format('H:i:s') }} WIB
+                                    </div>
+                                    <div class="text-[10px] text-slate-400 italic">
+                                        {{ $log->created_at?->diffForHumans() }}
+                                    </div>
+                                </td>
+
+                                <!-- Urgensi -->
+                                <td class="py-3.5 px-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black border {{ $badge['bg'] }} {{ $badge['text'] }} {{ $badge['border'] }}">
+                                        <span class="w-1.5 h-1.5 rounded-full {{ $badge['dot'] }}"></span>
+                                        <span>{{ $badge['label'] }}</span>
+                                    </span>
+                                </td>
+
+                                <!-- Pengguna / Aktor -->
+                                <td class="py-3.5 px-4 whitespace-nowrap">
+                                    <div class="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                                        <span>{{ $log->actor_name ?? 'Tamu / Sistem' }}</span>
+                                    </div>
+                                    <div class="text-[10px] uppercase font-bold text-slate-400">
+                                        Role: <span class="text-indigo-600 dark:text-indigo-400">{{ $log->actor_role ?? 'guest' }}</span>
+                                    </div>
+                                    @if($log->tenant)
+                                        <div class="text-[10px] text-slate-500 truncate max-w-[140px]">
+                                            📍 {{ $log->tenant->name }}
+                                        </div>
+                                    @endif
+                                </td>
+
+                                <!-- Aksi & Deskripsi (Safe Escaped against XSS) -->
+                                <td class="py-3.5 px-4">
+                                    <div class="inline-block px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 font-mono text-[11px] text-indigo-700 dark:text-indigo-300 font-bold mb-1">
+                                        {{ $log->action }}
+                                    </div>
+                                    <div class="text-xs text-slate-800 dark:text-slate-200 font-medium leading-relaxed">
+                                        {{ $log->description }}
+                                    </div>
+                                </td>
+
+                                <!-- IP & Perangkat -->
+                                <td class="py-3.5 px-4 whitespace-nowrap">
+                                    <div class="font-mono text-xs text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                                        <span>🌐</span>
+                                        <span>{{ $log->ip_address ?? '127.0.0.1' }}</span>
+                                    </div>
+                                    @if($log->user_agent)
+                                        @php
+                                            $ua = $log->user_agent;
+                                            $device = 'Komputer / Browser';
+                                            if (str_contains($ua, 'Mobile') || str_contains($ua, 'Android') || str_contains($ua, 'iPhone')) {
+                                                $device = '📱 Ponsel / Mobile';
+                                            } elseif (str_contains($ua, 'Chrome')) {
+                                                $device = '💻 Chrome Browser';
+                                            } elseif (str_contains($ua, 'Firefox')) {
+                                                $device = '🦊 Firefox Browser';
+                                            }
+                                        @endphp
+                                        <div class="text-[10px] text-slate-400 truncate max-w-[180px]" title="{{ $log->user_agent }}">
+                                            {{ $device }}
+                                        </div>
+                                    @endif
+                                </td>
+
+                                <!-- Detail JSON Properties -->
+                                <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                                    @if(!empty($log->properties))
+                                        <details class="group inline-block text-left relative">
+                                            <summary class="cursor-pointer text-[10px] font-bold px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 list-none transition">
+                                                Lihat Data ▾
+                                            </summary>
+                                            <div class="absolute right-0 mt-2 w-64 p-3 rounded-2xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-xl z-20 text-[11px] text-slate-700 dark:text-slate-300 font-mono max-h-48 overflow-y-auto">
+                                                <div class="font-bold text-slate-500 uppercase text-[9px] mb-1.5">Metadata Parameter:</div>
+                                                <pre class="whitespace-pre-wrap break-all text-[10px]">{{ json_encode($log->properties, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</pre>
+                                            </div>
+                                        </details>
+                                    @else
+                                        <span class="text-slate-300 dark:text-slate-700 text-xs">-</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="py-12 px-4 text-center">
+                                    <div class="text-3xl mb-2">📋</div>
+                                    <div class="text-sm font-bold text-slate-800 dark:text-slate-200">Tidak ada riwayat log yang sesuai filter</div>
+                                    <div class="text-xs text-slate-400 mt-1">Coba atur ulang kata kunci atau filter tingkat urgensi Anda.</div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginasi -->
+            @if($activityLogs->hasPages())
+                <div class="p-4 border-t border-slate-100 dark:border-slate-800">
+                    {{ $activityLogs->links() }}
+                </div>
+            @endif
+        </div>
+
+    </div>
+
 </div>
 @endsection
 

@@ -7,6 +7,7 @@ use App\Models\SmartGate;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Models\Visitor;
+use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -76,6 +77,14 @@ class SatpamController extends Controller
             'time' => now()->toIso8601String(),
         ], 15);
 
+        ActivityLogger::log(
+            'gate.manual_trigger',
+            "Petugas Satpam (" . ($satpamUser?->name ?? 'Regu Jaga') . ") membuka palang gerbang secara manual: '{$reason}'.",
+            'warning',
+            ['reason' => $reason, 'gate_id' => $gate->id],
+            $satpamUser
+        );
+
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
@@ -131,6 +140,15 @@ class SatpamController extends Controller
                 'triggered_at' => now(),
             ]);
         }
+
+        ActivityLogger::log(
+            'visitor.checked_in',
+            "Tamu terverifikasi: {$visitor->guest_name} ({$visitor->guest_type}) masuk melalui pos satpam.",
+            'info',
+            ['guest_name' => $visitor->guest_name, 'visitor_id' => $visitor->id],
+            $satpamUser,
+            $visitor
+        );
 
         return redirect()->back()->with('success', 'Tiket VALID! Tamu: ' . $visitor->guest_name . ' diizinkan masuk. Palang terbuka.');
     }

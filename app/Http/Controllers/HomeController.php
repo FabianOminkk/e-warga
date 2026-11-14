@@ -8,6 +8,7 @@ use App\Models\House;
 use App\Models\SmartGate;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -49,6 +50,15 @@ class HomeController extends Controller
 
         if ($user && Hash::check($credentials['password'], $user->password)) {
             Auth::login($user, $request->boolean('remember'));
+
+            ActivityLogger::log(
+                'auth.login',
+                "Pengguna {$user->name} ({$user->role}) berhasil masuk ke sistem.",
+                'info',
+                ['email' => $user->email, 'role' => $user->role],
+                $user
+            );
+
             if ($user->role === 'satpam') {
                 return redirect()->route('satpam.console')->with('success', "Selamat bertugas, {$user->name}!");
             } elseif ($user->role === 'warga') {
@@ -56,6 +66,13 @@ class HomeController extends Controller
             }
             return redirect()->route('dashboard')->with('success', "Selamat datang di Dashboard E-WARGA, {$user->name}!");
         }
+
+        ActivityLogger::log(
+            'auth.failed',
+            "Percobaan login gagal untuk akun: '{$credentials['login']}'",
+            'danger',
+            ['attempted_login' => $credentials['login'], 'actor_name' => $credentials['login'], 'actor_role' => 'guest']
+        );
 
         return redirect()->back()->withInput()->with('error', 'Email/No. WhatsApp atau password yang Anda masukkan salah. (Password demo: admin123)');
     }
@@ -161,6 +178,17 @@ class HomeController extends Controller
 
     public function logout(Request $request)
     {
+        $user = Auth::user();
+        if ($user) {
+            ActivityLogger::log(
+                'auth.logout',
+                "Pengguna {$user->name} ({$user->role}) keluar dari sistem (logout).",
+                'info',
+                [],
+                $user
+            );
+        }
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

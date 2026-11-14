@@ -10,6 +10,7 @@ use App\Models\SmartGate;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Models\Visitor;
+use App\Services\ActivityLogger;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -81,6 +82,14 @@ class WargaController extends Controller
                 ? 'AKSES GERBANG TERKUNCI SEMENTARA: Berkas identitas Anda sedang ditinjau dan menunggu persetujuan Ketua RW (Bpk. H. Rahmat Hidayat). Silakan hubungi Pak RW jika mendesak.'
                 : 'AKSES GERBANG TERKUNCI TOTAL: Anda adalah warga baru dan belum melengkapi identitas KTP & tanggal lahir. Silakan lengkapi berkas di menu "Atur Akun & Berkas KTP" agar dapat diverifikasi oleh Ketua RW.';
 
+            ActivityLogger::log(
+                'gate.access_denied',
+                "Percobaan buka gerbang ditolak untuk {$user->name} (status verifikasi belum memenuhi syarat).",
+                'warning',
+                ['verification_status' => $user->verification_status],
+                $user
+            );
+
             if ($request->wantsJson()) {
                 return response()->json([
                     'success' => false,
@@ -121,6 +130,14 @@ class WargaController extends Controller
             'reason' => 'Buka via Tombol HP: ' . $user->name,
             'time' => now()->toIso8601String(),
         ], 15);
+
+        ActivityLogger::log(
+            'gate.remote_open',
+            "Warga {$user->name} membuka palang pintu via aplikasi.",
+            'info',
+            ['gate_id' => $gate->id, 'gate_name' => $gate->name],
+            $user
+        );
 
         if ($request->wantsJson()) {
             return response()->json([
@@ -181,6 +198,15 @@ class WargaController extends Controller
             'is_used' => false,
         ]);
 
+        ActivityLogger::log(
+            'visitor.pass_created',
+            "Warga {$user->name} menerbitkan izin tamu untuk {$validated['guest_name']} ({$validated['guest_type']}).",
+            'info',
+            ['guest_name' => $validated['guest_name'], 'guest_type' => $validated['guest_type']],
+            $user,
+            $visitor
+        );
+
         return redirect()->back()->with('new_visitor', $visitor);
     }
 
@@ -196,6 +222,14 @@ class WargaController extends Controller
         }
 
         $houseNumber = $user->house ? $user->house->block_and_number : 'Lingkungan Warga';
+
+        ActivityLogger::log(
+            'security.panic_alert',
+            "🚨 TOMBOL PANIK DARURAT DIAKTIFKAN oleh {$user->name} ({$houseNumber})!",
+            'danger',
+            ['house' => $houseNumber, 'user_name' => $user->name],
+            $user
+        );
 
         return redirect()->back()->with('panic_sent', "TOMBOL DARURAT DIAKTIFKAN! Sinyal bahaya dari {$user->name} ({$houseNumber}) telah diteruskan ke Pos Satpam dan Pengurus RT.");
     }
@@ -264,6 +298,14 @@ class WargaController extends Controller
 
         $user->update($dataToUpdate);
 
+        ActivityLogger::log(
+            'warga.profile_updated',
+            "Pembaruan profil mandiri & berkas KTP oleh {$user->name}.",
+            'info',
+            ['nik' => substr($validated['nik'], 0, 6) . '******'],
+            $user
+        );
+
         return redirect()->route('warga.profile')->with('success', 'Data identitas KTP berhasil disimpan! Berkas Anda saat ini masuk ke antrean verifikasi Ketua RW (Bpk. H. Rahmat Hidayat). Akses palang pintu & izin tamu akan aktif otomatis setelah disetujui Pak RW.');
     }
 
@@ -291,6 +333,21 @@ class WargaController extends Controller
         if (!$photoPath) {
             abort(404, 'Berkas KTP tidak ditemukan.');
         }
+
+        // Catat akses ke berkas KTP (Audit Trail Kepatuhan UU PDP No. 27/2022)
+        ActivityLogger::log(
+            'ktp.access_view',
+            "Akses berkas KTP: {$targetUser->name} oleh {$currentUser->name} ({$currentUser->role}).",
+            'warning',
+            [
+                'target_user_id' => $targetUser->id,
+                'target_name' => $targetUser->name,
+                'masked_nik' => substr((string) $targetUser->nik, 0, 6) . '******',
+                'is_owner' => $isOwner,
+            ],
+            $currentUser,
+            $targetUser
+        );
 
         // 1. Cek di private storage local disk
         if (\Illuminate\Support\Facades\Storage::disk('local')->exists($photoPath)) {
@@ -329,6 +386,14 @@ class WargaController extends Controller
         $user->update([
             'password' => Hash::make($request->new_password),
         ]);
+
+        ActivityLogger::log(
+            'auth.password_changed',
+            "Pengguna {$user->name} ({$user->role}) memperbarui kata sandi akun.",
+            'warning',
+            [],
+            $user
+        );
 
         return redirect()->back()->with('success', 'Password akun warga berhasil diperbarui!');
     }
