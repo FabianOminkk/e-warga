@@ -302,7 +302,7 @@
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">NIK (16 Digit)</label>
-                        <input type="text" name="nik" placeholder="3216..." class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+                        <input type="text" name="nik" placeholder="321601xxxxxxxxxx…" class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
                     </div>
                 </div>
 
@@ -318,7 +318,7 @@
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">No. WhatsApp</label>
-                        <input type="text" name="phone" placeholder="0812..." class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+                        <input type="text" name="phone" placeholder="0812xxxxxxxx…" class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
                     </div>
                 </div>
 
@@ -390,7 +390,7 @@
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Saran & Rekomendasi Medis</label>
-                    <textarea name="action_plan" rows="2" placeholder="Gizi cukup, lanjutkan ASI eksklusif / kurangi konsumsi garam..." class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"></textarea>
+                    <textarea name="action_plan" rows="2" placeholder="Gizi cukup, lanjutkan ASI eksklusif / kurangi konsumsi garam…" class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"></textarea>
                 </div>
 
                 <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">

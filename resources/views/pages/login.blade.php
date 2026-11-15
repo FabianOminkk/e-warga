@@ -147,10 +147,12 @@
                             type="text" 
                             name="login" 
                             id="login" 
+                            autocomplete="username"
+                            spellcheck="false"
                             value="{{ old('login', session('registered_phone', 'superadmin@ewarga.id')) }}" 
                             required 
                             placeholder="Contoh: superadmin@ewarga.id atau 08xxxxxxxxxx"
-                            class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-hidden transition"
+                            class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden transition"
                         >
                     </div>
 
@@ -159,15 +161,16 @@
                             <label for="password" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                                 Password
                             </label>
-                            <span class="text-[11px] text-slate-400">Password default: <code class="font-bold text-emerald-600 dark:text-emerald-400">admin123</code></span>
+                            <span class="text-[11px] text-slate-400">Password default: <code class="font-bold text-emerald-600 dark:text-emerald-400 font-mono">admin123</code></span>
                         </div>
                         <input 
                             type="password" 
                             name="password" 
                             id="password" 
+                            autocomplete="current-password"
                             value="admin123"
                             required 
-                            class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-hidden transition"
+                            class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden transition"
                         >
                     </div>
 

@@ -221,7 +221,7 @@
             x-transition:leave="ease-in duration-200 transform" 
             x-transition:leave-start="translate-y-0 sm:opacity-100" 
             x-transition:leave-end="translate-y-full sm:translate-y-8 sm:opacity-0" 
-            class="relative w-full sm:max-w-md h-[88vh] sm:h-[640px] max-h-[88vh] bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200/90 dark:border-slate-800 flex flex-col overflow-hidden z-10"
+            class="relative w-full sm:max-w-md h-[88vh] sm:h-[640px] max-h-[88vh] bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200/90 dark:border-slate-800 flex flex-col overflow-hidden z-10 overscroll-contain"
         >
             
             <!-- Android Drag Handle (Mobile Ergonomics) -->
@@ -358,7 +358,7 @@
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce"></span>
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce [animation-delay:0.2s]"></span>
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce [animation-delay:0.4s]"></span>
-                        <span class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 ml-1.5">Bang Warga sedang mengetik...</span>
+                        <span class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 ml-1.5">Bang Warga sedang merespons…</span>
                     </div>
                 </div>
             </div>
@@ -371,8 +371,10 @@
                             x-ref="aiInput" 
                             x-model="userInput" 
                             type="text" 
-                            placeholder="Tanya apa saja seputar E-WARGA..." 
-                            class="w-full px-4 py-3 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 text-xs font-medium border border-transparent focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-hidden transition shadow-inner"
+                            autocomplete="off"
+                            spellcheck="false"
+                            placeholder="Tanya seputar iuran, palang IoT, surat RT, atau posyandu…" 
+                            class="w-full px-4 py-3 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 text-xs font-medium border border-transparent focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-emerald-500 transition-colors shadow-inner"
                             :disabled="isLoading"
                             maxlength="500"
                         />

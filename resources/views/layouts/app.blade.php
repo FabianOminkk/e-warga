@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="color-scheme" content="light dark">
     <meta name="theme-color" content="#10B981">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -30,10 +31,28 @@
     </script>
 
     <style>
+        html {
+            color-scheme: light;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        html.dark {
+            color-scheme: dark;
+        }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
         }
         [x-cloak] { display: none !important; }
+
+        /* Vercel Web Interface Standards: Respect prefers-reduced-motion across all animations */
+        @media (prefers-reduced-motion: reduce) {
+            *, ::before, ::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
         
         /* Sleek custom scrollbar for desktop drawer */
         .custom-drawer-scroll::-webkit-scrollbar {

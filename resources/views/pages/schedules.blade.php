@@ -247,7 +247,7 @@
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Catatan Tugas (Opsional)</label>
-                    <textarea name="notes" rows="2" placeholder="Titik patroli / perlengkapan..." class="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 outline-hidden"></textarea>
+                    <textarea name="notes" rows="2" placeholder="Titik patroli / perlengkapan…" class="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 outline-hidden"></textarea>
                 </div>
 
                 <div class="pt-2 flex gap-3">
@@ -286,7 +286,7 @@
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Alasan Penukaran</label>
-                    <input type="text" name="notes" placeholder="Dinas luar kota / acara keluarga..." required class="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 outline-hidden">
+                    <input type="text" name="notes" placeholder="Dinas luar kota / acara keluarga…" required class="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 outline-hidden">
                 </div>
 
                 <div class="pt-2 flex gap-3">

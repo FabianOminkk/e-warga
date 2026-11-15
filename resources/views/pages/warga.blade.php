@@ -180,7 +180,7 @@
                             class="w-full py-8 sm:py-10 px-6 rounded-3xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xl sm:text-2xl shadow-xl shadow-emerald-600/30 active:scale-98 transition-all duration-200 flex flex-col items-center justify-center gap-2.5 group border-4 border-emerald-400/40 cursor-pointer"
                         >
                             <span class="text-4xl sm:text-5xl group-hover:scale-110 transition duration-200" x-text="isOpening ? '⏳' : '🟢'"></span>
-                            <span x-text="isOpening ? 'PALANG SEDANG TERBUKA...' : 'BUKA GERBANG PORTAL'"></span>
+                            <span x-text="isOpening ? 'PALANG SEDANG TERBUKA…' : 'BUKA GERBANG PORTAL'"></span>
                             <span class="text-xs sm:text-sm font-medium text-emerald-100 tracking-wide font-sans">
                                 Sensor RFID E-KTP Aktif • Pencet saat kendaraan tiba di depan palang pos satpam
                             </span>

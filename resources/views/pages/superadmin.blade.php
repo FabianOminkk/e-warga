@@ -287,7 +287,7 @@
                 <div class="lg:col-span-2">
                     <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Cari Aksi / Warga / IP</label>
                     <div class="relative">
-                        <input type="text" name="search" value="{{ $filters['search'] ?? '' }}" placeholder="Ketik nama, IP (cth 127.0.0.1), atau aksi..." class="w-full text-xs py-2.5 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500">
+                        <input type="text" name="search" value="{{ $filters['search'] ?? '' }}" placeholder="Ketik nama, IP (cth 127.0.0.1), atau aksi…" class="w-full text-xs py-2.5 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500">
                     </div>
                 </div>
 

@@ -23,57 +23,57 @@
                     <span>PLATFORM SMART COMMUNITY & IOT LIVING #1 DI INDONESIA</span>
                 </div>
                 
-                <!-- Main Headline (Hierarki Visual H1 Dominan & Jelas) -->
-                <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.12]">
+                <!-- Main Headline (Hierarki Visual H1 Dominan & Jelas, Vercel Text-Balance) -->
+                <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.12] text-balance">
                     Modernisasi Lingkungan RT/RW, <span class="bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-500 bg-clip-text text-transparent">Cluster Perumahan</span> & Desa Mandiri.
                 </h1>
 
-                <!-- Body Subtitle: Keterbacaan Tinggi (16px-18px) & Anti-Sesak -->
-                <p class="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
+                <!-- Body Subtitle: Keterbacaan Tinggi (16px-18px) & Anti-Sesak (Text-Pretty) -->
+                <p class="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-normal text-pretty">
                     Tinggalkan cara lama tagih iuran keliling dan portal bambu manual. <strong>E-WARGA</strong> menyediakan ekosistem terpadu: integrasi <em>Palang Pintu Otomatis (Smart Gate)</em>, pembukuan kas terbuka anti-curiga berbasis grafik, surat pengantar digital berstempel QR resmi, hingga jadwal siskamling & posyandu dalam satu genggaman.
                 </p>
 
                 <!-- Action CTA Buttons (Alur Singkat / Friction Reduction) -->
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
-                    <a href="#kerjasama" class="px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-2xl shadow-xl shadow-emerald-600/30 text-base transition-all transform hover:-translate-y-0.5 text-center flex items-center justify-center gap-3 cursor-pointer touch-press btn-shimmer">
+                    <a href="#kerjasama" class="px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-2xl shadow-xl shadow-emerald-600/30 text-base transition-transform duration-200 transform hover:-translate-y-0.5 text-center flex items-center justify-center gap-3 cursor-pointer touch-press btn-shimmer">
                         <span>Daftarkan Lingkungan Anda</span>
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                     </a>
                     
                     @auth
                         @if(Auth::user()->role === 'super_admin')
-                            <a href="{{ route('superadmin.index') }}" class="px-7 py-4 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-2xl shadow-lg shadow-amber-500/20 text-base transition flex items-center justify-center gap-2 cursor-pointer touch-press">
+                            <a href="{{ route('superadmin.index') }}" class="px-7 py-4 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-2xl shadow-lg shadow-amber-500/20 text-base transition-colors duration-200 flex items-center justify-center gap-2 cursor-pointer touch-press">
                                 <span>⚡ Buka Pusat Super Admin</span>
                             </a>
                         @else
-                            <a href="{{ route('dashboard') }}" class="px-7 py-4 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-extrabold rounded-2xl border-2 border-slate-200 dark:border-slate-800 text-base transition shadow-xs flex items-center justify-center gap-2 cursor-pointer touch-press">
+                            <a href="{{ route('dashboard') }}" class="px-7 py-4 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-extrabold rounded-2xl border-2 border-slate-200 dark:border-slate-800 text-base transition-colors duration-200 shadow-xs flex items-center justify-center gap-2 cursor-pointer touch-press">
                                 <span>Buka Dashboard Aktif ➔</span>
                             </a>
                         @endif
                     @else
-                        <a href="{{ route('login') }}" class="px-7 py-4 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-extrabold rounded-2xl border-2 border-slate-200 dark:border-slate-800 text-base transition shadow-xs flex items-center justify-center gap-2 cursor-pointer touch-press">
+                        <a href="{{ route('login') }}" class="px-7 py-4 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-extrabold rounded-2xl border-2 border-slate-200 dark:border-slate-800 text-base transition-colors duration-200 shadow-xs flex items-center justify-center gap-2 cursor-pointer touch-press">
                             <span>Masuk ke Akun Anda</span>
                             <span>➔</span>
                         </a>
                     @endauth
                 </div>
 
-                <!-- Live Metrics Summary: Bukti Sosial Real-Time & Transparan (Count-Up Animation Responsif) -->
+                <!-- Live Metrics Summary: Bukti Sosial Real-Time & Transparan (Count-Up Animation Responsif + Tabular Nums) -->
                 <div class="grid grid-cols-3 gap-2 sm:gap-6 pt-6 border-t border-slate-200 dark:border-slate-800">
                     <div class="space-y-1">
-                        <div x-data="countUp({{ $totalHouses }}, 1200)" x-text="displayValue + ' Unit'" class="text-base sm:text-2xl lg:text-3xl font-black text-slate-900 dark:text-white font-mono tracking-tight">
+                        <div x-data="countUp({{ $totalHouses }}, 1200)" x-text="displayValue + ' Unit'" class="text-base sm:text-2xl lg:text-3xl font-black text-slate-900 dark:text-white font-mono tracking-tight tabular-nums">
                             {{ $totalHouses }} Unit
                         </div>
                         <div class="text-[10px] sm:text-sm font-semibold text-slate-500 dark:text-slate-400 truncate">Rumah Terdata</div>
                     </div>
                     <div class="space-y-1">
-                        <div x-data="countUp({{ $totalUsers }}, 1500)" x-text="displayValue + ' Jiwa'" class="text-base sm:text-2xl lg:text-3xl font-black text-indigo-600 dark:text-indigo-400 font-mono tracking-tight">
+                        <div x-data="countUp({{ $totalUsers }}, 1500)" x-text="displayValue + ' Jiwa'" class="text-base sm:text-2xl lg:text-3xl font-black text-indigo-600 dark:text-indigo-400 font-mono tracking-tight tabular-nums">
                             {{ $totalUsers }} Jiwa
                         </div>
                         <div class="text-[10px] sm:text-sm font-semibold text-slate-500 dark:text-slate-400 truncate">Warga Terdaftar</div>
                     </div>
                     <div class="space-y-1">
-                        <div x-data="countUp({{ (int) $totalCash }}, 1800, true)" x-text="displayValue" class="text-base sm:text-2xl lg:text-3xl font-black text-emerald-600 dark:text-emerald-400 font-mono tracking-tight">
+                        <div x-data="countUp({{ (int) $totalCash }}, 1800, true)" x-text="displayValue" class="text-base sm:text-2xl lg:text-3xl font-black text-emerald-600 dark:text-emerald-400 font-mono tracking-tight tabular-nums">
                             Rp {{ number_format($totalCash, 0, ',', '.') }}
                         </div>
                         <div class="text-[10px] sm:text-sm font-semibold text-slate-500 dark:text-slate-400 truncate">Kas Terbuka Live</div>
