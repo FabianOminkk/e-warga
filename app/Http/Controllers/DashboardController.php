@@ -188,7 +188,7 @@ class DashboardController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        $tenant = Tenant::first();
+        $tenant = Tenant::getActiveTenant() ?? Tenant::first();
         if (!$tenant) {
             return redirect()->back()->with('error', 'Data komplek belum tersedia.');
         }

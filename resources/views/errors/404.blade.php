@@ -27,23 +27,23 @@
         <div class="pt-4 flex flex-wrap items-center justify-center gap-3">
             <button 
                 type="button" 
-                onclick="window.history.length > 1 ? window.history.back() : window.location.href='{{ route('dashboard') }}'" 
-                class="px-5 py-3 rounded-2xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-extrabold text-xs shadow-xs transition flex items-center gap-2 cursor-pointer"
+                onclick="window.history.length > 1 ? window.history.back() : window.location.href='{{ route('home') }}'" 
+                class="px-5 py-3 rounded-2xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-extrabold text-xs shadow-xs transition-colors flex items-center gap-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 touch-press"
             >
                 <span>⬅ Kembali ke Halaman Sebelumnya</span>
             </button>
 
             @auth
                 <a 
-                    href="{{ Auth::user()->role === 'warga' ? route('warga.index') : (Auth::user()->role === 'satpam' ? route('satpam.console') : route('dashboard')) }}" 
-                    class="px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-lg shadow-emerald-600/20 transition flex items-center gap-2 cursor-pointer"
+                    href="{{ Auth::user()->isSuperAdmin() ? route('superadmin.index') : (Auth::user()->role === 'warga' ? route('warga.index') : (Auth::user()->role === 'satpam' ? route('satpam.console') : route('dashboard'))) }}" 
+                    class="px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-lg shadow-emerald-600/20 transition-colors flex items-center gap-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 touch-press"
                 >
                     <span>📊 Buka Dashboard Anda ➔</span>
                 </a>
             @else
                 <a 
                     href="{{ route('home') }}" 
-                    class="px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-lg shadow-emerald-600/20 transition flex items-center gap-2 cursor-pointer"
+                    class="px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-lg shadow-emerald-600/20 transition-colors flex items-center gap-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 touch-press"
                 >
                     <span>🏠 Ke Halaman Utama ➔</span>
                 </a>

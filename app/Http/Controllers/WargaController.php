@@ -349,17 +349,22 @@ class WargaController extends Controller
             $targetUser
         );
 
-        // 1. Cek di private storage local disk
+        // 1. Cek di private storage local disk (menggunakan path disk dinamis Laravel)
         if (\Illuminate\Support\Facades\Storage::disk('local')->exists($photoPath)) {
+            return response()->file(\Illuminate\Support\Facades\Storage::disk('local')->path($photoPath));
+        }
+
+        // 2. Fallback jika tersimpan langsung di storage/app/
+        if (file_exists(storage_path('app/' . $photoPath))) {
             return response()->file(storage_path('app/' . $photoPath));
         }
 
-        // 2. Cek di private storage dengan prefix storage/app/
-        if (\Illuminate\Support\Facades\Storage::disk('local')->exists('private/' . $photoPath)) {
+        // 3. Fallback jika tersimpan di storage/app/private/
+        if (file_exists(storage_path('app/private/' . $photoPath))) {
             return response()->file(storage_path('app/private/' . $photoPath));
         }
 
-        // 3. Fallback jika masih berkas sample SVG di public/uploads
+        // 4. Fallback jika masih berkas sample SVG di public/uploads
         if (file_exists(public_path($photoPath))) {
             return response()->file(public_path($photoPath));
         }

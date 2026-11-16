@@ -90,8 +90,10 @@ class LetterApiController extends BaseApiController
         $currentMonthRoman = $romans[(int)date('n')] ?? 'XI';
         $currentYear = date('Y');
         $letterSequence = str_pad($letter->id, 3, '0', STR_PAD_LEFT);
+        $tenant = $letter->tenant ?? Tenant::find($letter->tenant_id) ?? Tenant::first();
+        $rtRwPart = ($tenant && !empty($tenant->rt_rw)) ? str_replace(' ', '', $tenant->rt_rw) : 'RT.04/RW.02';
 
-        $letterNumber = "470/{$letterSequence}/RT.04/RW.02/{$currentMonthRoman}/{$currentYear}";
+        $letterNumber = "470/{$letterSequence}/{$rtRwPart}/{$currentMonthRoman}/{$currentYear}";
         $qrCode = $letter->qr_verification_code ?? ('QR-SURAT-' . strtoupper(Str::random(10)));
 
         $letter->update([
