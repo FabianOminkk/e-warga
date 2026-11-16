@@ -137,7 +137,7 @@
                 @endif
 
                 <!-- Form Login Kredensial -->
-                <form action="{{ route('login.post') }}" method="POST" class="mt-5 space-y-4">
+                <form action="{{ route('login.post') }}" method="POST" class="mt-5 space-y-4" x-data="{ isLoggingIn: false }" @submit="isLoggingIn = true">
                     @csrf
                     <div>
                         <label for="login" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
@@ -147,12 +147,13 @@
                             type="text" 
                             name="login" 
                             id="login" 
+                            inputmode="email"
                             autocomplete="username"
                             spellcheck="false"
                             value="{{ old('login', session('registered_phone', 'superadmin@ewarga.id')) }}" 
                             required 
-                            placeholder="Contoh: superadmin@ewarga.id atau 08xxxxxxxxxx"
-                            class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden transition"
+                            placeholder="Contoh: superadmin@ewarga.id atau 08xxxxxxxxxx…"
+                            class="w-full px-4 py-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white text-base focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden transition"
                         >
                     </div>
 
@@ -170,22 +171,24 @@
                             autocomplete="current-password"
                             value="admin123"
                             required 
-                            class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden transition"
+                            class="w-full px-4 py-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white text-base focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden transition"
                         >
                     </div>
 
                     <div class="flex items-center justify-between pt-1">
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" name="remember" value="1" checked class="w-4 h-4 rounded-md text-emerald-600 border-slate-300 dark:border-slate-700 focus:ring-emerald-500">
-                            <span class="text-xs text-slate-600 dark:text-slate-400">Ingat sesi saya di komputer ini</span>
+                        <label class="flex items-center gap-2 cursor-pointer min-h-[44px]">
+                            <input type="checkbox" name="remember" value="1" checked class="w-5 h-5 rounded-md text-emerald-600 border-slate-300 dark:border-slate-700 focus:ring-emerald-500">
+                            <span class="text-xs text-slate-600 dark:text-slate-400">Ingat sesi saya di perangkat ini</span>
                         </label>
                     </div>
 
                     <button 
                         type="submit" 
-                        class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-sm shadow-lg shadow-emerald-600/30 transition-all transform hover:-translate-y-0.5 cursor-pointer"
+                        :disabled="isLoggingIn"
+                        class="w-full min-h-[48px] py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-95 text-white font-extrabold text-sm shadow-lg shadow-emerald-600/30 transition-transform flex items-center justify-center gap-2 cursor-pointer touch-press"
                     >
-                        Masuk ke Dashboard E-WARGA ➔
+                        <span x-show="isLoggingIn" class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                        <span x-text="isLoggingIn ? 'Memproses Masuk…' : 'Masuk ke Dashboard E-WARGA ➔'"></span>
                     </button>
                 </form>
             </div>

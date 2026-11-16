@@ -114,8 +114,8 @@
             
             <!-- Quick Chip 1: Buka Gerbang -->
             <a 
-                href="{{ route('warga.index') }}" 
-                class="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-xs font-bold shadow-xs shrink-0 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 transition touch-press card-interactive"
+                href="{{ route('warga.index') }}#step-open-gate" 
+                class="min-h-[44px] flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-bold shadow-xs shrink-0 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 transition-transform active:scale-95 touch-press card-interactive"
             >
                 <span class="text-base animate-bounce-subtle">🚪</span>
                 <span>Buka Gerbang</span>
@@ -125,7 +125,7 @@
             <button 
                 type="button" 
                 @click="$dispatch('open-ai-chat')" 
-                class="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-xs font-black shadow-md shrink-0 hover:opacity-95 transition touch-press cursor-pointer card-interactive btn-shimmer"
+                class="min-h-[44px] flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-xs font-black shadow-md shrink-0 hover:opacity-95 transition-transform active:scale-95 touch-press cursor-pointer card-interactive btn-shimmer"
             >
                 <span class="text-base animate-bounce-subtle">🤖</span>
                 <span>Tanya Bang Warga</span>
@@ -133,8 +133,8 @@
 
             <!-- Quick Chip 3: Bayar Iuran Kas -->
             <a 
-                href="{{ route('warga.index') }}#iuran" 
-                class="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-xs font-bold shadow-xs shrink-0 hover:bg-blue-50 dark:hover:bg-blue-950/60 transition touch-press"
+                href="{{ route('warga.index') }}#step-billing" 
+                class="min-h-[44px] flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-bold shadow-xs shrink-0 hover:bg-blue-50 dark:hover:bg-blue-950/60 transition-transform active:scale-95 touch-press"
             >
                 <span class="text-base">💳</span>
                 <span>Bayar Iuran</span>
@@ -143,7 +143,7 @@
             <!-- Quick Chip 4: Surat RT Online -->
             <a 
                 href="{{ route('letters.index') }}" 
-                class="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-xs font-bold shadow-xs shrink-0 hover:bg-amber-50 dark:hover:bg-amber-950/60 transition touch-press"
+                class="min-h-[44px] flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-bold shadow-xs shrink-0 hover:bg-amber-50 dark:hover:bg-amber-950/60 transition-transform active:scale-95 touch-press"
             >
                 <span class="text-base">📜</span>
                 <span>Surat RT</span>
@@ -152,7 +152,7 @@
             <!-- Quick Chip 5: Posyandu Digital -->
             <a 
                 href="{{ route('posyandu.index') }}" 
-                class="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-xs font-bold shadow-xs shrink-0 hover:bg-purple-50 dark:hover:bg-purple-950/60 transition touch-press"
+                class="min-h-[44px] flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-bold shadow-xs shrink-0 hover:bg-purple-50 dark:hover:bg-purple-950/60 transition-transform active:scale-95 touch-press"
             >
                 <span class="text-base">👶</span>
                 <span>Posyandu</span>
@@ -161,7 +161,7 @@
             <!-- Quick Chip 6: Jadwal Ronda -->
             <a 
                 href="{{ route('schedules.index') }}" 
-                class="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-xs font-bold shadow-xs shrink-0 hover:bg-slate-100 dark:hover:bg-slate-800 transition touch-press"
+                class="min-h-[44px] flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-bold shadow-xs shrink-0 hover:bg-slate-100 dark:hover:bg-slate-800 transition-transform active:scale-95 touch-press"
             >
                 <span class="text-base">👮</span>
                 <span>Jadwal Ronda</span>

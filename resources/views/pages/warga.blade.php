@@ -7,6 +7,109 @@
     <x-mobile-android-header :tenant="$tenant" :user="$user" />
 
     <!-- ======================================================== -->
+    <!-- ANDROID MOBILE ABOVE-THE-FOLD QUICK ACTION & STATUS DECK -->
+    <!-- (Terlihat Langsung di Layar HP Tanpa Perlu Scroll)       -->
+    <!-- ======================================================== -->
+    <div class="block lg:hidden space-y-3.5">
+        
+        <!-- 1. Ringkasan Status Iuran Bulan Ini (Above-The-Fold Card) -->
+        <div class="p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-2xl {{ ($billing && $billing->status === 'paid') ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300' : 'bg-rose-100 text-rose-700 dark:bg-rose-950/80 dark:text-rose-300' }} flex items-center justify-center text-xl shrink-0">
+                    💳
+                </div>
+                <div>
+                    <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Iuran Lingkungan Bulan Ini</div>
+                    <div class="text-sm font-black text-slate-900 dark:text-white flex items-center gap-1.5 mt-0.5">
+                        @if($billing && $billing->status === 'paid')
+                            <span class="text-emerald-600 dark:text-emerald-400">LUNAS</span>
+                            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">({{ $billing->formatted_amount }})</span>
+                        @else
+                            <span class="text-rose-600 dark:text-rose-400">BELUM LUNAS</span>
+                            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">(Rp 150.000)</span>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <div class="shrink-0">
+                @if($billing && $billing->status === 'paid')
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-xs font-bold border border-emerald-200 dark:border-emerald-800">
+                        ✅ Terverifikasi
+                    </span>
+                @else
+                    <a 
+                        href="#step-billing" 
+                        class="min-h-[44px] px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition-colors flex items-center gap-1.5 touch-press"
+                    >
+                        <span>Bayar</span>
+                        <span>➔</span>
+                    </a>
+                @endif
+            </div>
+        </div>
+
+        <!-- 2. Tombol Cepat Akses Gerbang & Pass QR Tamu (Target Sentuh 48-52px, Jarak Ideal 10px) -->
+        <div class="grid grid-cols-2 gap-2.5">
+            @if($user->canAccessGate())
+                <form action="{{ route('warga.open-gate') }}" method="POST" class="w-full">
+                    @csrf
+                    <button 
+                        type="submit" 
+                        @click="handleGateClick($event)"
+                        :disabled="isOpening"
+                        class="w-full min-h-[52px] px-4 py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 active:scale-95 text-white font-extrabold text-xs shadow-md shadow-emerald-600/25 transition-transform flex items-center justify-center gap-2 cursor-pointer touch-press"
+                    >
+                        <span class="text-xl" x-text="isOpening ? '⏳' : '🟢'"></span>
+                        <span class="text-left leading-tight">
+                            <span class="block font-black" x-text="isOpening ? 'Membuka…' : 'Buka Gerbang'"></span>
+                            <span class="text-[10px] font-medium text-emerald-100 opacity-90">Sensor IoT Aktif</span>
+                        </span>
+                    </button>
+                </form>
+            @else
+                <a 
+                    href="{{ route('warga.profile') }}" 
+                    class="w-full min-h-[52px] px-4 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-extrabold text-xs flex items-center justify-center gap-2 touch-press"
+                >
+                    <span class="text-xl">🔒</span>
+                    <span class="text-left leading-tight">
+                        <span class="block">KTP Tertunda</span>
+                        <span class="text-[10px] font-normal text-slate-500">Lengkapi Profil</span>
+                    </span>
+                </a>
+            @endif
+
+            <button 
+                type="button" 
+                @click="{{ $user->canAccessGate() ? 'openGuestModal = true' : 'redirectToProfile()' }}" 
+                class="w-full min-h-[52px] px-4 py-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 active:scale-95 text-slate-800 dark:text-slate-200 hover:border-emerald-500 font-extrabold text-xs shadow-sm transition-transform flex items-center justify-center gap-2 cursor-pointer touch-press"
+            >
+                <span class="text-xl">🎫</span>
+                <span class="text-left leading-tight">
+                    <span class="block font-black">Pass QR Tamu</span>
+                    <span class="text-[10px] font-medium text-emerald-600 dark:text-emerald-400">Tiket Kurir/Ojol</span>
+                </span>
+            </button>
+        </div>
+
+        <!-- 3. Pengumuman Terbaru Lingkungan RT (Above-The-Fold Highlight) -->
+        <div class="p-3.5 rounded-2xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-800/80 flex items-start gap-3">
+            <span class="text-lg shrink-0 mt-0.5">📢</span>
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center justify-between gap-2">
+                    <span class="text-xs font-black text-blue-900 dark:text-blue-200 truncate">Kerja Bakti Saluran Lingkungan</span>
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/80 text-blue-800 dark:text-blue-300 shrink-0">Info RT</span>
+                </div>
+                <p class="text-xs text-slate-700 dark:text-slate-300 mt-0.5 leading-relaxed">
+                    Hari Minggu pukul 07.00 WIB di Balai Warga. Diharapkan bapak-bapak hadir membawa perlengkapan.
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ======================================================== -->
     <!-- 1. HEADER UTAMA PORTAL WARGA (DESKTOP-FIRST HERO BAR)    -->
     <!-- ======================================================== -->
     <div class="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-8 shadow-xs border border-slate-200 dark:border-slate-800 transition">
@@ -519,17 +622,17 @@
                 <button @click="openGuestModal = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 font-bold">&times;</button>
             </div>
 
-            <form action="{{ route('warga.create-visitor') }}" method="POST" class="space-y-4">
+            <form action="{{ route('warga.create-visitor') }}" method="POST" class="space-y-4" x-data="{ isSubmitting: false }" @submit="isSubmitting = true">
                 @csrf
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Nama Tamu / Kurir</label>
-                    <input type="text" name="guest_name" placeholder="Misal: Kurir Shopee / Paman Rudi" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:border-emerald-500 outline-hidden">
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1.5">Nama Tamu / Kurir</label>
+                    <input type="text" name="guest_name" inputmode="text" placeholder="Misal: Kurir Shopee / Paman Rudi" required class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-base focus:border-emerald-500 outline-hidden">
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Kategori</label>
-                        <select name="guest_type" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:border-emerald-500 outline-hidden font-semibold">
+                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1.5">Kategori</label>
+                        <select name="guest_type" class="w-full px-3 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-base focus:border-emerald-500 outline-hidden font-semibold">
                             <option value="courier">📦 Kurir Paket</option>
                             <option value="guest">🚗 Tamu Keluarga</option>
                             <option value="ride_hailing">🛵 Ojek Online</option>
@@ -537,8 +640,8 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Berlaku Selama</label>
-                        <select name="duration_hours" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:border-emerald-500 outline-hidden font-semibold">
+                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1.5">Berlaku Selama</label>
+                        <select name="duration_hours" class="w-full px-3 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-base focus:border-emerald-500 outline-hidden font-semibold">
                             <option value="2">2 Jam</option>
                             <option value="6">6 Jam</option>
                             <option value="24">1 Hari Penuh</option>
@@ -547,13 +650,16 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Plat Nomor Kendaraan (Opsional)</label>
-                    <input type="text" name="vehicle_plate" placeholder="Misal: B 1234 XYZ" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:border-emerald-500 outline-hidden uppercase">
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1.5">Plat Nomor Kendaraan (Opsional)</label>
+                    <input type="text" name="vehicle_plate" inputmode="text" autocapitalize="characters" placeholder="Misal: B 1234 XYZ" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-base focus:border-emerald-500 outline-hidden uppercase font-mono">
                 </div>
 
-                <div class="pt-2 flex gap-3">
-                    <button type="button" @click="openGuestModal = false" class="flex-1 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold text-xs transition">Batal</button>
-                    <button type="submit" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-md shadow-emerald-600/30 transition">Buat Tiket QR</button>
+                <div class="pt-2 flex items-center gap-3">
+                    <button type="button" @click="openGuestModal = false" :disabled="isSubmitting" class="flex-1 min-h-[48px] py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold text-xs transition cursor-pointer touch-press">Batal</button>
+                    <button type="submit" :disabled="isSubmitting" class="flex-1 min-h-[48px] py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-md shadow-emerald-600/30 transition flex items-center justify-center gap-2 cursor-pointer touch-press">
+                        <span x-show="isSubmitting" class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                        <span x-text="isSubmitting ? 'Membuat Tiket…' : 'Buat Tiket QR'"></span>
+                    </button>
                 </div>
             </form>
         </div>

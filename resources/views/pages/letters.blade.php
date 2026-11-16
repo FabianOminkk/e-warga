@@ -74,7 +74,85 @@
             </div>
         </div>
 
-        <div class="overflow-x-auto -mx-2 sm:mx-0 px-2 sm:px-0">
+        <!-- TAMPILAN 1: TATA LETAK KARTU VERTIKAL PADA SMARTPHONE (MOBILE-FIRST) -->
+        <div class="block md:hidden p-3.5 sm:p-5 space-y-3.5">
+            @forelse($letters as $item)
+                @php $badge = $item->status_badge; @endphp
+                <div class="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-3">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <span class="text-xs font-mono font-bold text-slate-500 dark:text-slate-400 block">
+                                {{ $item->letter_number ?? '(Belum Ada Nomor)' }}
+                            </span>
+                            <h3 class="text-base font-black text-slate-900 dark:text-white leading-snug mt-0.5">
+                                {{ $item->letter_type_title }}
+                            </h3>
+                        </div>
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-black shrink-0 {{ $badge['color'] }}">
+                            {{ $badge['label'] }}
+                        </span>
+                    </div>
+
+                    <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 text-xs space-y-1">
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-500 dark:text-slate-400 font-semibold">Pemohon:</span>
+                            <span class="font-extrabold text-slate-900 dark:text-white">{{ $item->applicant_name }} ({{ $item->house_block }})</span>
+                        </div>
+                        <div class="flex items-center justify-between font-mono">
+                            <span class="text-slate-500 dark:text-slate-400 font-sans">NIK:</span>
+                            <span class="font-bold text-slate-700 dark:text-slate-300">{{ $item->nik }}</span>
+                        </div>
+                        <div class="pt-1 border-t border-slate-200/60 dark:border-slate-700/60">
+                            <span class="text-slate-500 dark:text-slate-400 block text-[11px]">Keperluan:</span>
+                            <span class="font-semibold text-slate-800 dark:text-slate-200 block mt-0.5">{{ $item->purpose }}</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                        <span>Diajukan: {{ $item->created_at->format('d/m/Y H:i') }}</span>
+                        @if($item->status === 'approved')
+                            <span class="text-emerald-600 dark:text-emerald-400 font-bold font-mono">{{ $item->qr_verification_code }}</span>
+                        @endif
+                    </div>
+
+                    @if($item->status === 'pending')
+                        <div class="pt-2 flex items-center gap-2.5 border-t border-slate-100 dark:border-slate-800">
+                            <form action="{{ route('letters.approve', $item->id) }}" method="POST" class="flex-1">
+                                @csrf
+                                <button type="submit" class="w-full min-h-[44px] px-3 py-2.5 rounded-xl text-xs font-black bg-emerald-600 hover:bg-emerald-700 text-white transition-transform active:scale-95 flex items-center justify-center gap-1.5 shadow-sm cursor-pointer touch-press">
+                                    <span>✓ Setujui & TTD</span>
+                                </button>
+                            </form>
+                            <button 
+                                type="button"
+                                @click="showRejectModal = true; selectedLetterId = '{{ $item->id }}'; selectedLetterTitle = '{{ $item->letter_type_title }} - {{ $item->applicant_name }}'" 
+                                class="flex-1 min-h-[44px] px-3 py-2.5 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800 transition-transform active:scale-95 flex items-center justify-center gap-1 cursor-pointer touch-press"
+                            >
+                                <span>✕ Tolak</span>
+                            </button>
+                        </div>
+                    @elseif($item->status === 'approved')
+                        <div class="pt-2 flex items-center justify-between border-t border-slate-100 dark:border-slate-800">
+                            <span class="text-xs text-emerald-600 dark:text-emerald-400 font-bold">✓ Ditandatangani Digital</span>
+                            <a href="{{ route('letters.verify', $item->qr_verification_code) }}" target="_blank" class="min-h-[40px] px-3 py-2 rounded-xl text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1">
+                                <span>Periksa QR Legalitas ➔</span>
+                            </a>
+                        </div>
+                    @elseif($item->status === 'rejected')
+                        <div class="pt-2 text-xs text-rose-600 dark:text-rose-400 border-t border-slate-100 dark:border-slate-800">
+                            Catatan: {{ $item->rejection_reason }}
+                        </div>
+                    @endif
+                </div>
+            @empty
+                <div class="py-8 text-center text-slate-400 text-xs">
+                    Tidak ada pengajuan surat pada kategori ini.
+                </div>
+            @endforelse
+        </div>
+
+        <!-- TAMPILAN 2: TABEL LEBAR KHUSUS DESKTOP (MEDIUM / LARGE SCREEN) -->
+        <div class="hidden md:block overflow-x-auto -mx-2 sm:mx-0 px-2 sm:px-0">
             <table class="w-full text-left text-sm min-w-[580px]">
                 <thead class="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 text-xs uppercase font-bold tracking-wider">
                     <tr>
@@ -176,11 +254,11 @@
                 <button @click="showRequestModal = false" class="text-slate-400 hover:text-slate-600">&times;</button>
             </div>
 
-            <form action="{{ route('letters.store') }}" method="POST" class="space-y-4 mt-4">
+            <form action="{{ route('letters.store') }}" method="POST" class="space-y-4 mt-4" x-data="{ isSubmitting: false }" @submit="isSubmitting = true">
                 @csrf
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Jenis Surat Pengantar</label>
-                    <select name="letter_type" required class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500">
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1.5">Jenis Surat Pengantar</label>
+                    <select name="letter_type" required class="w-full px-4 py-3 text-base rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 font-semibold">
                         <option value="pengantar_ktp">Surat Pengantar Pembuatan / Rekam KTP-el</option>
                         <option value="pengantar_kk">Surat Pengantar Pembuatan Kartu Keluarga (KK)</option>
                         <option value="domisili">Surat Keterangan Domisili Tempat Tinggal</option>
@@ -191,35 +269,38 @@
                     </select>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Nama Pemohon</label>
-                        <input type="text" name="applicant_name" value="Bambang Pamungkas" required class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1.5">Nama Pemohon</label>
+                        <input type="text" name="applicant_name" value="{{ Auth::user()?->name ?? 'Bambang Pamungkas' }}" required class="w-full px-4 py-3 text-base rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-semibold">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">NIK (16 Digit)</label>
-                        <input type="text" name="nik" value="3216012903820001" required class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1.5">NIK (16 Digit)</label>
+                        <input type="text" name="nik" inputmode="numeric" maxlength="16" minlength="16" pattern="\d{16}" value="{{ Auth::user()?->nik ?? '3216012903820001' }}" required class="w-full px-4 py-3 text-base rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono font-bold">
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Alamat Rumah / Blok</label>
-                    <input type="text" name="house_block" value="Blok C No. 12" required class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1.5">Alamat Rumah / Blok</label>
+                    <input type="text" name="house_block" value="{{ Auth::user()?->house?->block_and_number ?? 'Blok C No. 12' }}" required class="w-full px-4 py-3 text-base rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-semibold">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Keperluan Pengurusan</label>
-                    <textarea name="purpose" rows="2" required placeholder="Contoh: Mengurus perpanjangan SIM & KTP di kantor Disdukcapil" class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"></textarea>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1.5">Keperluan Pengurusan</label>
+                    <textarea name="purpose" rows="2" required placeholder="Contoh: Mengurus perpanjangan SIM & KTP di kantor Disdukcapil…" class="w-full px-4 py-3 text-base rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white leading-relaxed"></textarea>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Keterangan Tambahan / Dokumen Pendukung (Opsional)</label>
-                    <input type="text" name="supporting_data" placeholder="Contoh: Sudah melampirkan fotokopi akta lahir" class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1.5">Keterangan Tambahan / Dokumen Pendukung (Opsional)</label>
+                    <input type="text" name="supporting_data" placeholder="Contoh: Sudah melampirkan fotokopi akta lahir…" class="w-full px-4 py-3 text-base rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
                 </div>
 
-                <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
-                    <button type="button" @click="showRequestModal = false" class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100">Batal</button>
-                    <button type="submit" class="px-5 py-2 rounded-xl text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white">Kirim Pengajuan ke RT</button>
+                <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-3">
+                    <button type="button" @click="showRequestModal = false" :disabled="isSubmitting" class="min-h-[48px] px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer touch-press">Batal</button>
+                    <button type="submit" :disabled="isSubmitting" class="min-h-[48px] px-6 py-2.5 rounded-xl text-xs font-black bg-blue-600 hover:bg-blue-700 active:scale-95 text-white shadow-md shadow-blue-600/25 transition-transform flex items-center justify-center gap-2 cursor-pointer touch-press">
+                        <span x-show="isSubmitting" class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                        <span x-text="isSubmitting ? 'Mengirimkan…' : 'Kirim Pengajuan ke RT'"></span>
+                    </button>
                 </div>
             </form>
         </div>

@@ -51,7 +51,7 @@
                     </span>
                 </div>
 
-                <form action="{{ route('warga.profile.update') }}" method="POST" enctype="multipart/form-data" class="space-y-5">
+                <form action="{{ route('warga.profile.update') }}" method="POST" enctype="multipart/form-data" class="space-y-5" x-data="{ isSaving: false }" @submit="isSaving = true">
                     @csrf
 
                     <!-- Nama Lengkap & No WhatsApp -->
@@ -63,9 +63,10 @@
                             <input 
                                 type="text" 
                                 name="name" 
+                                autocomplete="name"
                                 value="{{ old('name', $user->name) }}" 
                                 required 
-                                class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:border-emerald-500 outline-hidden font-semibold"
+                                class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-base focus:border-emerald-500 outline-hidden font-semibold"
                             >
                         </div>
                         <div>
@@ -73,11 +74,13 @@
                                 Nomor WhatsApp Aktif <span class="text-rose-500">*</span>
                             </label>
                             <input 
-                                type="text" 
+                                type="tel" 
+                                inputmode="tel"
+                                autocomplete="tel"
                                 name="phone_number" 
                                 value="{{ old('phone_number', $user->phone_number) }}" 
                                 required 
-                                class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:border-emerald-500 outline-hidden font-mono"
+                                class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-base focus:border-emerald-500 outline-hidden font-mono"
                             >
                         </div>
                     </div>
@@ -89,6 +92,7 @@
                         </label>
                         <input 
                             type="text" 
+                            inputmode="numeric"
                             name="nik" 
                             maxlength="16" 
                             minlength="16"
@@ -96,9 +100,9 @@
                             value="{{ old('nik', $user->nik) }}" 
                             placeholder="Contoh: 3275011205820001" 
                             required 
-                            class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-base focus:border-emerald-500 outline-hidden font-mono tracking-widest font-black"
+                            class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-base focus:border-emerald-500 outline-hidden font-mono tracking-widest font-black"
                         >
-                        <p class="text-[11px] text-slate-400 mt-1">
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
                             NIK KTP ini akan dihubungkan secara otomatis dengan chip RFID / E-KTP untuk membuka palang portal komplek.
                         </p>
                     </div>
@@ -115,7 +119,7 @@
                                 value="{{ old('birth_place', $user->birth_place) }}" 
                                 placeholder="Kota Lahir (Misal: Bandung)" 
                                 required 
-                                class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:border-emerald-500 outline-hidden"
+                                class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-base focus:border-emerald-500 outline-hidden"
                             >
                         </div>
                         <div>
@@ -127,7 +131,7 @@
                                 name="birth_date" 
                                 value="{{ old('birth_date', $user->birth_date ? $user->birth_date->format('Y-m-d') : '') }}" 
                                 required 
-                                class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:border-emerald-500 outline-hidden font-semibold"
+                                class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-base focus:border-emerald-500 outline-hidden font-semibold"
                             >
                         </div>
                     </div>
@@ -212,16 +216,18 @@
                     </div>
 
                     <!-- Tombol Submit -->
-                    <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-4">
-                        <div class="text-xs text-slate-400">
-                            Status saat ini: <strong class="{{ $user->canAccessGate() ? 'text-emerald-600' : 'text-amber-600' }}">{{ $user->verification_badge['label'] }}</strong>
+                    <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div class="text-xs text-slate-500 dark:text-slate-400">
+                            Status saat ini: <strong class="{{ $user->canAccessGate() ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400' }}">{{ $user->verification_badge['label'] }}</strong>
                         </div>
                         <button 
                             type="submit" 
-                            class="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs shadow-lg shadow-emerald-600/30 transition flex items-center gap-2 cursor-pointer"
+                            :disabled="isSaving"
+                            class="min-h-[48px] px-6 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-sm shadow-lg shadow-emerald-600/30 transition-transform active:scale-95 flex items-center justify-center gap-2 cursor-pointer touch-press"
                         >
-                            <span>Simpan & Ajukan Pengesahan ke Ketua RW</span>
-                            <span>➔</span>
+                            <span x-show="isSaving" class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                            <span x-text="isSaving ? 'Menyimpan Berkas…' : 'Simpan & Ajukan Pengesahan ke Ketua RW'"></span>
+                            <span x-show="!isSaving">➔</span>
                         </button>
                     </div>
 
@@ -353,22 +359,23 @@
                     <h3 class="font-black text-slate-900 dark:text-white text-sm uppercase tracking-wider">Ganti Password Akun</h3>
                 </div>
 
-                <form action="{{ route('warga.change-password') }}" method="POST" class="space-y-3.5">
+                <form action="{{ route('warga.change-password') }}" method="POST" class="space-y-3.5" x-data="{ isChanging: false }" @submit="isChanging = true">
                     @csrf
                     <div>
                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Password Saat Ini</label>
-                        <input type="password" name="current_password" required class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs focus:border-emerald-500 outline-hidden">
+                        <input type="password" name="current_password" required class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-base focus:border-emerald-500 outline-hidden">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Password Baru (Min 6 Karakter)</label>
-                        <input type="password" name="new_password" required minlength="6" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs focus:border-emerald-500 outline-hidden">
+                        <input type="password" name="new_password" required minlength="6" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-base focus:border-emerald-500 outline-hidden">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Konfirmasi Password Baru</label>
-                        <input type="password" name="new_password_confirmation" required minlength="6" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs focus:border-emerald-500 outline-hidden">
+                        <input type="password" name="new_password_confirmation" required minlength="6" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-base focus:border-emerald-500 outline-hidden">
                     </div>
-                    <button type="submit" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-bold text-xs shadow-xs transition">
-                        Perbarui Password
+                    <button type="submit" :disabled="isChanging" class="w-full min-h-[48px] py-3.5 bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white rounded-2xl font-extrabold text-sm shadow-xs transition-transform active:scale-95 flex items-center justify-center gap-2 cursor-pointer touch-press">
+                        <span x-show="isChanging" class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                        <span x-text="isChanging ? 'Memperbarui…' : 'Perbarui Password'"></span>
                     </button>
                 </form>
             </div>

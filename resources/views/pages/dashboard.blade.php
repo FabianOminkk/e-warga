@@ -198,8 +198,79 @@
             </div>
         </div>
 
-        <!-- Tabel Warga & Status Pengesahan RW -->
-        <div class="overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0">
+        <!-- TAMPILAN 1: TATA LETAK KARTU VERTIKAL PADA SMARTPHONE (MOBILE-FIRST) -->
+        <div class="block lg:hidden space-y-3.5">
+            @forelse($wargaVerifications as $wv)
+                <div class="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-3">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="flex items-center gap-3">
+                            @if($wv->ktp_photo)
+                                <a href="{{ $wv->ktp_url }}" target="_blank" class="shrink-0" title="Klik untuk lihat foto KTP">
+                                    <img src="{{ $wv->ktp_url }}" alt="Foto KTP" class="w-14 h-10 rounded-xl object-cover border border-slate-300 dark:border-slate-700 shadow-xs">
+                                </a>
+                            @else
+                                <div class="w-14 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[10px] text-slate-500 font-bold border border-dashed border-slate-300 dark:border-slate-700 shrink-0">
+                                    No KTP
+                                </div>
+                            @endif
+                            <div>
+                                <h3 class="text-base font-black text-slate-900 dark:text-white leading-snug">{{ $wv->name }}</h3>
+                                <div class="text-xs text-slate-600 dark:text-slate-400 font-semibold">{{ $wv->phone_number ?? '-' }}</div>
+                            </div>
+                        </div>
+
+                        <span class="px-2.5 py-1 rounded-full text-[11px] font-black border shrink-0 {{ $wv->verification_badge['badge'] }}">
+                            {{ $wv->verification_badge['icon'] }} {{ $wv->verification_badge['label'] }}
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
+                        <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+                            <span class="text-[10px] uppercase font-bold text-slate-400 block">Unit Rumah:</span>
+                            <span class="font-extrabold text-emerald-600 dark:text-emerald-400 truncate block">{{ $wv->house?->block_and_number ?? 'Belum Terdata' }}</span>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+                            <span class="text-[10px] uppercase font-bold text-slate-400 block">UID RFID:</span>
+                            <span class="font-mono font-bold text-slate-800 dark:text-slate-200 truncate block">{{ $wv->rfid_tag ?? 'Belum Ada' }}</span>
+                        </div>
+                    </div>
+
+                    <div class="text-xs text-slate-600 dark:text-slate-300 font-mono">
+                        <span class="text-[10px] uppercase font-bold text-slate-400 block font-sans">NIK KTP:</span>
+                        <span class="font-bold tracking-wider">{{ $wv->nik ?? 'Belum Diisi Warga' }}</span>
+                    </div>
+
+                    @if($wv->verification_status === 'pending_rw' || $wv->verification_status === 'unverified')
+                        <div class="pt-2 flex items-center gap-2.5 border-t border-slate-100 dark:border-slate-800">
+                            <form action="{{ route('rw.verifications.approve', $wv->id) }}" method="POST" class="flex-1">
+                                @csrf
+                                <button type="submit" class="w-full min-h-[44px] px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-md shadow-emerald-600/20 transition-transform active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer touch-press" title="ACC & Aktifkan RFID ke Pos Satpam">
+                                    <span>✓ ACC KTP</span>
+                                </button>
+                            </form>
+
+                            @if($wv->verification_status === 'pending_rw')
+                                <form action="{{ route('rw.verifications.reject', $wv->id) }}" method="POST" onsubmit="return confirm('Tolak berkas KTP ini dan minta warga perbaiki foto/data?')" class="flex-1">
+                                    @csrf
+                                    <button type="submit" class="w-full min-h-[44px] px-3 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:hover:bg-rose-900 dark:text-rose-300 font-extrabold text-xs border border-rose-200 dark:border-rose-800 transition-transform active:scale-95 flex items-center justify-center gap-1 cursor-pointer touch-press">
+                                        <span>✕ Tolak</span>
+                                    </button>
+                                </form>
+                            @endif
+                        </div>
+                    @else
+                        <div class="pt-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 border-t border-slate-100 dark:border-slate-800">
+                            <span>✓ Terverifikasi & Sinkron ke Pos Satpam</span>
+                        </div>
+                    @endif
+                </div>
+            @empty
+                <div class="text-center py-6 text-slate-400 text-xs">Belum ada warga terdaftar.</div>
+            @endforelse
+        </div>
+
+        <!-- TAMPILAN 2: TABEL LEBAR KHUSUS DESKTOP (LARGE SCREEN) -->
+        <div class="hidden lg:block overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0">
             <table class="w-full text-left text-xs min-w-[680px]">
                 <thead>
                     <tr class="border-b border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500 uppercase tracking-wider">
@@ -342,39 +413,40 @@
         <!-- Kolom Kanan: Form Catat Kas Baru -->
         <div class="lg:col-span-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-4">
             <h3 class="text-base font-extrabold text-slate-900 dark:text-white pb-2 border-b border-slate-100 dark:border-slate-800">Catat Transaksi Kas RT</h3>
-            <form action="{{ route('dashboard.store-cashbook') }}" method="POST" class="space-y-4">
+            <form action="{{ route('dashboard.store-cashbook') }}" method="POST" class="space-y-4" x-data="{ isSubmitting: false }" @submit="isSubmitting = true">
                 @csrf
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Jenis Kas</label>
-                        <select name="type" class="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 outline-hidden font-semibold">
+                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1.5">Jenis Kas</label>
+                        <select name="type" class="w-full px-4 py-3 text-base rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 outline-hidden font-semibold">
                             <option value="income">🟢 Pemasukan (+)</option>
                             <option value="expense">🔴 Pengeluaran (-)</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Kategori</label>
-                        <input type="text" name="category" placeholder="Misal: Gaji Satpam" required class="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 outline-hidden">
+                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1.5">Kategori</label>
+                        <input type="text" name="category" placeholder="Misal: Gaji Satpam" required class="w-full px-4 py-3 text-base rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 outline-hidden">
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Judul / Keterangan Transaksi</label>
-                    <input type="text" name="title" placeholder="Misal: Pembayaran Listrik Pos Satpam" required class="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 outline-hidden">
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1.5">Judul / Keterangan Transaksi</label>
+                    <input type="text" name="title" placeholder="Misal: Pembayaran Listrik Pos Satpam" required class="w-full px-4 py-3 text-base rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 outline-hidden font-semibold">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Jumlah Nominal (Rp)</label>
-                    <input type="number" name="amount" placeholder="500000" min="1000" required class="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 outline-hidden font-mono font-bold">
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1.5">Jumlah Nominal (Rp)</label>
+                    <input type="number" name="amount" inputmode="numeric" placeholder="500000" min="1000" required class="w-full px-4 py-3 text-base rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 outline-hidden font-mono font-bold">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Catatan Tambahan (Opsional)</label>
-                    <textarea name="notes" rows="2" placeholder="Nomor kuitansi / nota toko…" class="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 outline-hidden"></textarea>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1.5">Catatan Tambahan (Opsional)</label>
+                    <textarea name="notes" rows="2" placeholder="Nomor kuitansi / nota toko…" class="w-full px-4 py-3 text-base rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 outline-hidden leading-relaxed"></textarea>
                 </div>
 
-                <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition">
-                    Simpan Catatan Kas
+                <button type="submit" :disabled="isSubmitting" class="w-full min-h-[48px] py-3.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-extrabold text-sm rounded-2xl shadow-md shadow-emerald-600/25 transition-transform flex items-center justify-center gap-2 cursor-pointer touch-press">
+                    <span x-show="isSubmitting" class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                    <span x-text="isSubmitting ? 'Menyimpan Transaksi…' : 'Simpan Catatan Kas'"></span>
                 </button>
             </form>
         </div>
@@ -400,7 +472,31 @@
                 </button>
             </div>
 
-            <div class="overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0">
+            <!-- TAMPILAN 1: TATA LETAK KARTU VERTIKAL PADA SMARTPHONE (MOBILE-FIRST) -->
+            <div class="block lg:hidden space-y-2.5">
+                @foreach($recentCashBooks as $cb)
+                    <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-2">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="font-mono text-slate-500 dark:text-slate-400 font-semibold">{{ $cb->transaction_date->format('d/m/Y') }}</span>
+                            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider {{ $cb->type === 'income' ? 'bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' : 'bg-rose-50 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800' }}">
+                                {{ $cb->category }}
+                            </span>
+                        </div>
+                        <div class="text-sm font-extrabold text-slate-900 dark:text-white leading-snug">
+                            {{ $cb->title }}
+                        </div>
+                        <div class="pt-1 flex items-center justify-between border-t border-slate-100 dark:border-slate-800 text-xs">
+                            <span class="text-slate-400 text-[11px]">{{ $cb->type === 'income' ? 'Pemasukan Kas' : 'Pengeluaran Lingkungan' }}</span>
+                            <span class="font-extrabold text-base tabular-nums {{ $cb->type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400' }}">
+                                {{ $cb->formatted_amount }}
+                            </span>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
+            <!-- TAMPILAN 2: TABEL LEBAR KHUSUS DESKTOP (LARGE SCREEN) -->
+            <div class="hidden lg:block overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0">
                 <table class="w-full text-left text-xs min-w-[500px]">
                     <thead>
                         <tr class="border-b border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500 uppercase tracking-wider">
