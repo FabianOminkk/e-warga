@@ -276,8 +276,8 @@
     </div>
 
     <!-- Footer Tipis Halaman Login -->
-    <footer class="max-w-5xl w-full mx-auto text-center text-xs text-slate-400 pt-6">
-        &copy; {{ date('Y') }} E-WARGA by PT Smart Community Indonesia. Seluruh hak cipta dilindungi.
+    <footer class="max-w-5xl w-full mx-auto text-center text-xs text-slate-400 pt-6 pb-8">
+        &copy; {{ date('Y') }} E-WARGA by Fabian Ganteng. Seluruh hak cipta dilindungi.
     </footer>
 
 </div>

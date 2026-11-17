@@ -72,5 +72,36 @@ class LayoutUiTest extends TestCase
         $dashResponse->assertSee('Navigasi Cepat Smartphone Android');
         $dashResponse->assertSee('Tanya AI');
     }
+
+    public function test_all_footers_display_fabian_ganteng_branding(): void
+    {
+        // 1. Landing page footer branding
+        $landingResponse = $this->get('/');
+        $landingResponse->assertStatus(200);
+        $landingResponse->assertSee('E-WARGA by Fabian Ganteng', false);
+        $landingResponse->assertSee('Fabian Ganteng', false);
+
+        // 2. Login page footer branding
+        $loginResponse = $this->get('/login');
+        $loginResponse->assertStatus(200);
+        $loginResponse->assertSee('E-WARGA by Fabian Ganteng. Seluruh hak cipta dilindungi.', false);
+
+        // 3. Authenticated dashboard operational footer branding
+        $tenant = Tenant::create([
+            'name' => 'Cluster Melati Mas Footer Test',
+            'slug' => 'cluster-melati-mas-footer-test',
+            'environment_type' => 'cluster',
+            'rt_rw' => 'RT 05 / RW 12',
+        ]);
+
+        $user = User::factory()->create([
+            'role' => 'pengurus_rt',
+            'tenant_id' => $tenant->id,
+        ]);
+
+        $dashResponse = $this->actingAs($user)->get('/dashboard');
+        $dashResponse->assertStatus(200);
+        $dashResponse->assertSee('&copy; ' . date('Y') . ' E-WARGA by Fabian Ganteng. All rights reserved.', false);
+    }
 }
 

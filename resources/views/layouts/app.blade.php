@@ -398,7 +398,7 @@
                         Platform Enterprise Smart Community & Managed IoT Living #1 di Indonesia. Mengintegrasikan Palang Pintu Otomatis, Transparansi Kas Keuangan, Layanan Surat Digital, Posyandu Terpadu, dan Keamanan Wilayah.
                     </p>
                     <div class="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-                        PT SMART COMMUNITY INDONESIA
+                        Fabian Ganteng
                     </div>
                 </div>
 
@@ -430,11 +430,11 @@
                     <div class="space-y-2 text-xs">
                         <div>
                             <span class="text-slate-400 block text-[10px] uppercase font-bold">Email Kemitraan:</span>
-                            <a href="mailto:partnership@ewarga.id" class="text-emerald-600 dark:text-emerald-400 font-bold hover:underline">FabianGanteng</a>
+                            <a href="mailto:partnership@ewarga.id" class="text-emerald-600 dark:text-emerald-400 font-bold hover:underline">Fabian Ganteng</a>
                         </div>
                         <div>
                             <span class="text-slate-400 block text-[10px] uppercase font-bold">Email Penjualan / Pengadaan:</span>
-                            <a href="mailto:sales@ewarga.id" class="text-emerald-600 dark:text-emerald-400 font-bold hover:underline">FabianGanteng</a>
+                            <a href="mailto:sales@ewarga.id" class="text-emerald-600 dark:text-emerald-400 font-bold hover:underline">Fabian Ganteng</a>
                         </div>
                         <div>
                             <span class="text-slate-400 block text-[10px] uppercase font-bold">Hotline WhatsApp Konsultan:</span>
@@ -447,9 +447,9 @@
                 </div>
             </div>
 
-            <div class="pt-8 border-t border-slate-100 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-slate-400 md:pr-64 lg:pr-72 pb-6 sm:pb-2">
-                <div>&copy; {{ date('Y') }} E-WARGA by FabianGanteng-dilindungi undang-undang.</div>
-                <div class="flex flex-wrap items-center justify-center gap-4 text-[11px]">
+            <div class="pt-8 border-t border-slate-100 dark:border-slate-800 flex flex-col lg:flex-row justify-between items-center gap-4 text-slate-400 pb-16 lg:pb-8">
+                <div class="text-xs text-center lg:text-left">&copy; {{ date('Y') }} E-WARGA by Fabian Ganteng &bull; Seluruh hak cipta dilindungi undang-undang.</div>
+                <div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[11px] lg:mr-72 xl:mr-80">
                     <a href="#kerjasama" class="hover:text-slate-600 dark:hover:text-slate-300 transition-colors">Hubungi Konsultan</a>
                     <span>•</span>
                     <a href="{{ route('login') }}" class="hover:text-slate-600 dark:hover:text-slate-300 transition-colors">Login Sistem</a>
@@ -1090,13 +1090,13 @@
         </main>
 
         <!-- Footer Halaman Internal Operasional -->
-        <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-5 px-6 text-center text-xs text-slate-400 transition-colors duration-200 pb-20 lg:pb-5">
-            <div class="flex flex-col sm:flex-row justify-between items-center gap-2 lg:pr-56">
+        <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-5 px-6 text-center text-xs text-slate-400 transition-colors duration-200 pb-24 lg:pb-6">
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-2 lg:mr-72">
                 <div>
-                    <span class="font-bold text-slate-700 dark:text-slate-300">E-WARGA Smart Community</span> &bull; Lingkungan Pintar Masa Depan
+                    <span class="font-bold text-slate-700 dark:text-slate-300">E-WARGA by Fabian Ganteng</span> &bull; Lingkungan Pintar Masa Depan
                 </div>
                 <div>
-                    &copy; {{ date('Y') }} E-WARGA Indonesia. All rights reserved.
+                    &copy; {{ date('Y') }} E-WARGA by Fabian Ganteng. All rights reserved.
                 </div>
             </div>
         </footer>

@@ -168,7 +168,7 @@
     <!-- ======================================================== -->
     <!-- 1. ANDROID FLOATING ACTION BUTTON (FAB) DOCK             -->
     <!-- ======================================================== -->
-    <div class="{{ $hasBottomBar ? 'hidden lg:flex fixed lg:bottom-6 right-4 sm:right-6 z-40' : 'fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-40 flex' }}">
+    <div class="{{ $hasBottomBar ? 'hidden lg:flex fixed lg:bottom-6 right-4 sm:right-6 z-40' : 'fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-40 flex' }}">
         <button 
             type="button" 
             @click="toggle()" 
