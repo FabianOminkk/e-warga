@@ -172,10 +172,9 @@
                 >
                     @csrf
                     <input type="hidden" name="registration_method" :value="method">
-                    <input type="hidden" name="rfid_tag" id="reg_rfid_tag" :value="scannedRfid">
 
                     <!-- ======================================================== -->
-                    <!-- MODUL KHUSUS: REGISTRASI KILAT e-KTP & SENSOR IOT RFID   -->
+                    <!-- MODUL KHUSUS: REGISTRASI KILAT e-KTP (OCR AUTO-FILL)     -->
                     <!-- ======================================================== -->
                     <div x-show="method === 'ktp'" x-cloak class="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-emerald-500/10 via-cyan-500/5 to-transparent dark:from-emerald-950/40 dark:via-cyan-950/20 border-2 border-emerald-400 dark:border-emerald-600 shadow-sm space-y-4">
                         <div class="flex items-start justify-between gap-3 pb-3 border-b border-emerald-200 dark:border-emerald-800">
@@ -183,11 +182,11 @@
                                 <div class="flex items-center gap-2">
                                     <span class="text-xl">⚡</span>
                                     <h2 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
-                                        Registrasi Kilat: Scan e-KTP & Sensor RFID ESP32
+                                        Registrasi Kilat: Pindai e-KTP (OCR Auto-Fill)
                                     </h2>
                                 </div>
                                 <p class="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
-                                    Ambil foto fisik e-KTP Anda untuk <strong>mengisi otomatis (Kilat Auto-Fill)</strong> seluruh biodata kependudukan (NIK, Nama, Tanggal Lahir, Alamat), dan tempelkan fisik kartu e-KTP Anda ke alat scanner ESP32 Meja Registrasi (atau NFC HP) untuk mencatat nomor RFID pembuka palang gerbang secara instan.
+                                    Unggah atau ambil foto fisik e-KTP Anda untuk <strong>mengisi otomatis (Kilat Auto-Fill)</strong> seluruh biodata kependudukan (NIK, Nama, Tanggal Lahir, Alamat) tanpa perlu mengetik manual.
                                 </p>
                             </div>
                             <span class="text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-md bg-emerald-500 text-slate-950 shrink-0">
@@ -258,107 +257,16 @@
                             </template>
                         </div>
 
-                        <!-- 2. Integrasi Sensor IoT RFID e-KTP -->
-                        <div class="pt-3 border-t border-emerald-200/80 dark:border-emerald-800 space-y-2">
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs font-black uppercase text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                                    <span>📡</span>
-                                    <span>Tautkan Chip Fisik RFID e-KTP</span>
+                        <!-- Informasi Perekaman RFID e-KTP di Dashboard Warga -->
+                        <div class="p-3.5 rounded-2xl bg-cyan-50/80 dark:bg-cyan-950/40 border border-cyan-200 dark:border-cyan-800/80 text-cyan-950 dark:text-cyan-200 text-xs flex items-start gap-3">
+                            <span class="text-xl shrink-0">📡</span>
+                            <div class="space-y-1">
+                                <span class="font-bold text-[11px] uppercase tracking-wider block text-cyan-900 dark:text-cyan-300">
+                                    Perekaman Sensor RFID e-KTP (Akses Palang Gerbang):
                                 </span>
-                                
-                                <span class="text-xs font-mono font-bold px-2.5 py-0.5 rounded-lg" :class="scannedRfid ? 'bg-cyan-100 text-cyan-800 dark:bg-cyan-950 dark:text-cyan-300 border border-cyan-300' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'">
-                                    <span x-text="scannedRfid ? scannedRfid : 'Belum Ada Chip RFID'"></span>
-                                </span>
-                            </div>
-
-                            <!-- Pilihan Tap Sensor: Web NFC vs Alat ESP32 -->
-                            <!-- Real-time Status Scanner ESP32 (Hotspot Wi-Fi Status) -->
-                            <div class="p-3 rounded-2xl border transition-colors space-y-1.5"
-                                 :class="esp32Online 
-                                     ? 'bg-emerald-50/80 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200' 
-                                     : 'bg-rose-50/80 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 text-rose-900 dark:text-rose-200'"
-                            >
-                                <div class="flex items-center justify-between gap-2">
-                                    <div class="flex items-center gap-2">
-                                        <span class="relative flex h-2.5 w-2.5 shrink-0">
-                                            <span x-show="esp32Online" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                            <span class="relative inline-flex rounded-full h-2.5 w-2.5" :class="esp32Online ? 'bg-emerald-500' : 'bg-rose-500'"></span>
-                                        </span>
-                                        <span class="text-xs font-black uppercase tracking-wider" x-text="esp32Online ? 'Scanner ESP32: ONLINE' : 'Scanner ESP32: OFFLINE'"></span>
-                                        <span class="text-[10px] px-2 py-0.5 rounded-full font-mono font-bold"
-                                              :class="esp32Online ? 'bg-emerald-200 text-emerald-900 dark:bg-emerald-900 dark:text-emerald-100' : 'bg-rose-200 text-rose-900 dark:bg-rose-900 dark:text-rose-100'"
-                                              x-text="esp32Online ? 'Hotspot BIAN Terhubung' : 'Hotspot BIAN Belum Terhubung'"
-                                        ></span>
-                                    </div>
-                                    <button 
-                                        type="button" 
-                                        @click="checkEsp32DeviceStatus(true)" 
-                                        class="shrink-0 text-[11px] font-bold px-2 py-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer flex items-center gap-1"
-                                        title="Perbarui status koneksi ESP32"
-                                    >
-                                        <span :class="isCheckingStatus ? 'animate-spin inline-block' : ''">🔄</span>
-                                        <span class="hidden sm:inline">Cek Status</span>
-                                    </button>
-                                </div>
-                                <p class="text-[11px] opacity-90 leading-relaxed" x-text="esp32Online 
-                                    ? 'Alat ESP32 sudah terhubung ke hotspot Anda (&quot;BIAN&quot;). Sensor siap menerima tap kartu e-KTP fisik.' 
-                                    : 'Alat scanner belum terhubung ke hotspot. Pastikan hotspot HP (&quot;BIAN&quot;) aktif dan modul ESP32 sudah menyala.'">
+                                <p class="text-[11px] leading-relaxed opacity-90 text-slate-700 dark:text-slate-300">
+                                    Pendaftaran nomor UID chip kartu e-KTP / RFID fisik dilakukan dengan mudah di <strong>Dashboard Warga</strong> setelah Anda login. Tersedia pilihan tap via <strong>Scanner ESP32 Meja</strong>, <strong>NFC Ponsel</strong>, maupun <strong>Input Manual</strong>.
                                 </p>
-                            </div>
-
-                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                                <button 
-                                    type="button" 
-                                    @click="startNfcScan()" 
-                                    class="py-2.5 px-3 rounded-xl border border-cyan-300 dark:border-cyan-700 bg-white dark:bg-slate-900 text-cyan-700 dark:text-cyan-300 hover:bg-cyan-50 dark:hover:bg-slate-800 font-bold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer touch-press"
-                                >
-                                    <span>📱</span>
-                                    <span>Tap via HP (NFC)</span>
-                                </button>
-
-                                <button 
-                                    type="button" 
-                                    @click="startEsp32Pairing()" 
-                                    class="py-2.5 px-3 rounded-xl border bg-white dark:bg-slate-900 font-bold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer touch-press"
-                                    :class="esp32Online 
-                                        ? 'border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-slate-800' 
-                                        : 'border-rose-300 dark:border-rose-700 text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-slate-800'"
-                                >
-                                    <span class="w-2 h-2 rounded-full shrink-0" :class="esp32Online ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'"></span>
-                                    <span>Tap di Scanner ESP32</span>
-                                </button>
-
-                                <button 
-                                    type="button" 
-                                    @click="showManualRfidInput = !showManualRfidInput" 
-                                    class="col-span-2 sm:col-span-1 py-2.5 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 font-bold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer touch-press"
-                                >
-                                    <span>⌨️</span>
-                                    <span>Ketik Manual</span>
-                                </button>
-                            </div>
-
-                            <!-- Feedback ESP32 Pairing Countdown -->
-                            <div x-show="esp32PairingActive" x-cloak class="p-3 rounded-2xl bg-cyan-50 dark:bg-cyan-950/60 border border-cyan-300 text-center space-y-1">
-                                <div class="text-xl font-black font-mono text-cyan-600 dark:text-cyan-400 tabular-nums" x-text="esp32Countdown + 's'"></div>
-                                <div class="text-xs font-semibold text-cyan-900 dark:text-cyan-200" x-text="esp32Message"></div>
-                            </div>
-
-                            <!-- Input Manual Modal Drawer -->
-                            <div x-show="showManualRfidInput" x-cloak class="flex items-center gap-2 pt-1">
-                                <input 
-                                    type="text" 
-                                    x-model="manualRfidVal" 
-                                    placeholder="Contoh: 04:A2:3B:8C atau 4A5B6C7D…" 
-                                    class="flex-1 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-mono uppercase"
-                                >
-                                <button 
-                                    type="button" 
-                                    @click="saveManualRfid()" 
-                                    class="px-4 py-2 rounded-xl bg-cyan-600 text-white font-bold text-xs cursor-pointer"
-                                >
-                                    Terapkan
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -678,344 +586,186 @@
 function registerForm() {
     return {
         method: '{{ old('registration_method', 'ktp') }}',
-            selectedTenantId: '{{ old('tenant_id', $selectedTenant?->id ?? '') }}',
-            customHouse: {{ old('new_block_name') ? 'true' : 'false' }},
-            houses: @js($houses),
-            isLoadingHouses: false,
-            isSubmitting: false,
-            ktpPreview: null,
-            nikInput: '{{ old('nik', '') }}',
-            scannedRfid: '{{ old('rfid_tag', '') }}',
-            gmailPreset: '',
+        selectedTenantId: '{{ old('tenant_id', $selectedTenant?->id ?? '') }}',
+        customHouse: {{ old('new_block_name') ? 'true' : 'false' }},
+        houses: @js($houses),
+        isLoadingHouses: false,
+        isSubmitting: false,
+        ktpPreview: null,
+        nikInput: '{{ old('nik', '') }}',
+        gmailPreset: '',
 
-            // OCR Scanner State
-            isOcrScanning: false,
-            ocrProgress: 0,
-            ocrStatusText: '',
-            ocrSuccess: false,
-            showManualRfidInput: false,
-            manualRfidVal: '',
+        // OCR Scanner State
+        isOcrScanning: false,
+        ocrProgress: 0,
+        ocrStatusText: '',
+        ocrSuccess: false,
 
-            // ESP32 Hardware Pairing & Online State
-            esp32Online: false,
-            isCheckingStatus: false,
-            esp32StatusHeartbeatInterval: null,
-            esp32PairingActive: false,
-            esp32Countdown: 60,
-            esp32TimerInterval: null,
-            esp32StatusInterval: null,
-            esp32Message: '',
-            esp32Success: false,
+        init() {
+            if (this.selectedTenantId) {
+                this.fetchHouses(this.selectedTenantId);
+            }
+        },
 
-            // Web NFC State
-            nfcScanning: false,
-            nfcMessage: '',
-            
-            init() {
-                if (this.selectedTenantId) {
-                    this.fetchHouses(this.selectedTenantId);
+        async fetchHouses(tenantId) {
+            if (!tenantId) return;
+            this.isLoadingHouses = true;
+            try {
+                const res = await fetch(`/api/tenants/${tenantId}/houses`);
+                if (res.ok) {
+                    const json = await res.json();
+                    this.houses = json.data || [];
                 }
-                this.checkEsp32DeviceStatus();
-                this.esp32StatusHeartbeatInterval = setInterval(() => {
-                    this.checkEsp32DeviceStatus();
-                }, 4000);
-            },
+            } catch (e) {
+                console.error('Gagal memuat daftar rumah:', e);
+            } finally {
+                this.isLoadingHouses = false;
+            }
+        },
 
-            async fetchHouses(tenantId) {
-                if (!tenantId) return;
-                this.isLoadingHouses = true;
-                try {
-                    const res = await fetch(`/api/tenants/${tenantId}/houses`);
-                    if (res.ok) {
-                        const json = await res.json();
-                        this.houses = json.data || [];
-                    }
-                } catch (e) {
-                    console.error('Gagal memuat daftar rumah:', e);
-                } finally {
-                    this.isLoadingHouses = false;
+        // Trigger Pindai OCR Foto e-KTP
+        async scanKtpImage(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.size > 5 * 1024 * 1024) {
+                alert('Ukuran berkas KTP maksimal 5 MB.');
+                event.target.value = '';
+                return;
+            }
+
+            this.isOcrScanning = true;
+            this.ocrSuccess = false;
+            this.ocrProgress = 15;
+            this.ocrStatusText = 'Mempersiapkan pemindai e-KTP…';
+
+            // Pratinjau Gambar Langsung
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                this.ktpPreview = e.target.result;
+            };
+            reader.readAsDataURL(file);
+
+            try {
+                if (typeof Tesseract !== 'undefined') {
+                    this.ocrStatusText = 'Membaca teks dari foto fisik e-KTP…';
+                    this.ocrProgress = 35;
+                    const worker = await Tesseract.createWorker('ind');
+                    this.ocrProgress = 60;
+                    const ret = await worker.recognize(file);
+                    await worker.terminate();
+                    this.ocrProgress = 90;
+                    this.ocrStatusText = 'Mengekstrak NIK, Nama, dan Alamat KTP…';
+                    this.parseKtpText(ret.data.text);
+                } else {
+                    // Fallback jika CDN Tesseract belum termuat
+                    await new Promise(r => setTimeout(r, 1200));
+                    this.applySampleKtpData();
                 }
-            },
-
-            // Trigger Pindai OCR Foto e-KTP
-            async scanKtpImage(event) {
-                const file = event.target.files[0];
-                if (!file) return;
-
-                if (file.size > 5 * 1024 * 1024) {
-                    alert('Ukuran berkas KTP maksimal 5 MB.');
-                    event.target.value = '';
-                    return;
-                }
-
-                this.isOcrScanning = true;
-                this.ocrSuccess = false;
-                this.ocrProgress = 15;
-                this.ocrStatusText = 'Mempersiapkan pemindai e-KTP…';
-
-                // Pratinjau Gambar Langsung
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    this.ktpPreview = e.target.result;
-                };
-                reader.readAsDataURL(file);
-
-                try {
-                    if (typeof Tesseract !== 'undefined') {
-                        this.ocrStatusText = 'Membaca teks dari foto fisik e-KTP…';
-                        this.ocrProgress = 35;
-                        const worker = await Tesseract.createWorker('ind');
-                        this.ocrProgress = 60;
-                        const ret = await worker.recognize(file);
-                        await worker.terminate();
-                        this.ocrProgress = 90;
-                        this.ocrStatusText = 'Mengekstrak NIK, Nama, dan Alamat KTP…';
-                        this.parseKtpText(ret.data.text);
-                    } else {
-                        // Fallback jika CDN Tesseract belum termuat
-                        await new Promise(r => setTimeout(r, 1200));
-                        this.applySampleKtpData();
-                    }
-                    this.ocrProgress = 100;
-                    this.ocrSuccess = true;
-                    this.ocrStatusText = 'e-KTP berhasil dipindai! Seluruh data formulir terisi otomatis.';
-                    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-                } catch (err) {
-                    console.warn('OCR processing error:', err);
-                    this.ocrStatusText = 'Foto tersimpan. Silakan periksa atau lengkapi data formulir di bawah.';
-                } finally {
-                    this.isOcrScanning = false;
-                }
-            },
-
-            // Parser Cerdas e-KTP Indonesia
-            parseKtpText(text) {
-                const cleanText = text.replace(/\r/g, '');
-
-                // 1. Ekstrak NIK (16 digit angka)
-                const nikMatch = cleanText.match(/\b([1-9]\d{15})\b/) 
-                    || cleanText.match(/(?:NIK|N1K|N!K)[\s:;.-]*([0-9\sOIo-]{16,22})/i);
-                if (nikMatch) {
-                    const rawDigits = (nikMatch[1] || nikMatch[0]).replace(/\D/g, '');
-                    if (rawDigits.length >= 16) {
-                        this.nikInput = rawDigits.slice(0, 16);
-                        const el = document.getElementById('reg_nik');
-                        if (el) el.value = this.nikInput;
-                        if (!this.scannedRfid) {
-                            this.scannedRfid = 'RFID-' + this.nikInput;
-                        }
-                    }
-                }
-
-                // 2. Ekstrak Nama
-                const namaMatch = cleanText.match(/Nama[\s:;.-]+([A-Z\s.,']+)/i);
-                if (namaMatch && namaMatch[1]) {
-                    const rawName = namaMatch[1].trim();
-                    if (rawName.length > 2) {
-                        const el = document.getElementById('reg_name');
-                        if (el) el.value = rawName;
-                    }
-                }
-
-                // 3. Ekstrak Tempat & Tanggal Lahir
-                const ttlMatch = cleanText.match(/Tempat[\w\s\/]*Lahir[\s:;.-]+([A-Z\s]+)[,\s]+(\d{2})[-/\s](\d{2})[-/\s](\d{4})/i);
-                if (ttlMatch) {
-                    const place = ttlMatch[1].trim();
-                    const d = ttlMatch[2].padStart(2, '0');
-                    const m = ttlMatch[3].padStart(2, '0');
-                    const y = ttlMatch[4];
-                    
-                    const elPlace = document.getElementById('reg_birth_place');
-                    if (elPlace) elPlace.value = place;
-                    const elDate = document.getElementById('reg_birth_date');
-                    if (elDate) elDate.value = `${y}-${m}-${d}`;
-                }
-
-                // 4. Ekstrak Jenis Kelamin
-                if (/PEREMPUAN|WANITA/i.test(cleanText)) {
-                    const elGender = document.getElementById('reg_gender');
-                    if (elGender) elGender.value = 'female';
-                } else if (/LAKI[\s-]*LAKI|PRIA/i.test(cleanText)) {
-                    const elGender = document.getElementById('reg_gender');
-                    if (elGender) elGender.value = 'male';
-                }
-
-                // 5. Ekstrak Alamat
-                const alamatMatch = cleanText.match(/Alamat[\s:;.-]+([\s\S]+?)(?:Agama|Status|Pekerjaan|Kewarganegaraan)/i);
-                if (alamatMatch && alamatMatch[1]) {
-                    const rawAddr = alamatMatch[1].replace(/\n/g, ', ').replace(/\s+/g, ' ').trim();
-                    const elAddr = document.getElementById('reg_address_ktp');
-                    if (elAddr) elAddr.value = rawAddr;
-                }
-            },
-
-            // Simulasi Scan 1-Klik (Untuk Demo & Pengujian Cepat)
-            applySampleKtpData() {
-                this.nikInput = '3275011902890005';
-                const elNik = document.getElementById('reg_nik');
-                if (elNik) elNik.value = '3275011902890005';
-
-                const elName = document.getElementById('reg_name');
-                if (elName) elName.value = 'Siti Rahmawati';
-
-                const elPlace = document.getElementById('reg_birth_place');
-                if (elPlace) elPlace.value = 'Bandung';
-
-                const elDate = document.getElementById('reg_birth_date');
-                if (elDate) elDate.value = '1989-02-19';
-
-                const elGender = document.getElementById('reg_gender');
-                if (elGender) elGender.value = 'female';
-
-                const elAddr = document.getElementById('reg_address_ktp');
-                if (elAddr) elAddr.value = 'Jl. Melati Mas Raya Blok B No. 12, RT 05 / RW 12, Kel. Melati, Kec. Sukajadi';
-
-                if (!this.scannedRfid) {
-                    this.scannedRfid = 'RFID-3275011902890005';
-                }
-                this.ktpPreview = '/uploads/ktp/sample_ktp_siti.svg';
+                this.ocrProgress = 100;
                 this.ocrSuccess = true;
-                this.ocrStatusText = 'e-KTP terdeteksi! Seluruh biodata berhasil diisi otomatis.';
-            },
+                this.ocrStatusText = 'e-KTP berhasil dipindai! Seluruh data formulir terisi otomatis.';
+                if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+            } catch (err) {
+                console.warn('OCR processing error:', err);
+                this.ocrStatusText = 'Foto tersimpan. Silakan periksa atau lengkapi data formulir di bawah.';
+            } finally {
+                this.isOcrScanning = false;
+            }
+        },
 
-            // Web NFC Scan di HP Android
-            async startNfcScan() {
-                if (!('NDEFReader' in window)) {
-                    alert('Web NFC aktif pada Google Chrome di HP Android ber-NFC. Untuk komputer atau perangkat lain, silakan gunakan tombol "Tap di Scanner ESP32" atau masukkan UID manual.');
-                    return;
-                }
-                try {
-                    this.nfcScanning = true;
-                    this.nfcMessage = 'Siap! Tempelkan fisik e-KTP Anda ke bodi belakang ponsel sekarang…';
-                    const ndef = new NDEFReader();
-                    await ndef.scan();
-                    ndef.addEventListener("reading", ({ serialNumber }) => {
-                        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-                        const clean = serialNumber.replace(/[:\s-]/g, '').toUpperCase();
-                        this.scannedRfid = 'RFID-' + clean;
-                        this.nfcScanning = false;
-                        this.nfcMessage = 'Chip e-KTP berhasil dicatat: ' + this.scannedRfid;
-                    });
-                } catch (err) {
-                    this.nfcScanning = false;
-                    alert('Izin NFC ditolak atau tidak tersedia: ' + err.message);
-                }
-            },
+        // Parser Cerdas e-KTP Indonesia
+        parseKtpText(text) {
+            const cleanText = text.replace(/\r/g, '');
 
-            // Cek Status Koneksi Online / Offline ESP32 ke Hotspot BIAN
-            async checkEsp32DeviceStatus(manual = false) {
-                if (manual) this.isCheckingStatus = true;
-                try {
-                    const tid = this.selectedTenantId || 1;
-                    const res = await fetch(`{{ route('api.register.esp32-status') }}?tenant_id=${tid}`);
-                    const data = await res.json();
-                    this.esp32Online = !!data.online;
-                    if (this.esp32PairingActive && !this.esp32Success) {
-                        if (this.esp32Online) {
-                            this.esp32Message = 'Sensor siap! Tempelkan fisik e-KTP Anda ke scanner RFID sekarang…';
-                        } else {
-                            this.esp32Message = 'Scanner Offline: Alat ESP32 belum terhubung ke hotspot "BIAN".';
-                        }
-                    }
-                } catch (e) {
-                    this.esp32Online = false;
-                } finally {
-                    if (manual) setTimeout(() => { this.isCheckingStatus = false; }, 400);
-                }
-            },
-
-            // Mode Sesi Pairing ESP32 di Gerbang / Pos Satpam
-            async startEsp32Pairing() {
-                this.esp32PairingActive = true;
-                this.esp32Countdown = 60;
-                this.esp32Message = 'Menghubungkan ke alat sensor ESP32…';
-                this.esp32Success = false;
-                await this.checkEsp32DeviceStatus();
-
-                try {
-                    const res = await fetch("{{ route('api.register.esp32-pair.start') }}", {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        },
-                        body: JSON.stringify({ tenant_id: this.selectedTenantId })
-                    });
-                    const data = await res.json();
-                    if (!data.success) {
-                        this.esp32Message = 'Gagal memulai mode pairing: ' + data.message;
-                        this.esp32PairingActive = false;
-                        return;
-                    }
-
-                    this.esp32Message = this.esp32Online
-                        ? 'Sensor siap! Tempelkan fisik e-KTP Anda ke scanner RFID di pos satpam / gerbang sekarang…'
-                        : 'Scanner Offline: Pastikan hotspot HP ("BIAN") aktif dan ESP32 sudah menyala…';
-
-                    if (this.esp32TimerInterval) clearInterval(this.esp32TimerInterval);
-                    this.esp32TimerInterval = setInterval(() => {
-                        this.esp32Countdown--;
-                        if (this.esp32Countdown <= 0) {
-                            this.stopEsp32Pairing('Waktu pairing habis (60 detik). Silakan coba lagi.');
-                        }
-                    }, 1000);
-
-                    if (this.esp32StatusInterval) clearInterval(this.esp32StatusInterval);
-                    this.esp32StatusInterval = setInterval(async () => {
-                        await this.checkEsp32Status();
-                    }, 1500);
-
-                } catch (err) {
-                    this.esp32PairingActive = false;
-                    this.esp32Message = 'Kesalahan jaringan: ' + err.message;
-                }
-            },
-
-            async checkEsp32Status() {
-                try {
-                    const res = await fetch(`{{ route('api.register.esp32-pair.status') }}?tenant_id=${this.selectedTenantId}`);
-                    const data = await res.json();
-
-                    if (data.is_online !== undefined) {
-                        this.esp32Online = !!data.is_online;
-                    }
-
-                    if (data.paired) {
-                        this.stopEsp32Pairing();
-                        this.esp32Success = true;
-                        this.esp32Message = data.message;
-                        this.scannedRfid = data.rfid_tag;
-                        if (navigator.vibrate) navigator.vibrate([100, 100, 200]);
-                    }
-                } catch (e) {}
-            },
-
-            stopEsp32Pairing(msg = null) {
-                if (this.esp32TimerInterval) clearInterval(this.esp32TimerInterval);
-                if (this.esp32StatusInterval) clearInterval(this.esp32StatusInterval);
-                this.esp32PairingActive = false;
-                if (msg) this.esp32Message = msg;
-            },
-
-            formatNik(e) {
-                let val = e.target.value.replace(/\D/g, '');
-                if (val.length > 16) val = val.slice(0, 16);
-                this.nikInput = val;
-                e.target.value = val;
-                if (!this.scannedRfid) {
-                    this.scannedRfid = 'RFID-' + val;
-                }
-            },
-
-            saveManualRfid() {
-                if (this.manualRfidVal && this.manualRfidVal.trim().length >= 4) {
-                    const clean = this.manualRfidVal.replace(/[:\s-]/g, '').toUpperCase();
-                    this.scannedRfid = 'RFID-' + clean;
-                    this.showManualRfidInput = false;
+            // 1. Ekstrak NIK (16 digit angka)
+            const nikMatch = cleanText.match(/\b([1-9]\d{15})\b/) 
+                || cleanText.match(/(?:NIK|N1K|N!K)[\s:;.-]*([0-9\sOIo-]{16,22})/i);
+            if (nikMatch) {
+                const rawDigits = (nikMatch[1] || nikMatch[0]).replace(/\D/g, '');
+                if (rawDigits.length >= 16) {
+                    this.nikInput = rawDigits.slice(0, 16);
+                    const el = document.getElementById('reg_nik');
+                    if (el) el.value = this.nikInput;
                 }
             }
-        };
-    }
+
+            // 2. Ekstrak Nama
+            const namaMatch = cleanText.match(/Nama[\s:;.-]+([A-Z\s.,']+)/i);
+            if (namaMatch && namaMatch[1]) {
+                const rawName = namaMatch[1].trim();
+                if (rawName.length > 2) {
+                    const el = document.getElementById('reg_name');
+                    if (el) el.value = rawName;
+                }
+            }
+
+            // 3. Ekstrak Tempat & Tanggal Lahir
+            const ttlMatch = cleanText.match(/Tempat[\w\s\/]*Lahir[\s:;.-]+([A-Z\s]+)[,\s]+(\d{2})[-/\s](\d{2})[-/\s](\d{4})/i);
+            if (ttlMatch) {
+                const place = ttlMatch[1].trim();
+                const d = ttlMatch[2].padStart(2, '0');
+                const m = ttlMatch[3].padStart(2, '0');
+                const y = ttlMatch[4];
+                
+                const elPlace = document.getElementById('reg_birth_place');
+                if (elPlace) elPlace.value = place;
+                const elDate = document.getElementById('reg_birth_date');
+                if (elDate) elDate.value = `${y}-${m}-${d}`;
+            }
+
+            // 4. Ekstrak Jenis Kelamin
+            if (/PEREMPUAN|WANITA/i.test(cleanText)) {
+                const elGender = document.getElementById('reg_gender');
+                if (elGender) elGender.value = 'female';
+            } else if (/LAKI[\s-]*LAKI|PRIA/i.test(cleanText)) {
+                const elGender = document.getElementById('reg_gender');
+                if (elGender) elGender.value = 'male';
+            }
+
+            // 5. Ekstrak Alamat
+            const alamatMatch = cleanText.match(/Alamat[\s:;.-]+([\s\S]+?)(?:Agama|Status|Pekerjaan|Kewarganegaraan)/i);
+            if (alamatMatch && alamatMatch[1]) {
+                const rawAddr = alamatMatch[1].replace(/\n/g, ', ').replace(/\s+/g, ' ').trim();
+                const elAddr = document.getElementById('reg_address_ktp');
+                if (elAddr) elAddr.value = rawAddr;
+            }
+        },
+
+        // Simulasi Scan 1-Klik (Untuk Demo & Pengujian Cepat)
+        applySampleKtpData() {
+            this.nikInput = '3275011902890005';
+            const elNik = document.getElementById('reg_nik');
+            if (elNik) elNik.value = '3275011902890005';
+
+            const elName = document.getElementById('reg_name');
+            if (elName) elName.value = 'Siti Rahmawati';
+
+            const elPlace = document.getElementById('reg_birth_place');
+            if (elPlace) elPlace.value = 'Bandung';
+
+            const elDate = document.getElementById('reg_birth_date');
+            if (elDate) elDate.value = '1989-02-19';
+
+            const elGender = document.getElementById('reg_gender');
+            if (elGender) elGender.value = 'female';
+
+            const elAddr = document.getElementById('reg_address_ktp');
+            if (elAddr) elAddr.value = 'Jl. Melati Mas Raya Blok B No. 12, RT 05 / RW 12, Kel. Melati, Kec. Sukajadi';
+
+            this.ktpPreview = '/uploads/ktp/sample_ktp_siti.svg';
+            this.ocrSuccess = true;
+            this.ocrStatusText = 'e-KTP terdeteksi! Seluruh biodata berhasil diisi otomatis.';
+        },
+
+        formatNik(e) {
+            let val = e.target.value.replace(/\D/g, '');
+            if (val.length > 16) val = val.slice(0, 16);
+            this.nikInput = val;
+            e.target.value = val;
+        }
+    };
+}
 </script>
 @endsection
 

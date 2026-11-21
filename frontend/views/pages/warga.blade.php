@@ -266,12 +266,19 @@
                 <div class="text-[10px] mt-0.5 opacity-80">{{ $user->nik && $user->ktp_photo ? 'Berkas Lengkap' : 'Wajib Dilengkapi' }}</div>
             </div>
 
-            <div class="p-3 rounded-2xl bg-white/80 dark:bg-slate-900/80 border {{ $user->rfid_tag ? 'border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300' : 'border-cyan-300 dark:border-cyan-700 text-cyan-800 dark:text-cyan-300' }}">
-                <div class="font-extrabold flex items-center gap-1">
-                    <span>{{ $user->rfid_tag ? '✓' : '🪪' }}</span>
-                    <span>3. Sensor e-KTP RFID</span>
+            <div 
+                @click="openRfidModal = true" 
+                class="p-3 rounded-2xl bg-white/80 dark:bg-slate-900/80 border {{ $user->rfid_tag ? 'border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300' : 'border-cyan-300 dark:border-cyan-700 text-cyan-800 dark:text-cyan-300' }} cursor-pointer touch-press hover:shadow-sm transition-all"
+                title="Klik untuk daftarkan atau ganti e-KTP RFID"
+            >
+                <div class="font-extrabold flex items-center justify-between gap-1">
+                    <div class="flex items-center gap-1">
+                        <span>{{ $user->rfid_tag ? '✓' : '🪪' }}</span>
+                        <span>3. Sensor e-KTP RFID</span>
+                    </div>
+                    <span class="text-[10px] font-mono underline opacity-75">Kelola ➔</span>
                 </div>
-                <div class="text-[10px] mt-0.5 opacity-80 truncate">{{ $user->rfid_tag ? $user->rfid_tag : 'Belum Dipasangkan' }}</div>
+                <div class="text-[10px] mt-0.5 opacity-80 truncate">{{ $user->rfid_tag ? $user->rfid_tag : 'Belum Dipasangkan (Klik untuk Scan)' }}</div>
             </div>
 
             <div class="p-3 rounded-2xl bg-white/80 dark:bg-slate-900/80 border {{ $user->verification_status === 'pending_rw' ? 'border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-300 font-bold' : 'border-slate-200 dark:border-slate-800 text-slate-500' }}">
@@ -1247,6 +1254,10 @@ function wargaApp() {
         manualError: '',
 
         init() {
+            if (window.location.hash === '#rfid-modal' || window.location.search.includes('open_rfid=1')) {
+                this.openRfidModal = true;
+                this.rfidTab = 'esp32';
+            }
             this.checkEsp32DeviceStatus();
             this.esp32StatusHeartbeatInterval = setInterval(() => {
                 this.checkEsp32DeviceStatus();

@@ -426,4 +426,51 @@ class WargaRegistrationTest extends TestCase
                 'status' => 'online',
             ]);
     }
+
+    public function test_logged_in_citizen_can_pair_rfid_via_desk_scanner_esp32(): void
+    {
+        $citizen = User::create([
+            'tenant_id' => $this->tenant->id,
+            'house_id' => $this->house->id,
+            'name' => 'Warga Login Pairing',
+            'email' => 'login.pairing@warga.id',
+            'phone_number' => '081233445566',
+            'password' => bcrypt('password123'),
+            'role' => 'warga',
+            'rfid_tag' => null,
+        ]);
+
+        // 1. Warga memulai pairing di dashboard web
+        $startResp = $this->actingAs($citizen)->postJson(route('warga.esp32-pair.start'));
+        $startResp->assertStatus(200)
+            ->assertJson(['success' => true]);
+
+        // 2. Warga tap kartu di scanner meja registrasi ESP32
+        $scanResp = $this->postJson('/api/v1/registration-device/scan', [
+            'device_uid' => 'ESP32-REGIS-DESK-01',
+            'rfid_uid' => 'A1:B2:C3:D4',
+            'tenant_id' => $this->tenant->id,
+        ]);
+        $scanResp->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'status' => 'paired',
+                'lcd_line1' => 'KTP TERCATAT!',
+                'resident_name' => $citizen->name,
+                'rfid_uid' => 'RFID-A1B2C3D4',
+            ]);
+
+        // 3. Pastikan kartu otomatis terikat ke profil warga di database
+        $citizen->refresh();
+        $this->assertEquals('RFID-A1B2C3D4', $citizen->rfid_tag);
+
+        // 4. Cek endpoint polling status pairing warga
+        $pollResp = $this->actingAs($citizen)->getJson(route('warga.esp32-pair.status'));
+        $pollResp->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'paired' => true,
+                'rfid_tag' => 'RFID-A1B2C3D4',
+            ]);
+    }
 }

@@ -305,7 +305,7 @@
 
                 <div class="mt-4 pt-3 border-t border-blue-800/60">
                     <a 
-                        href="{{ route('warga.index') }}#step-open-gate" 
+                        href="{{ route('warga.index') }}?open_rfid=1#rfid-modal" 
                         class="w-full block py-2.5 rounded-xl bg-cyan-600/80 hover:bg-cyan-600 text-white font-bold text-xs transition-colors border border-cyan-500/40 text-center"
                     >
                         🪪 Buka Scanner & Pendaftaran e-KTP Fisik
