@@ -176,4 +176,28 @@ class WargaRegistrationTest extends TestCase
         ]);
         $responseKtp->assertSessionHasErrors(['nik']);
     }
+
+    public function test_unapproved_warga_dashboard_shows_locked_state_screen_only(): void
+    {
+        $unapprovedWarga = User::create([
+            'tenant_id' => $this->tenant->id,
+            'house_id' => $this->house->id,
+            'name' => 'Warga Baru Terkunci',
+            'email' => 'terkunci@warga.id',
+            'phone_number' => '081299998888',
+            'password' => bcrypt('password123'),
+            'role' => 'warga',
+            'verification_status' => 'pending_rw',
+            'gate_access_enabled' => false,
+            'status' => 'active',
+        ]);
+
+        $response = $this->actingAs($unapprovedWarga)->get(route('warga.index'));
+
+        $response->assertStatus(200);
+        $response->assertSee('Hak Akses Portal Terkunci: Menunggu Konfirmasi Admin');
+        $response->assertSee('Menunggu Konfirmasi Admin / Pengurus RT/RW');
+        // Warga yang belum di-ACC TIDAK BOLEH melihat tombol operasional buka gerbang
+        $response->assertDontSee('BUKA GERBANG PORTAL');
+    }
 }

@@ -173,86 +173,9 @@
         </div>
     </div>
 
+    @if($user->verification_status === 'approved')
     <!-- ======================================================== -->
-    <!-- 2. BANNER STATUS VERIFIKASI IDENTITAS & ACC KETUA RW     -->
-    <!-- ======================================================== -->
-    @if(!$user->canAccessGate())
-        <div class="mb-8 rounded-3xl p-6 sm:p-7 border {{ $user->verification_status === 'pending_rw' ? 'bg-amber-500/10 border-amber-500/30' : 'bg-rose-500/10 border-rose-500/30' }}">
-            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                
-                <div class="space-y-2">
-                    <div class="flex items-center gap-2.5">
-                        <span class="text-2xl">{{ $user->verification_status === 'pending_rw' ? '⏳' : '🔒' }}</span>
-                        <h2 class="text-base sm:text-lg font-black {{ $user->verification_status === 'pending_rw' ? 'text-amber-800 dark:text-amber-300' : 'text-rose-800 dark:text-rose-300' }}">
-                            @if($user->verification_status === 'pending_rw')
-                                BERKAS KTP SEDANG DITINJAU OLEH KETUA RW (Bpk. H. Rahmat Hidayat)
-                            @else
-                                AKSES PORTAL TERKUNCI: WAJIB MELENGKAPI IDENTITAS KTP & DATA DIRI
-                            @endif
-                        </h2>
-                    </div>
-
-                    <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed max-w-3xl">
-                        @if($user->verification_status === 'pending_rw')
-                            Data NIK KTP Anda (<strong>{{ $user->nik }}</strong>) telah dikirimkan ke meja kerja Ketua RW. Setelah disetujui Pak RW, data RFID/E-KTP Anda otomatis disinkronkan ke Pos Pantau Satpam dan palang gerbang pintar dapat dibuka seketika.
-                        @else
-                            Sesuai standar keamanan terpadu lingkungan, seluruh warga baru yang mendaftar <strong>terkunci aksesnya</strong> sampai melengkapi nomor KTP (NIK), foto KTP, dan tanggal lahir. Buka halaman pengaturan akun untuk mengisi identitas lengkap Anda.
-                        @endif
-                    </p>
-
-                    <!-- 4-Langkah Progres Verifikasi -->
-                    <div class="pt-3 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                        <div class="p-3 rounded-xl border {{ $user->nik ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500' }}">
-                            <div class="font-extrabold flex items-center gap-1.5">
-                                <span>{{ $user->nik ? '✓' : '1.' }}</span>
-                                <span>Input KTP & Profil</span>
-                            </div>
-                            <div class="text-[10px] mt-0.5 opacity-80">{{ $user->nik ? 'Selesai diunggah' : 'Belum diisi' }}</div>
-                        </div>
-
-                        <div class="p-3 rounded-xl border {{ $user->verification_status === 'approved' ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300' : ($user->verification_status === 'pending_rw' ? 'bg-amber-100 dark:bg-amber-950/60 border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-200 font-bold' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500') }}">
-                            <div class="font-extrabold flex items-center gap-1.5">
-                                <span>{{ $user->verification_status === 'approved' ? '✓' : '2.' }}</span>
-                                <span>Review Ketua RW</span>
-                            </div>
-                            <div class="text-[10px] mt-0.5 opacity-80">{{ $user->verification_status === 'pending_rw' ? 'Sedang Ditinjau' : ($user->verification_status === 'approved' ? 'Disetujui' : 'Menunggu Berkas') }}</div>
-                        </div>
-
-                        <div class="p-3 rounded-xl border {{ $user->canAccessGate() ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500' }}">
-                            <div class="font-extrabold flex items-center gap-1.5">
-                                <span>{{ $user->canAccessGate() ? '✓' : '3.' }}</span>
-                                <span>Sinkron RFID Satpam</span>
-                            </div>
-                            <div class="text-[10px] mt-0.5 opacity-80">{{ $user->canAccessGate() ? 'Tersinkron' : 'Menunggu ACC RW' }}</div>
-                        </div>
-
-                        <div class="p-3 rounded-xl border {{ $user->canAccessGate() ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500' }}">
-                            <div class="font-extrabold flex items-center gap-1.5">
-                                <span>{{ $user->canAccessGate() ? '✓' : '4.' }}</span>
-                                <span>Palang Pintu Aktif</span>
-                            </div>
-                            <div class="text-[10px] mt-0.5 opacity-80">{{ $user->canAccessGate() ? 'Bebas Akses' : 'Terkunci' }}</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Tombol CTA Selesaikan -->
-                <div class="shrink-0">
-                    <a 
-                        href="{{ route('warga.profile') }}" 
-                        class="px-5 py-3 rounded-2xl font-black text-xs shadow-lg transition flex items-center gap-2 {{ $user->verification_status === 'pending_rw' ? 'bg-amber-600 hover:bg-amber-700 text-white shadow-amber-600/30' : 'bg-rose-600 hover:bg-rose-700 text-white shadow-rose-600/30' }}"
-                    >
-                        <span>{{ $user->verification_status === 'pending_rw' ? 'Periksa / Ubah Berkas KTP' : 'Buka Pengaturan Akun & Lengkapi KTP' }}</span>
-                        <span>➔</span>
-                    </a>
-                </div>
-
-            </div>
-        </div>
-    @endif
-
-    <!-- ======================================================== -->
-    <!-- 3. GRID 12 KOLOM DESKTOP PORTAL WARGA                    -->
+    <!-- 2. GRID 12 KOLOM DESKTOP PORTAL WARGA (OPERASIONAL PENUH)-->
     <!-- ======================================================== -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
@@ -742,6 +665,143 @@
             </div>
         </div>
     </div>
+    @else
+    <!-- ======================================================== -->
+    <!-- 2. LAYAR HAK AKSES TERKUNCI: MENUNGGU KONFIRMASI ADMIN   -->
+    <!-- ======================================================== -->
+    <div class="space-y-6">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-12 border border-slate-200 dark:border-slate-800 shadow-xl text-center flex flex-col items-center justify-center relative overflow-hidden">
+            <!-- Background Ambient Glow -->
+            <div class="absolute -top-24 -right-24 w-72 h-72 {{ $user->verification_status === 'pending_rw' ? 'bg-amber-500/15' : 'bg-rose-500/15' }} rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -left-24 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+            <!-- Ikon Gembok Besar Animasi -->
+            <div class="w-20 h-20 sm:w-28 sm:h-28 rounded-3xl {{ $user->verification_status === 'pending_rw' ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border-2 border-amber-400' : 'bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border-2 border-rose-400' }} flex items-center justify-center text-4xl sm:text-6xl mb-6 shadow-inner relative">
+                <span>{{ $user->verification_status === 'pending_rw' ? '⏳' : '🔒' }}</span>
+                <span class="absolute -top-1 -right-1 flex h-4 w-4">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full {{ $user->verification_status === 'pending_rw' ? 'bg-amber-400' : 'bg-rose-400' }} opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-4 w-4 {{ $user->verification_status === 'pending_rw' ? 'bg-amber-500' : 'bg-rose-500' }}"></span>
+                </span>
+            </div>
+
+            <!-- Badge Kategori Status -->
+            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full {{ $user->verification_status === 'pending_rw' ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/30' : 'bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/30' }} text-xs font-black uppercase tracking-wider mb-3">
+                <span class="w-2 h-2 rounded-full {{ $user->verification_status === 'pending_rw' ? 'bg-amber-500 animate-pulse' : 'bg-rose-500' }}"></span>
+                <span>{{ $user->verification_status === 'pending_rw' ? 'Menunggu Konfirmasi Admin / Pengurus RT/RW' : 'Akses Terkunci • Identitas KTP Belum Lengkap' }}</span>
+            </div>
+
+            <!-- Headline -->
+            <h2 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight max-w-2xl leading-tight">
+                {{ $user->verification_status === 'pending_rw' ? 'Hak Akses Portal Terkunci: Menunggu Konfirmasi Admin' : 'Hak Akses Portal Terkunci: Lengkapi Berkas Identitas KTP' }}
+            </h2>
+
+            <!-- Deskripsi Jelas & Transparan -->
+            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-3 max-w-2xl leading-relaxed">
+                @if($user->verification_status === 'pending_rw')
+                    Halo, <strong>{{ $user->name }}</strong>. Pendaftaran akun warga Anda telah berhasil dicatat ke dalam database lingkungan <strong>{{ $tenant->name ?? 'E-WARGA' }}</strong>. Sesuai standar keamanan terpadu (<em>gated community</em>), seluruh hak akses pembuka palang RFID, data kas keuangan, dan penerbitan surat resmi <strong>dikunci sementara</strong> hingga disetujui secara resmi oleh Ketua RT atau Ketua RW.
+                @else
+                    Halo, <strong>{{ $user->name }}</strong>. Anda telah terdaftar menggunakan akun Gmail. Demi verifikasi kependudukan resmi dan sinkronisasi palang gerbang RFID, seluruh akses portal dikunci sampai Anda melengkapi Nomor Induk Kependudukan (NIK) dan foto e-KTP Anda.
+                @endif
+            </p>
+
+            <!-- Rincian Data Registrasi yang Diajukan -->
+            <div class="mt-8 w-full max-w-2xl bg-slate-50 dark:bg-slate-800/60 rounded-3xl p-5 sm:p-7 border border-slate-200 dark:border-slate-700/80 text-left space-y-4">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-200/80 dark:border-slate-700/80">
+                    <span class="text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">Rincian Data Pendaftaran Anda</span>
+                    <span class="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">ID Warga: #{{ str_pad($user->id, 5, '0', STR_PAD_LEFT) }}</span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <div>
+                        <span class="text-slate-400 block text-[10px] uppercase font-bold">Nama Pendaftar:</span>
+                        <span class="font-bold text-slate-900 dark:text-white text-sm">{{ $user->name }}</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block text-[10px] uppercase font-bold">Lingkungan RT/RW:</span>
+                        <span class="font-bold text-slate-900 dark:text-white">{{ $tenant->name ?? 'Cluster Melati Mas' }} ({{ $tenant->rt_rw ?? 'RT 05 / RW 12' }})</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block text-[10px] uppercase font-bold">Nomor WhatsApp Aktif:</span>
+                        <span class="font-bold text-slate-900 dark:text-white font-mono tabular-nums">{{ $user->phone_number }}</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block text-[10px] uppercase font-bold">Unit Rumah Terdaftar:</span>
+                        <span class="font-bold text-emerald-600 dark:text-emerald-400">{{ $user->house ? ($user->house->block_name . ' No. ' . $user->house->house_number) : 'Menunggu Penetapan Rumah' }}</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block text-[10px] uppercase font-bold">Alamat Email / Gmail:</span>
+                        <span class="font-bold text-slate-900 dark:text-white font-mono text-[11px]">{{ $user->email }}</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block text-[10px] uppercase font-bold">Nomor NIK KTP:</span>
+                        <span class="font-mono font-bold text-slate-900 dark:text-white">{{ $user->masked_nik }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3 Langkah Progres Verifikasi -->
+            <div class="mt-6 w-full max-w-2xl grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                <div class="p-4 rounded-2xl border bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300 text-left">
+                    <div class="font-black flex items-center gap-1.5 text-sm">
+                        <span>✓</span>
+                        <span>1. Pendaftaran</span>
+                    </div>
+                    <div class="text-[11px] mt-1 opacity-80">Akun Warga Berhasil Dibuat</div>
+                </div>
+
+                <div class="p-4 rounded-2xl border {{ $user->verification_status === 'pending_rw' ? 'bg-amber-100 dark:bg-amber-950/60 border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-200 font-bold' : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500' }} text-left">
+                    <div class="font-black flex items-center gap-1.5 text-sm">
+                        <span>{{ $user->verification_status === 'pending_rw' ? '⏳' : '2.' }}</span>
+                        <span>2. Review Admin/RW</span>
+                    </div>
+                    <div class="text-[11px] mt-1 opacity-80">{{ $user->verification_status === 'pending_rw' ? 'Menunggu Konfirmasi Pengurus' : 'Lengkapi Berkas KTP' }}</div>
+                </div>
+
+                <div class="p-4 rounded-2xl border bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 text-left">
+                    <div class="font-black flex items-center gap-1.5 text-sm">
+                        <span>🔒</span>
+                        <span>3. Akses Penuh</span>
+                    </div>
+                    <div class="text-[11px] mt-1 opacity-80">Palang RFID & Kas Terbuka</div>
+                </div>
+            </div>
+
+            <!-- Tombol Aksi Bantuan & Konfirmasi WhatsApp -->
+            <div class="mt-8 flex flex-wrap items-center justify-center gap-3 w-full max-w-2xl">
+                <!-- Tombol WhatsApp Pengurus -->
+                <a 
+                    href="https://wa.me/6281234567890?text={{ urlencode('Halo Pengurus RT/RW ' . ($tenant->name ?? 'E-WARGA') . ', saya warga baru atas nama ' . $user->name . ($user->house ? ' (' . $user->house->block_name . ' No. ' . $user->house->house_number . ')' : '') . '. Saya baru saja mendaftar akun di portal E-WARGA. Mohon bantuan konfirmasi dan verifikasi akun saya agar hak akses gerbang aktif. Terima kasih.') }}" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    class="px-6 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-lg shadow-emerald-600/30 transition-transform active:scale-95 flex items-center gap-2 cursor-pointer touch-press"
+                >
+                    <span>💬 Konfirmasi via WhatsApp Pengurus</span>
+                </a>
+
+                <!-- Tombol Lengkapi / Ubah Berkas KTP -->
+                <a 
+                    href="{{ route('warga.profile') }}" 
+                    class="px-5 py-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs transition shadow-xs flex items-center gap-2 cursor-pointer touch-press"
+                >
+                    <span>📝 {{ $user->verification_status === 'pending_rw' ? 'Periksa / Ubah Berkas KTP' : 'Lengkapi Berkas e-KTP' }}</span>
+                </a>
+
+                <!-- Tombol Refresh Cek Status -->
+                <button 
+                    type="button" 
+                    onclick="window.location.reload()" 
+                    class="px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-xs transition flex items-center gap-1.5 cursor-pointer touch-press"
+                >
+                    <span>🔄 Cek Status Persetujuan</span>
+                </button>
+            </div>
+
+            <div class="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-400 dark:text-slate-500">
+                Sistem keamanan otomatis akan langsung mengaktifkan kartu RFID dan tombol gerbang begitu Ketua RT atau Ketua RW menekan tombol persetujuan di portal verifikasi.
+            </div>
+        </div>
+    </div>
+    @endif
 
 </div>
 
