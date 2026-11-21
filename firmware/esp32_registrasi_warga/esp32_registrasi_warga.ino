@@ -257,14 +257,18 @@ void setup() {
 
     // Sambungkan ke Jaringan Wi-Fi
     updateLcd("KONEKSI WI-FI..", WIFI_SSID);
-    Serial.printf("[WIFI] Menyambungkan ke %s ", WIFI_SSID);
+    Serial.printf("\n[WIFI] Menyambungkan ke Hotspot: %s \n", WIFI_SSID);
 
+    WiFi.disconnect(true);
+    delay(200);
     WiFi.mode(WIFI_STA);
+    WiFi.persistent(false);
+    WiFi.setAutoReconnect(true);
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
     int attempts = 0;
-    while (WiFi.status() != WL_CONNECTED && attempts < 25) {
-        delay(400);
+    while (WiFi.status() != WL_CONNECTED && attempts < 40) {
+        delay(500);
         Serial.print(".");
         attempts++;
         digitalWrite(PIN_LED_STATUS, !digitalRead(PIN_LED_STATUS));
@@ -278,10 +282,13 @@ void setup() {
         delay(2000);
         sendHeartbeatPing();
     } else {
-        Serial.println("\n[WIFI TIMEOUT] Wi-Fi gagal terhubung. Masuk mode offline.");
+        Serial.println("\n[WIFI TIMEOUT] Wi-Fi gagal terhubung pada boot awal.");
+        Serial.println("[TIPS HOTSPOT] 1. Pastikan Hotspot menggunakan frekuensi 2.4 GHz (bukan 5 GHz).");
+        Serial.println("[TIPS HOTSPOT] 2. Pastikan Nama SSID dan Password tepat.");
+        Serial.println("[TIPS HOTSPOT] 3. Alat akan otomatis terus mencoba menghubungkan di background.");
         beepError();
-        updateLcd("WIFI GAGAL!", "MODE OFFLINE");
-        delay(2000);
+        updateLcd("WIFI GAGAL!", "CEK 2.4GHz BIAN");
+        delay(2500);
     }
 
     setLcdStandby();
@@ -292,10 +299,20 @@ void setup() {
 // LOOP UTAMA
 // ------------------------------------------------------------------------------
 void loop() {
-    // 0. Heartbeat Ping berkala ke Server setiap 8 detik agar terdeteksi ONLINE di Web
-    if (millis() - lastPingMillis >= PING_INTERVAL) {
-        lastPingMillis = millis();
-        sendHeartbeatPing();
+    // 0. Auto Reconnect jika hotspot baru aktif atau sinyal sempat putus
+    if (WiFi.status() != WL_CONNECTED) {
+        static unsigned long lastReconnectAttempt = 0;
+        if (millis() - lastReconnectAttempt >= 6000) {
+            lastReconnectAttempt = millis();
+            Serial.println("[WIFI RETRY] Menghubungkan ulang ke Hotspot " + String(WIFI_SSID) + "...");
+            WiFi.reconnect();
+        }
+    } else {
+        // Heartbeat Ping berkala ke Server setiap 8 detik agar terdeteksi ONLINE di Web
+        if (millis() - lastPingMillis >= PING_INTERVAL) {
+            lastPingMillis = millis();
+            sendHeartbeatPing();
+        }
     }
 
     // 1. Cek apakah ada kartu e-KTP / RFID di depan sensor
