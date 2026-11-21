@@ -280,8 +280,13 @@
                             </a>
                         @endif
                     @else
+                        <!-- Tombol Daftar Warga Baru -->
+                        <a href="{{ route('register') }}" class="hidden md:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-extrabold text-xs transition-colors duration-200 active:scale-95 shadow-xs">
+                            <span>Daftar Warga</span>
+                        </a>
+
                         <!-- Tombol Masuk Berprofil Frosted Glass -->
-                        <a href="{{ route('login') }}" class="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-slate-300/80 dark:border-white/15 bg-white/40 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-800 dark:text-slate-100 font-bold text-xs transition-transform duration-200 active:scale-95 shadow-xs group">
+                        <a href="{{ route('login') }}" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-slate-300/80 dark:border-white/15 bg-white/40 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-800 dark:text-slate-100 font-bold text-xs transition-transform duration-200 active:scale-95 shadow-xs group">
                             <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
                             <span>Masuk</span>
                         </a>
@@ -353,11 +358,11 @@
                         @endif
                     @else
                         <div class="grid grid-cols-2 gap-2">
-                            <a href="{{ route('login') }}" class="py-2.5 rounded-2xl border border-slate-300 dark:border-white/15 text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 font-bold text-xs text-center transition touch-press">
+                            <a href="{{ route('login') }}" class="py-2.5 rounded-2xl border border-slate-300 dark:border-white/15 text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 font-bold text-xs text-center transition-colors touch-press">
                                 Masuk Akun
                             </a>
-                            <a href="#kerjasama" @click="landingMobileMenu = false" class="py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs text-center shadow-md transition touch-press">
-                                Konsultasi
+                            <a href="{{ route('register') }}" class="py-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold text-xs text-center shadow-md shadow-emerald-600/20 transition-transform touch-press">
+                                Daftar Warga
                             </a>
                         </div>
                     @endauth
@@ -450,6 +455,8 @@
             <div class="pt-8 border-t border-slate-100 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-slate-400 pb-24 sm:pb-28 lg:pb-12">
                 <div class="text-xs text-center md:text-left">&copy; {{ date('Y') }} E-WARGA by Fabian Ganteng &bull; Seluruh hak cipta dilindungi undang-undang.</div>
                 <div class="flex flex-wrap items-center justify-center md:justify-end gap-x-4 gap-y-2 text-[11px] sm:pr-56 md:pr-64 lg:pr-72 xl:pr-80">
+                    <a href="{{ route('register') }}" class="hover:text-emerald-600 dark:hover:text-emerald-400 font-bold transition-colors">Daftar Warga Baru</a>
+                    <span>•</span>
                     <a href="#kerjasama" class="hover:text-slate-600 dark:hover:text-slate-300 transition-colors">Hubungi Konsultan</a>
                     <span>•</span>
                     <a href="{{ route('login') }}" class="hover:text-slate-600 dark:hover:text-slate-300 transition-colors">Login Sistem</a>

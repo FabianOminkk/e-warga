@@ -190,6 +190,18 @@
                         <span x-show="isLoggingIn" class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                         <span x-text="isLoggingIn ? 'Memproses Masuk…' : 'Masuk ke Dashboard E-WARGA ➔'"></span>
                     </button>
+
+                    <!-- Tautan Pendaftaran Warga Baru -->
+                    <div class="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+                        <div>
+                            <div class="text-xs font-black text-slate-900 dark:text-white">Warga Baru di Lingkungan RT/RW?</div>
+                            <div class="text-[11px] text-slate-600 dark:text-slate-400">Daftar mandiri via akun Gmail atau berkas e-KTP.</div>
+                        </div>
+                        <a href="{{ route('register') }}" class="shrink-0 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs transition-colors shadow-sm flex items-center gap-1.5 touch-press">
+                            <span>Daftar Warga</span>
+                            <span>➔</span>
+                        </a>
+                    </div>
                 </form>
             </div>
 

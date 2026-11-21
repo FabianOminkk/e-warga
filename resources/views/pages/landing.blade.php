@@ -51,9 +51,12 @@
                             </a>
                         @endif
                     @else
-                        <a href="{{ route('login') }}" class="px-7 py-4 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-extrabold rounded-2xl border-2 border-slate-200 dark:border-slate-800 text-base transition-colors duration-200 shadow-xs flex items-center justify-center gap-2 cursor-pointer touch-press">
-                            <span>Masuk ke Akun Anda</span>
+                        <a href="{{ route('login') }}" class="px-6 py-4 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-extrabold rounded-2xl border-2 border-slate-200 dark:border-slate-800 text-base transition-colors duration-200 shadow-xs flex items-center justify-center gap-2 cursor-pointer touch-press">
+                            <span>Masuk</span>
                             <span>➔</span>
+                        </a>
+                        <a href="{{ route('register') }}" class="px-6 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-2xl shadow-lg shadow-emerald-600/25 text-base transition-colors duration-200 flex items-center justify-center gap-2 cursor-pointer touch-press">
+                            <span>Daftar Warga Baru</span>
                         </a>
                     @endauth
                 </div>
