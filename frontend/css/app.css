@@ -2,8 +2,8 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
+@source '../../backend/vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../backend/storage/framework/views/*.php';
 @source '../views/**/*.blade.php';
 
 @theme {

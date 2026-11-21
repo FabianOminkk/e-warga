@@ -1,4 +1,4 @@
-name: CI/CD Pipeline & Turbo VPS Auto-Deploy
+name: CI/CD Pipeline & VPS Auto-Deploy
 
 on:
   push:
@@ -8,22 +8,19 @@ on:
 
 concurrency:
   group: deploy-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   # ========================================================
-  # SINGLE-PASS TURBO PIPELINE: TEST & DEPLOY IN ONE RUNNER
+  # JOB 1: Continuous Integration (Test & Build)
   # ========================================================
-  ci-cd:
-    name: Turbo Test & Auto-Deploy
+  ci:
+    name: Test & Build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
 
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
 
       - name: Setup PHP Environment
         uses: shivammathur/setup-php@v2
@@ -38,31 +35,47 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
 
       - name: Cache Composer Dependencies
         uses: actions/cache@v4
         with:
-          path: vendor
-          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          path: backend/vendor
+          key: composer-${{ runner.os }}-${{ hashFiles('backend/composer.lock') }}
           restore-keys: composer-${{ runner.os }}-
 
       - name: Setup Environment File & Dependencies
         run: |
-          cp .env.example .env
+          cp backend/.env.example backend/.env
+          cp backend/.env.example .env
+          cd backend
           if [ ! -d "vendor" ]; then
             composer install --no-interaction --prefer-dist --optimize-autoloader
           fi
           php artisan key:generate
+          cd ..
 
       - name: Install Frontend Dependencies & Build Assets
         run: |
+          cd frontend
           npm ci --prefer-offline --no-audit
           npm run build
+          cd ..
 
       - name: Execute Automated Test Suite
-        run: php artisan test --compact
+        run: |
+          cd backend
+          php artisan test --compact
 
+  # ========================================================
+  # JOB 2: Continuous Deployment to Production VPS
+  # ========================================================
+  deploy:
+    name: Deploy to VPS
+    needs: ci
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
       - name: Verify SSH Credentials
         run: |
           if [ -z "${{ secrets.VPS_SSH_KEY }}" ]; then
@@ -90,7 +103,7 @@ jobs:
               set -e
               cd '$APP_DIR'
 
-              # 1. Deteksi file yang berubah untuk eksekusi kilat (Delta Deploy)
+              # 1. Deteksi file yang berubah
               CHANGED=\$(git diff --name-only HEAD origin/main 2>/dev/null || echo 'all')
 
               # 2. Sinkronisasi kode secepat kilat
@@ -98,31 +111,41 @@ jobs:
               git fetch origin main --quiet
               git reset --hard origin/main --quiet
 
-              # 3. Jalankan dependensi hanya jika berkas terkait berubah
-              if echo \"\$CHANGED\" | grep -q 'composer.lock'; then
+              # 3. Pastikan symlink dan .env siap
+              if [ ! -f backend/.env ] && [ -f .env ]; then
+                cp .env backend/.env
+              fi
+              if [ ! -e public ] && [ -d backend/public ]; then
+                ln -s backend/public public
+              fi
+
+              # 4. Jalankan dependensi hanya jika berkas terkait berubah
+              if echo \"\$CHANGED\" | grep -q 'backend/composer.lock'; then
                 echo '📦 Update Composer...'
-                composer install --no-dev --optimize-autoloader --no-interaction --quiet
+                cd backend && composer install --no-dev --optimize-autoloader --no-interaction --quiet && cd ..
               fi
 
-              if echo \"\$CHANGED\" | grep -q 'database/migrations'; then
+              if echo \"\$CHANGED\" | grep -q 'backend/database/migrations'; then
                 echo '🗄️ Update Database Migration...'
-                php artisan migrate --force --quiet
+                cd backend && php artisan migrate --force --quiet && cd ..
               fi
 
-              if echo \"\$CHANGED\" | grep -qE 'resources/|package.json'; then
+              if echo \"\$CHANGED\" | grep -qE 'frontend/|package.json'; then
                 echo '🎨 Rebuild Vite Assets...'
-                npm run build --silent
+                cd frontend && npm run build --silent && cd ..
               fi
 
-              # 4. Refresh cache super cepat (0.2 detik)
+              # 5. Refresh cache super cepat
+              cd backend
               php artisan optimize:clear --quiet
               php artisan config:cache --quiet
               php artisan route:cache --quiet
               php artisan view:cache --quiet
+              cd ..
 
-              # 5. Permission kilat (hanya folder yang perlu)
-              chown -R unique-monsters-ewarga:unique-monsters-ewarga storage bootstrap/cache public/build 2>/dev/null || true
-              chmod -R 775 storage bootstrap/cache 2>/dev/null || true
+              # 6. Permission kilat
+              chown -R unique-monsters-ewarga:unique-monsters-ewarga . 2>/dev/null || true
+              chmod -R 775 backend/storage backend/bootstrap/cache backend/public/build 2>/dev/null || true
             "
 
             echo "=========================================================="
