@@ -71,13 +71,26 @@ Buka **Arduino IDE** &rarr; Menu **Sketch** &rarr; **Include Library** &rarr; **
 
 ## 4. Alur Integrasi Otomatis dengan E-WARGA
 
-1. **Tap Kartu E-KTP / RFID:**
-   - ESP32 membaca UID kartu dan mengirim ke endpoint: `POST /api/v1/gate/scan-rfid`.
-   - Jika warga **sudah di-ACC oleh Ketua RW**, LCD menampilkan:
+1. **Tap Kartu E-KTP / RFID Terdaftar (Akses Diberikan):**
+   - ESP32 membaca UID chip NFC 13.56 MHz pada fisik e-KTP dan mengirim ke endpoint: `POST /api/v1/gate/scan-rfid`.
+   - Jika warga **sudah terdaftar dan disetujui (ACC) oleh Ketua RW**, LCD menampilkan:
      `AKSES DIBERIKAN` / `[Nama Warga]` & servo SG90 berputar 90° membuka palang selama 5 detik, lalu menutup otomatis.
-   - Jika warga **belum di-ACC RW** atau unverified, LCD menampilkan:
-     `AKSES DITOLAK!` / `BELUM DI-ACC RW` & servo tetap terkunci di 0°.
-2. **Buka Palang via Tombol HP Warga:**
+
+2. **Proteksi Kartu Tidak Terdaftar (Akses Ditolak):**
+   - Jika kartu e-KTP atau RFID yang ditempelkan **belum terdaftar** di sistem E-WARGA, sistem keamanan langsung memblokir akses.
+   - LCD menampilkan: `AKSES DITOLAK!` / `KARTU TAK DIKENAL`.
+   - Palang servo tetap tertutup (0°) dan insiden penolakan dicatat otomatis ke log keamanan pos satpam.
+
+3. **Proteksi Warga Baru (Belum di-ACC RW / Biodata Belum Lengkap):**
+   - Jika e-KTP sudah didaftarkan tetapi akun warga masih berstatus baru (menunggu konfirmasi Admin / Ketua RW), palang tetap terkunci.
+   - LCD menampilkan: `AKSES DITOLAK!` / `MENUNGGU ACC RW` atau `KTP BLM LENGKAP`.
+
+4. **Fitur Pairing e-KTP Baru Langsung dari Web App Warga:**
+   - Warga yang login di web app dapat mendaftarkan UID e-KTP secara langsung:
+     - **Web NFC (Android Chrome):** Tempelkan e-KTP langsung ke bodi belakang ponsel.
+     - **Mode Pairing Hardware ESP32:** Tekan tombol *"Mulai Pairing ESP32"* di web app, lalu tempelkan e-KTP ke sensor RC522. LCD menampilkan `KTP TERDAFTAR!` / `[Nama Warga]` dan kartu langsung terhubung ke profil warga tersebut.
+
+5. **Buka Palang Jarak Jauh via Tombol HP Warga:**
    - Saat warga menekan tombol hijau di portal web HP `http://.../warga`, server mencatat perintah buka.
    - Dalam 1-2 detik saat ESP32 melakukan *ping*, servo otomatis membuka palang secara nirkabel!
 

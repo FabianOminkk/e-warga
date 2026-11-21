@@ -119,14 +119,67 @@ class IoTGateController extends Controller
         ]);
 
         $rawUid = trim($validated['rfid_uid']);
-        // Normalize UID by stripping spaces, hyphens, and colons for flexible hardware match
-        $cleanUid = strtoupper(str_replace([' ', ':', '-'], '', $rawUid));
+        // Normalize UID by stripping spaces, hyphens, colons, and leading 'RFID'
+        $cleanUid = strtoupper(str_replace([' ', ':', '-', 'RFID'], '', $rawUid));
+        $formattedTag = 'RFID-' . $cleanUid;
+
+        // --- 0. CEK APAKAH ADA SESI PAIRING HARDWARE DARI WARGA YANG LOGIN ---
+        $pairingSession = Cache::get("rfid_pairing_tenant_{$gate->tenant_id}");
+        if ($pairingSession && !empty($pairingSession['user_id'])) {
+            $targetUser = User::find($pairingSession['user_id']);
+            if ($targetUser) {
+                // Periksa apakah UID ini sudah dipakai warga lain
+                $alreadyUsed = User::where('id', '!=', $targetUser->id)
+                    ->where(function ($q) use ($rawUid, $cleanUid, $formattedTag) {
+                        $q->where('rfid_tag', $rawUid)
+                          ->orWhere('rfid_tag', $cleanUid)
+                          ->orWhere('rfid_tag', $formattedTag)
+                          ->orWhere('nik', $cleanUid);
+                    })->first();
+
+                if ($alreadyUsed) {
+                    return response()->json([
+                        'success' => false,
+                        'status' => 'denied',
+                        'lcd_line1' => 'PAIRING GAGAL!',
+                        'lcd_line2' => 'KARTU SUDAH ADA',
+                        'message' => "UID {$cleanUid} sudah terdaftar atas nama warga lain ({$alreadyUsed->name}).",
+                    ], 422);
+                }
+
+                $targetUser->update(['rfid_tag' => $formattedTag]);
+                Cache::forget("rfid_pairing_tenant_{$gate->tenant_id}");
+                Cache::put("rfid_pairing_success_{$targetUser->id}", $formattedTag, 120);
+
+                GateLog::create([
+                    'tenant_id' => $gate->tenant_id,
+                    'smart_gate_id' => $gate->id,
+                    'user_id' => $targetUser->id,
+                    'access_method' => 'rfid_card',
+                    'direction' => 'entry',
+                    'status' => 'granted',
+                    'reason' => "Registrasi Pairing e-KTP Berhasil via ESP32: {$targetUser->name} ({$formattedTag})",
+                    'triggered_at' => now(),
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 'paired',
+                    'lcd_line1' => 'KTP TERDAFTAR!',
+                    'lcd_line2' => substr($targetUser->name, 0, 16),
+                    'resident_name' => $targetUser->name,
+                    'rfid_uid' => $formattedTag,
+                    'message' => "e-KTP fisik berhasil didaftarkan untuk {$targetUser->name}.",
+                ]);
+            }
+        }
 
         // Search matching resident by rfid_tag or NIK
-        $user = User::where(function ($q) use ($rawUid, $cleanUid) {
+        $user = User::where(function ($q) use ($rawUid, $cleanUid, $formattedTag) {
             $q->where('rfid_tag', $rawUid)
+              ->orWhere('rfid_tag', $cleanUid)
+              ->orWhere('rfid_tag', $formattedTag)
               ->orWhere('rfid_tag', 'RFID-' . $rawUid)
-              ->orWhere('rfid_tag', 'RFID-' . $cleanUid)
               ->orWhere('nik', $rawUid)
               ->orWhere('nik', $cleanUid);
         })->first();

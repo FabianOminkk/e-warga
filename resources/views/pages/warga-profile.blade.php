@@ -280,7 +280,7 @@
                     <div class="pt-1">
                         <div class="text-[10px] text-blue-300 font-bold uppercase">UID Tag RFID E-KTP Gerbang</div>
                         <div class="font-mono font-bold text-cyan-300 flex items-center justify-between">
-                            <span>{{ $user->rfid_tag ?? 'Belum Ada RFID' }}</span>
+                            <span class="truncate">{{ $user->rfid_tag ?? 'Belum Ada RFID' }}</span>
                             <span class="text-[10px] px-2 py-0.5 rounded-full {{ $user->canAccessGate() ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-rose-500/20 text-rose-300 border border-rose-500/40' }}">
                                 {{ $user->canAccessGate() ? 'AKTIF DI PALANG' : 'NON-AKTIF' }}
                             </span>
@@ -301,6 +301,15 @@
                             </div>
                         @endif
                     </div>
+                </div>
+
+                <div class="mt-4 pt-3 border-t border-blue-800/60">
+                    <a 
+                        href="{{ route('warga.index') }}#step-open-gate" 
+                        class="w-full block py-2.5 rounded-xl bg-cyan-600/80 hover:bg-cyan-600 text-white font-bold text-xs transition-colors border border-cyan-500/40 text-center"
+                    >
+                        🪪 Buka Scanner & Pendaftaran e-KTP Fisik
+                    </a>
                 </div>
             </div>
 

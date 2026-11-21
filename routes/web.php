@@ -77,6 +77,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/warga/profile', [WargaController::class, 'updateProfile'])->name('warga.profile.update');
     Route::post('/warga/change-password', [WargaController::class, 'changePassword'])->name('warga.change-password');
     Route::get('/warga/ktp/{id}', [WargaController::class, 'showKtpPhoto'])->name('warga.ktp.show');
+    Route::post('/warga/pair-rfid', [WargaController::class, 'pairRfid'])->name('warga.pair-rfid');
+    Route::post('/warga/esp32-pair/start', [WargaController::class, 'startEsp32Pairing'])->name('warga.esp32-pair.start');
+    Route::get('/warga/esp32-pair/status', [WargaController::class, 'checkEsp32PairingStatus'])->name('warga.esp32-pair.status');
+    Route::post('/warga/esp32-pair/cancel', [WargaController::class, 'cancelEsp32Pairing'])->name('warga.esp32-pair.cancel');
 
     // 5. Modul Jadwal Keamanan (Satpam & Ronda Warga Bulan Ini)
     Route::get('/jadwal-keamanan', [ScheduleController::class, 'index'])->name('schedules.index');

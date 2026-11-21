@@ -202,6 +202,13 @@ void sendRfidToServer(String rfidUid) {
                 const char* residentName = resDoc["resident_name"] | "Warga";
                 int duration = resDoc["open_duration"] | 5;
                 openBarrierGate(residentName, duration * 1000);
+            } else if (success && strcmp(status, "paired") == 0) {
+                const char* line1 = resDoc["lcd_line1"] | "KTP TERDAFTAR!";
+                const char* line2 = resDoc["lcd_line2"] | "SUKSES PAIRING";
+                updateLcd(line1, line2);
+                Serial.printf("[PAIRING] KTP Fisik Berhasil Didaftarkan: %s\n", line2);
+                delay(3500);
+                setLcdStandby();
             } else {
                 const char* line1 = resDoc["lcd_line1"] | "AKSES DITOLAK!";
                 const char* line2 = resDoc["lcd_line2"] | "BELUM DI-ACC RW";

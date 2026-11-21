@@ -66,6 +66,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/warga/bills', [WargaApiController::class, 'bills'])->name('api.warga.bills');
         Route::post('/warga/profile', [WargaApiController::class, 'updateProfile'])->name('api.warga.profile.update');
         Route::post('/warga/change-password', [WargaApiController::class, 'changePassword'])->name('api.warga.change-password');
+        Route::post('/warga/pair-rfid', [WargaApiController::class, 'pairRfid'])->name('api.warga.pair-rfid');
 
         // 4. Pos Jaga & Konsol Satpam (Security Tablet/Mobile)
         Route::get('/satpam/console', [SatpamApiController::class, 'console'])->name('api.satpam.console');

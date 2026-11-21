@@ -402,4 +402,160 @@ class WargaController extends Controller
 
         return redirect()->back()->with('success', 'Password akun warga berhasil diperbarui!');
     }
+
+    /**
+     * Daftarkan UID kartu e-KTP / RFID fisik ke akun warga yang sedang login.
+     * Dapat dipanggil via Web NFC di HP Android, input manual, atau hasil tap scanner.
+     */
+    public function pairRfid(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return $request->wantsJson()
+                ? response()->json(['success' => false, 'message' => 'Silakan login terlebih dahulu.'], 401)
+                : redirect()->route('login');
+        }
+
+        $validated = $request->validate([
+            'rfid_uid' => 'required|string|min:4|max:64',
+        ], [
+            'rfid_uid.required' => 'Nomor UID e-KTP / RFID fisik wajib diisi.',
+            'rfid_uid.min' => 'Panjang UID e-KTP minimal 4 karakter.',
+            'rfid_uid.max' => 'Panjang UID e-KTP maksimal 64 karakter.',
+        ]);
+
+        $rawUid = trim($validated['rfid_uid']);
+        $cleanUid = strtoupper(str_replace([' ', ':', '-', 'RFID'], '', $rawUid));
+
+        if (empty($cleanUid)) {
+            $err = 'Format UID e-KTP tidak valid.';
+            return $request->wantsJson()
+                ? response()->json(['success' => false, 'message' => $err], 422)
+                : redirect()->back()->with('error', $err);
+        }
+
+        $standardTag = 'RFID-' . $cleanUid;
+
+        // Cek apakah UID sudah terdaftar pada warga lain
+        $existing = User::where('id', '!=', $user->id)
+            ->where(function ($q) use ($rawUid, $cleanUid, $standardTag) {
+                $q->where('rfid_tag', $rawUid)
+                  ->orWhere('rfid_tag', $cleanUid)
+                  ->orWhere('rfid_tag', $standardTag)
+                  ->orWhere('nik', $cleanUid);
+            })->first();
+
+        if ($existing) {
+            $houseInfo = $existing->house ? $existing->house->block_and_number : 'Warga Lain';
+            $errMsg = "UID e-KTP ({$cleanUid}) sudah terdaftar atas nama {$existing->name} ({$houseInfo}). Satu fisik kartu tidak dapat didaftarkan ganda demi keamanan portal.";
+            return $request->wantsJson()
+                ? response()->json(['success' => false, 'message' => $errMsg], 422)
+                : redirect()->back()->with('error', $errMsg);
+        }
+
+        $user->update([
+            'rfid_tag' => $standardTag,
+        ]);
+
+        ActivityLogger::log(
+            'rfid.paired',
+            "Warga {$user->name} berhasil mendaftarkan UID fisik e-KTP: {$standardTag}.",
+            'info',
+            ['rfid_tag' => $standardTag, 'method' => $request->input('scan_method', 'web_nfc')],
+            $user
+        );
+
+        $succMsg = "e-KTP fisik berhasil didaftarkan dengan nomor UID: {$standardTag}!";
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $succMsg,
+                'rfid_tag' => $standardTag,
+                'clean_uid' => $cleanUid,
+                'can_access_gate' => $user->canAccessGate(),
+                'status_label' => $user->canAccessGate() ? 'Akses Gerbang Aktif' : 'Menunggu Konfirmasi Admin / Pengurus RT/RW',
+            ]);
+        }
+
+        return redirect()->back()->with('success', $succMsg);
+    }
+
+    /**
+     * Memulai sesi pairing kartu RFID via hardware scanner ESP32 gerbang / pos satpam.
+     * Sesi berlaku selama 60 detik di Cache.
+     */
+    public function startEsp32Pairing(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        $tenantId = $user->tenant_id ?? 1;
+
+        // Simpan sesi pairing di cache selama 60 detik
+        \Illuminate\Support\Facades\Cache::put("rfid_pairing_tenant_{$tenantId}", [
+            'user_id' => $user->id,
+            'user_name' => $user->name,
+            'started_at' => now()->timestamp,
+        ], 60);
+
+        // Hapus penanda sukses sebelumnya jika ada
+        \Illuminate\Support\Facades\Cache::forget("rfid_pairing_success_{$user->id}");
+
+        return response()->json([
+            'success' => true,
+            'expires_in' => 60,
+            'message' => 'Mode pairing aktif! Silakan tempelkan fisik kartu e-KTP Anda ke sensor scanner ESP32 di gerbang atau pos satpam dalam waktu 60 detik.',
+        ]);
+    }
+
+    /**
+     * Polling status pairing dari alat ESP32.
+     */
+    public function checkEsp32PairingStatus(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        $tenantId = $user->tenant_id ?? 1;
+        $pairingSuccess = \Illuminate\Support\Facades\Cache::pull("rfid_pairing_success_{$user->id}");
+
+        if ($pairingSuccess) {
+            $user->refresh();
+            return response()->json([
+                'success' => true,
+                'paired' => true,
+                'rfid_tag' => $pairingSuccess,
+                'message' => "Fisik e-KTP berhasil dideteksi di alat scanner ESP32! Kartu {$pairingSuccess} kini resmi terdaftar untuk akun Anda.",
+                'can_access_gate' => $user->canAccessGate(),
+                'status_label' => $user->canAccessGate() ? 'Akses Gerbang Aktif' : 'Menunggu Konfirmasi Admin / Pengurus RT/RW',
+            ]);
+        }
+
+        $isWaiting = \Illuminate\Support\Facades\Cache::has("rfid_pairing_tenant_{$tenantId}");
+
+        return response()->json([
+            'success' => true,
+            'paired' => false,
+            'waiting' => $isWaiting,
+        ]);
+    }
+
+    /**
+     * Membatalkan sesi pairing ESP32.
+     */
+    public function cancelEsp32Pairing(Request $request)
+    {
+        $user = Auth::user();
+        if ($user) {
+            $tenantId = $user->tenant_id ?? 1;
+            \Illuminate\Support\Facades\Cache::forget("rfid_pairing_tenant_{$tenantId}");
+        }
+
+        return response()->json(['success' => true, 'message' => 'Sesi pairing dibatalkan.']);
+    }
 }

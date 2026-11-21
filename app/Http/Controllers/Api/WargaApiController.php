@@ -274,4 +274,45 @@ class WargaApiController extends BaseApiController
 
         return $this->success(null, 'Kata sandi berhasil diperbarui.');
     }
+
+    /**
+     * Daftarkan UID kartu e-KTP / RFID fisik ke akun warga yang sedang login.
+     */
+    public function pairRfid(Request $request): JsonResponse
+    {
+        $user = $request->user() ?? Auth::user();
+
+        if (!$user) {
+            return $this->error('Unauthenticated.', null, 401);
+        }
+
+        $validated = $request->validate([
+            'rfid_uid' => 'required|string|min:4|max:64',
+        ]);
+
+        $rawUid = trim($validated['rfid_uid']);
+        $cleanUid = strtoupper(str_replace([' ', ':', '-', 'RFID'], '', $rawUid));
+        $standardTag = 'RFID-' . $cleanUid;
+
+        $existing = User::where('id', '!=', $user->id)
+            ->where(function ($q) use ($rawUid, $cleanUid, $standardTag) {
+                $q->where('rfid_tag', $rawUid)
+                  ->orWhere('rfid_tag', $cleanUid)
+                  ->orWhere('rfid_tag', $standardTag)
+                  ->orWhere('nik', $cleanUid);
+            })->first();
+
+        if ($existing) {
+            return $this->error("UID e-KTP ({$cleanUid}) sudah terdaftar atas nama warga lain ({$existing->name}).", null, 422);
+        }
+
+        $user->update(['rfid_tag' => $standardTag]);
+
+        return $this->success([
+            'rfid_tag'        => $standardTag,
+            'clean_uid'       => $cleanUid,
+            'can_access_gate' => $user->canAccessGate(),
+            'status_label'    => $user->canAccessGate() ? 'Akses Gerbang Aktif' : 'Menunggu Konfirmasi Admin / Pengurus RT/RW',
+        ], 'UID e-KTP fisik berhasil didaftarkan ke akun warga.');
+    }
 }
