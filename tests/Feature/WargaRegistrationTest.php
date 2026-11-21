@@ -200,4 +200,124 @@ class WargaRegistrationTest extends TestCase
         // Warga yang belum di-ACC TIDAK BOLEH melihat tombol operasional buka gerbang
         $response->assertDontSee('BUKA GERBANG PORTAL');
     }
+
+    public function test_citizen_can_register_with_rfid_card_tap_pairing(): void
+    {
+        Storage::fake('local');
+
+        $payload = [
+            'registration_method' => 'ktp',
+            'tenant_id' => $this->tenant->id,
+            'name' => 'Warga RFID Tap',
+            'email' => 'warga.rfid@gmail.com',
+            'phone_number' => '081234567899',
+            'nik' => '3201998877660001',
+            'gender' => 'female',
+            'birth_place' => 'Bandung',
+            'birth_date' => '1995-08-17',
+            'address_ktp' => 'Jl. Boulevard Blok D No. 5',
+            'rfid_tag' => 'E2:00:00:1B:4D',
+            'new_block_name' => 'Blok D',
+            'new_house_number' => '05',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+            'is_family_head' => '0',
+        ];
+
+        $response = $this->post('/register', $payload);
+
+        $response->assertRedirect(route('warga.index'));
+        $this->assertAuthenticated();
+
+        $user = User::where('email', 'warga.rfid@gmail.com')->first();
+        $this->assertNotNull($user);
+        $this->assertEquals('RFID-E200001B4D', $user->rfid_tag);
+        $this->assertEquals('pending_rw', $user->verification_status);
+        $this->assertFalse($user->gate_access_enabled);
+        $this->assertEquals('Bandung', $user->birth_place);
+    }
+
+    public function test_registration_rejects_duplicate_rfid_card(): void
+    {
+        User::create([
+            'tenant_id' => $this->tenant->id,
+            'name' => 'Owner of Card',
+            'email' => 'owner.card@gmail.com',
+            'phone_number' => '081999999999',
+            'nik' => '3201888877770002',
+            'rfid_tag' => 'RFID-E200001B4D',
+            'password' => bcrypt('password123'),
+            'role' => 'warga',
+        ]);
+
+        $payload = [
+            'registration_method' => 'ktp',
+            'tenant_id' => $this->tenant->id,
+            'name' => 'Duplicate Card Claimer',
+            'email' => 'claimer@gmail.com',
+            'phone_number' => '081777777777',
+            'nik' => '3201555544440003',
+            'gender' => 'male',
+            'address_ktp' => 'Jl. Anggrek No. 1',
+            'rfid_tag' => 'E2 00 00 1B 4D',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+        ];
+
+        $response = $this->post('/register', $payload);
+
+        $response->assertSessionHasErrors(['rfid_tag']);
+    }
+
+    public function test_esp32_pairing_api_session_lifecycle(): void
+    {
+        // 1. Mulai sesi pairing di formulir pendaftaran
+        $startResponse = $this->postJson(route('api.register.esp32-pair.start'), [
+            'tenant_id' => $this->tenant->id,
+        ]);
+        $startResponse->assertStatus(200)
+            ->assertJson([
+                'status' => 'waiting',
+                'active' => true,
+            ]);
+
+        // 2. Cek status pairing saat belum ada kartu ditempelkan
+        $statusResponse = $this->getJson(route('api.register.esp32-pair.status', [
+            'tenant_id' => $this->tenant->id,
+        ]));
+        $statusResponse->assertStatus(200)
+            ->assertJson([
+                'status' => 'waiting',
+            ]);
+
+        // 3. Simulasikan gate ESP32 membaca kartu warga
+        $gate = \App\Models\SmartGate::create([
+            'tenant_id' => $this->tenant->id,
+            'device_uid' => 'ESP32-GATE-REG-01',
+            'name' => 'Gate Utama RT 05',
+            'status' => 'online',
+        ]);
+
+        $scanResponse = $this->postJson('/api/v1/gate/scan-rfid', [
+            'device_uid' => $gate->device_uid,
+            'rfid_uid' => '5A:4B:3C:2D',
+        ]);
+
+        $scanResponse->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'status' => 'paired',
+                'rfid_uid' => 'RFID-5A4B3C2D',
+            ]);
+
+        // 4. Cek status formulir pendaftaran kembali, UID kartu harus sudah tertangkap
+        $finalStatusResponse = $this->getJson(route('api.register.esp32-pair.status', [
+            'tenant_id' => $this->tenant->id,
+        ]));
+        $finalStatusResponse->assertStatus(200)
+            ->assertJson([
+                'status' => 'paired',
+                'rfid_tag' => 'RFID-5A4B3C2D',
+            ]);
+    }
 }

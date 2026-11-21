@@ -90,7 +90,8 @@ class RegisterController extends Controller
             $rules['religion'] = 'nullable|string|max:50';
             $rules['occupation'] = 'nullable|string|max:100';
             $rules['address_ktp'] = 'required|string|max:300';
-            $rules['ktp_photo'] = 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:3072';
+            $rules['ktp_photo'] = 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120';
+            $rules['rfid_tag'] = 'nullable|string|max:64';
         }
 
         $validated = $request->validate($rules, [
@@ -131,7 +132,29 @@ class RegisterController extends Controller
                 $ktpPath = 'uploads/ktp/sample_ktp_siti.svg';
             }
             $verificationStatus = 'pending_rw';
-            $rfidTag = 'RFID-' . $validated['nik'];
+
+            // Tangkap nomor chip RFID dari scan sensor IoT jika dilampirkan
+            if ($request->filled('rfid_tag')) {
+                $rawTag = trim($request->input('rfid_tag'));
+                $cleanTag = strtoupper(str_replace([' ', ':', '-', 'RFID'], '', $rawTag));
+                $rfidTag = 'RFID-' . $cleanTag;
+
+                // Pastikan nomor kartu fisik belum terdaftar pada akun warga lain
+                $existing = User::where(function ($q) use ($rawTag, $cleanTag, $rfidTag) {
+                    $q->where('rfid_tag', $rawTag)
+                      ->orWhere('rfid_tag', $cleanTag)
+                      ->orWhere('rfid_tag', $rfidTag)
+                      ->orWhere('nik', $cleanTag);
+                })->first();
+
+                if ($existing) {
+                    return redirect()->back()->withInput()->withErrors([
+                        'rfid_tag' => "Nomor UID e-KTP / RFID ({$cleanTag}) sudah terdaftar atas nama warga lain ({$existing->name}).",
+                    ]);
+                }
+            } else {
+                $rfidTag = 'RFID-' . $validated['nik'];
+            }
         } else {
             // Mode Pendaftaran Cepat Gmail
             $verificationStatus = 'unverified';
@@ -183,5 +206,56 @@ class RegisterController extends Controller
         }
 
         return redirect()->route('warga.index')->with('success', $msg);
+    }
+
+    /**
+     * Memulai sesi pairing kartu RFID dari halaman registrasi via hardware scanner ESP32.
+     * Sesi berlaku selama 60 detik di Cache berdasarkan ID lingkungan/tenant.
+     */
+    public function startEsp32Pairing(Request $request)
+    {
+        $tenantId = $request->input('tenant_id') ?? 1;
+
+        \Illuminate\Support\Facades\Cache::put("reg_pairing_tenant_{$tenantId}", [
+            'started_at' => now()->timestamp,
+        ], 60);
+
+        \Illuminate\Support\Facades\Cache::forget("reg_pairing_result_{$tenantId}");
+
+        return response()->json([
+            'success' => true,
+            'status' => 'waiting',
+            'active' => true,
+            'expires_in' => 60,
+            'message' => 'Sensor siap. Tempelkan e-KTP fisik Anda ke alat scanner RFID ESP32 di pos satpam / gerbang sekarang…',
+        ]);
+    }
+
+    /**
+     * Polling hasil tap kartu dari alat ESP32 untuk formulir registrasi.
+     */
+    public function checkEsp32PairingStatus(Request $request)
+    {
+        $tenantId = $request->input('tenant_id') ?? 1;
+        $pairedTag = \Illuminate\Support\Facades\Cache::pull("reg_pairing_result_{$tenantId}");
+
+        if ($pairedTag) {
+            return response()->json([
+                'success' => true,
+                'status' => 'paired',
+                'paired' => true,
+                'rfid_tag' => $pairedTag,
+                'message' => "Fisik e-KTP berhasil dideteksi di alat scanner ESP32! UID: {$pairedTag}",
+            ]);
+        }
+
+        $isWaiting = \Illuminate\Support\Facades\Cache::has("reg_pairing_tenant_{$tenantId}");
+
+        return response()->json([
+            'success' => true,
+            'status' => $isWaiting ? 'waiting' : 'expired',
+            'paired' => false,
+            'waiting' => $isWaiting,
+        ]);
     }
 }

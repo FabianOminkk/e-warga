@@ -25,6 +25,8 @@ Route::post('/login', [HomeController::class, 'processLogin'])->name('login.post
 Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
 Route::post('/register', [RegisterController::class, 'register'])->name('register.post')->middleware('throttle:10,1');
 Route::get('/api/tenants/{tenant}/houses', [RegisterController::class, 'getHousesByTenant'])->name('api.tenant.houses');
+Route::post('/api/register/esp32-pair/start', [RegisterController::class, 'startEsp32Pairing'])->name('api.register.esp32-pair.start');
+Route::get('/api/register/esp32-pair/status', [RegisterController::class, 'checkEsp32PairingStatus'])->name('api.register.esp32-pair.status');
 Route::post('/register-tenant', [HomeController::class, 'registerTenant'])->name('tenant.register')->middleware('throttle:5,1');
 Route::post('/logout', [HomeController::class, 'logout'])->name('logout');
 

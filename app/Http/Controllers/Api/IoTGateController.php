@@ -174,6 +174,52 @@ class IoTGateController extends Controller
             }
         }
 
+        // --- 0.1 CEK APAKAH ADA SESI PAIRING DARI FORMULIR PENDAFTARAN WARGA BARU (/register) ---
+        $regPairing = Cache::get("reg_pairing_tenant_{$gate->tenant_id}");
+        if ($regPairing) {
+            // Periksa apakah kartu ini sudah terdaftar pada warga lain
+            $alreadyUsed = User::where(function ($q) use ($rawUid, $cleanUid, $formattedTag) {
+                $q->where('rfid_tag', $rawUid)
+                  ->orWhere('rfid_tag', $cleanUid)
+                  ->orWhere('rfid_tag', $formattedTag)
+                  ->orWhere('nik', $cleanUid);
+            })->first();
+
+            if ($alreadyUsed) {
+                return response()->json([
+                    'success' => false,
+                    'status' => 'denied',
+                    'lcd_line1' => 'PAIRING GAGAL!',
+                    'lcd_line2' => 'KARTU SUDAH ADA',
+                    'message' => "UID {$cleanUid} sudah terdaftar atas nama warga lain ({$alreadyUsed->name}).",
+                ], 422);
+            }
+
+            Cache::put("reg_pairing_result_{$gate->tenant_id}", $formattedTag, 120);
+            Cache::forget("reg_pairing_tenant_{$gate->tenant_id}");
+
+            GateLog::create([
+                'tenant_id' => $gate->tenant_id,
+                'smart_gate_id' => $gate->id,
+                'user_id' => null,
+                'access_method' => 'rfid_card',
+                'direction' => 'entry',
+                'status' => 'granted',
+                'reason' => "Registrasi Pairing e-KTP Berhasil via ESP32 (Formulir Pendaftaran Warga): {$formattedTag}",
+                'triggered_at' => now(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'status' => 'paired',
+                'lcd_line1' => 'KTP TERCATAT!',
+                'lcd_line2' => 'FORM REGISTRASI',
+                'resident_name' => 'Warga Baru',
+                'rfid_uid' => $formattedTag,
+                'message' => "UID e-KTP {$formattedTag} berhasil dikirim ke formulir pendaftaran warga.",
+            ]);
+        }
+
         // Search matching resident by rfid_tag or NIK
         $user = User::where(function ($q) use ($rawUid, $cleanUid, $formattedTag) {
             $q->where('rfid_tag', $rawUid)

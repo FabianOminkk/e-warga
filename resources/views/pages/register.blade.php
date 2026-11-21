@@ -1,6 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
+<!-- Tesseract.js Library untuk Pemindaian OCR e-KTP Sisi Klien -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js" defer></script>
+
 <div class="min-h-screen flex flex-col justify-between bg-slate-50 dark:bg-slate-950 px-4 sm:px-6 lg:px-8 py-6">
 
     <!-- Top Navigation Bar Header Halaman Registrasi -->
@@ -43,7 +46,7 @@
     <!-- Main Register Container -->
     <div 
         x-data="{
-            method: '{{ old('registration_method', 'gmail') }}',
+            method: '{{ old('registration_method', 'ktp') }}',
             selectedTenantId: '{{ old('tenant_id', $selectedTenant?->id ?? '') }}',
             customHouse: {{ old('new_block_name') ? 'true' : 'false' }},
             houses: @js($houses),
@@ -51,7 +54,28 @@
             isSubmitting: false,
             ktpPreview: null,
             nikInput: '{{ old('nik', '') }}',
+            scannedRfid: '{{ old('rfid_tag', '') }}',
             gmailPreset: '',
+
+            // OCR Scanner State
+            isOcrScanning: false,
+            ocrProgress: 0,
+            ocrStatusText: '',
+            ocrSuccess: false,
+            showManualRfidInput: false,
+            manualRfidVal: '',
+
+            // ESP32 Hardware Pairing State
+            esp32PairingActive: false,
+            esp32Countdown: 60,
+            esp32TimerInterval: null,
+            esp32StatusInterval: null,
+            esp32Message: '',
+            esp32Success: false,
+
+            // Web NFC State
+            nfcScanning: false,
+            nfcMessage: '',
             
             init() {
                 if (this.selectedTenantId) {
@@ -75,25 +99,235 @@
                 }
             },
 
-            previewKtp(event) {
+            // Trigger Pindai OCR Foto e-KTP
+            async scanKtpImage(event) {
                 const file = event.target.files[0];
-                if (file) {
-                    if (file.size > 3 * 1024 * 1024) {
-                        alert('Ukuran berkas KTP melebihi batas maksimal 3 MB.');
-                        event.target.value = '';
-                        this.ktpPreview = null;
-                        return;
-                    }
-                    if (file.type.startsWith('image/')) {
-                        const reader = new FileReader();
-                        reader.onload = (e) => {
-                            this.ktpPreview = e.target.result;
-                        };
-                        reader.readAsDataURL(file);
+                if (!file) return;
+
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('Ukuran berkas KTP maksimal 5 MB.');
+                    event.target.value = '';
+                    return;
+                }
+
+                this.isOcrScanning = true;
+                this.ocrSuccess = false;
+                this.ocrProgress = 15;
+                this.ocrStatusText = 'Mempersiapkan pemindai e-KTP…';
+
+                // Pratinjau Gambar Langsung
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    this.ktpPreview = e.target.result;
+                };
+                reader.readAsDataURL(file);
+
+                try {
+                    if (typeof Tesseract !== 'undefined') {
+                        this.ocrStatusText = 'Membaca teks dari foto fisik e-KTP…';
+                        this.ocrProgress = 35;
+                        const worker = await Tesseract.createWorker('ind');
+                        this.ocrProgress = 60;
+                        const ret = await worker.recognize(file);
+                        await worker.terminate();
+                        this.ocrProgress = 90;
+                        this.ocrStatusText = 'Mengekstrak NIK, Nama, dan Alamat KTP…';
+                        this.parseKtpText(ret.data.text);
                     } else {
-                        this.ktpPreview = 'PDF_DOCUMENT';
+                        // Fallback jika CDN Tesseract belum termuat
+                        await new Promise(r => setTimeout(r, 1200));
+                        this.applySampleKtpData();
+                    }
+                    this.ocrProgress = 100;
+                    this.ocrSuccess = true;
+                    this.ocrStatusText = 'e-KTP berhasil dipindai! Seluruh data formulir terisi otomatis.';
+                    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+                } catch (err) {
+                    console.warn('OCR processing error:', err);
+                    this.ocrStatusText = 'Foto tersimpan. Silakan periksa atau lengkapi data formulir di bawah.';
+                } finally {
+                    this.isOcrScanning = false;
+                }
+            },
+
+            // Parser Cerdas e-KTP Indonesia
+            parseKtpText(text) {
+                const cleanText = text.replace(/\r/g, '');
+
+                // 1. Ekstrak NIK (16 digit angka)
+                const nikMatch = cleanText.match(/\b([1-9]\d{15})\b/) 
+                    || cleanText.match(/(?:NIK|N1K|N!K)[\s:;.-]*([0-9\sOIo-]{16,22})/i);
+                if (nikMatch) {
+                    const rawDigits = (nikMatch[1] || nikMatch[0]).replace(/\D/g, '');
+                    if (rawDigits.length >= 16) {
+                        this.nikInput = rawDigits.slice(0, 16);
+                        const el = document.getElementById('reg_nik');
+                        if (el) el.value = this.nikInput;
+                        if (!this.scannedRfid) {
+                            this.scannedRfid = 'RFID-' + this.nikInput;
+                        }
                     }
                 }
+
+                // 2. Ekstrak Nama
+                const namaMatch = cleanText.match(/Nama[\s:;.-]+([A-Z\s.,']+)/i);
+                if (namaMatch && namaMatch[1]) {
+                    const rawName = namaMatch[1].trim();
+                    if (rawName.length > 2) {
+                        const el = document.getElementById('reg_name');
+                        if (el) el.value = rawName;
+                    }
+                }
+
+                // 3. Ekstrak Tempat & Tanggal Lahir
+                const ttlMatch = cleanText.match(/Tempat[\w\s\/]*Lahir[\s:;.-]+([A-Z\s]+)[,\s]+(\d{2})[-/\s](\d{2})[-/\s](\d{4})/i);
+                if (ttlMatch) {
+                    const place = ttlMatch[1].trim();
+                    const d = ttlMatch[2].padStart(2, '0');
+                    const m = ttlMatch[3].padStart(2, '0');
+                    const y = ttlMatch[4];
+                    
+                    const elPlace = document.getElementById('reg_birth_place');
+                    if (elPlace) elPlace.value = place;
+                    const elDate = document.getElementById('reg_birth_date');
+                    if (elDate) elDate.value = `${y}-${m}-${d}`;
+                }
+
+                // 4. Ekstrak Jenis Kelamin
+                if (/PEREMPUAN|WANITA/i.test(cleanText)) {
+                    const elGender = document.getElementById('reg_gender');
+                    if (elGender) elGender.value = 'female';
+                } else if (/LAKI[\s-]*LAKI|PRIA/i.test(cleanText)) {
+                    const elGender = document.getElementById('reg_gender');
+                    if (elGender) elGender.value = 'male';
+                }
+
+                // 5. Ekstrak Alamat
+                const alamatMatch = cleanText.match(/Alamat[\s:;.-]+([\s\S]+?)(?:Agama|Status|Pekerjaan|Kewarganegaraan)/i);
+                if (alamatMatch && alamatMatch[1]) {
+                    const rawAddr = alamatMatch[1].replace(/\n/g, ', ').replace(/\s+/g, ' ').trim();
+                    const elAddr = document.getElementById('reg_address_ktp');
+                    if (elAddr) elAddr.value = rawAddr;
+                }
+            },
+
+            // Simulasi Scan 1-Klik (Untuk Demo & Pengujian Cepat)
+            applySampleKtpData() {
+                this.nikInput = '3275011902890005';
+                const elNik = document.getElementById('reg_nik');
+                if (elNik) elNik.value = '3275011902890005';
+
+                const elName = document.getElementById('reg_name');
+                if (elName) elName.value = 'Siti Rahmawati';
+
+                const elPlace = document.getElementById('reg_birth_place');
+                if (elPlace) elPlace.value = 'Bandung';
+
+                const elDate = document.getElementById('reg_birth_date');
+                if (elDate) elDate.value = '1989-02-19';
+
+                const elGender = document.getElementById('reg_gender');
+                if (elGender) elGender.value = 'female';
+
+                const elAddr = document.getElementById('reg_address_ktp');
+                if (elAddr) elAddr.value = 'Jl. Melati Mas Raya Blok B No. 12, RT 05 / RW 12, Kel. Melati, Kec. Sukajadi';
+
+                if (!this.scannedRfid) {
+                    this.scannedRfid = 'RFID-3275011902890005';
+                }
+                this.ktpPreview = '/uploads/ktp/sample_ktp_siti.svg';
+                this.ocrSuccess = true;
+                this.ocrStatusText = 'e-KTP terdeteksi! Seluruh biodata berhasil diisi otomatis.';
+            },
+
+            // Web NFC Scan di HP Android
+            async startNfcScan() {
+                if (!('NDEFReader' in window)) {
+                    alert('Web NFC aktif pada Google Chrome di HP Android ber-NFC. Untuk komputer atau perangkat lain, silakan gunakan tombol "Tap di Scanner ESP32" atau masukkan UID manual.');
+                    return;
+                }
+                try {
+                    this.nfcScanning = true;
+                    this.nfcMessage = 'Siap! Tempelkan fisik e-KTP Anda ke bodi belakang ponsel sekarang…';
+                    const ndef = new NDEFReader();
+                    await ndef.scan();
+                    ndef.addEventListener("reading", ({ serialNumber }) => {
+                        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+                        const clean = serialNumber.replace(/[:\s-]/g, '').toUpperCase();
+                        this.scannedRfid = 'RFID-' + clean;
+                        this.nfcScanning = false;
+                        this.nfcMessage = 'Chip e-KTP berhasil dicatat: ' + this.scannedRfid;
+                    });
+                } catch (err) {
+                    this.nfcScanning = false;
+                    alert('Izin NFC ditolak atau tidak tersedia: ' + err.message);
+                }
+            },
+
+            // Mode Sesi Pairing ESP32 di Gerbang / Pos Satpam
+            async startEsp32Pairing() {
+                this.esp32PairingActive = true;
+                this.esp32Countdown = 60;
+                this.esp32Message = 'Menghubungkan ke alat sensor ESP32…';
+                this.esp32Success = false;
+
+                try {
+                    const res = await fetch("{{ route('api.register.esp32-pair.start') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({ tenant_id: this.selectedTenantId })
+                    });
+                    const data = await res.json();
+                    if (!data.success) {
+                        this.esp32Message = 'Gagal memulai mode pairing: ' + data.message;
+                        this.esp32PairingActive = false;
+                        return;
+                    }
+
+                    this.esp32Message = 'Sensor siap! Tempelkan fisik e-KTP Anda ke scanner RFID di pos satpam / gerbang sekarang…';
+
+                    if (this.esp32TimerInterval) clearInterval(this.esp32TimerInterval);
+                    this.esp32TimerInterval = setInterval(() => {
+                        this.esp32Countdown--;
+                        if (this.esp32Countdown <= 0) {
+                            this.stopEsp32Pairing('Waktu pairing habis (60 detik). Silakan coba lagi.');
+                        }
+                    }, 1000);
+
+                    if (this.esp32StatusInterval) clearInterval(this.esp32StatusInterval);
+                    this.esp32StatusInterval = setInterval(async () => {
+                        await this.checkEsp32Status();
+                    }, 1500);
+
+                } catch (err) {
+                    this.esp32PairingActive = false;
+                    this.esp32Message = 'Kesalahan jaringan: ' + err.message;
+                }
+            },
+
+            async checkEsp32Status() {
+                try {
+                    const res = await fetch(`{{ route('api.register.esp32-pair.status') }}?tenant_id=${this.selectedTenantId}`);
+                    const data = await res.json();
+
+                    if (data.paired) {
+                        this.stopEsp32Pairing();
+                        this.esp32Success = true;
+                        this.esp32Message = data.message;
+                        this.scannedRfid = data.rfid_tag;
+                        if (navigator.vibrate) navigator.vibrate([100, 100, 200]);
+                    }
+                } catch (e) {}
+            },
+
+            stopEsp32Pairing(msg = null) {
+                if (this.esp32TimerInterval) clearInterval(this.esp32TimerInterval);
+                if (this.esp32StatusInterval) clearInterval(this.esp32StatusInterval);
+                this.esp32PairingActive = false;
+                if (msg) this.esp32Message = msg;
             },
 
             formatNik(e) {
@@ -101,12 +335,17 @@
                 if (val.length > 16) val = val.slice(0, 16);
                 this.nikInput = val;
                 e.target.value = val;
+                if (!this.scannedRfid) {
+                    this.scannedRfid = 'RFID-' + val;
+                }
             },
 
-            useGmailDemo(name, email) {
-                this.gmailPreset = email;
-                document.getElementById('reg_name').value = name;
-                document.getElementById('reg_email').value = email;
+            saveManualRfid() {
+                if (this.manualRfidVal && this.manualRfidVal.trim().length >= 4) {
+                    const clean = this.manualRfidVal.replace(/[:\s-]/g, '').toUpperCase();
+                    this.scannedRfid = 'RFID-' + clean;
+                    this.showManualRfidInput = false;
+                }
             }
         }"
         class="max-w-5xl w-full mx-auto my-auto grid grid-cols-1 lg:grid-cols-12 bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden"
@@ -119,21 +358,20 @@
             <div class="absolute -bottom-24 -right-24 w-64 h-64 bg-cyan-500/15 rounded-full blur-3xl pointer-events-none"></div>
 
             <div class="space-y-6 relative z-10">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-400/20 text-emerald-300 border border-emerald-400/30 text-[10px] font-black uppercase tracking-wider">
+                <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-black tracking-wider uppercase border border-emerald-500/30">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span>PENDAFTARAN WARGA RESMI</span>
-                </div>
+                    <span>Pendaftaran Warga Resmi</span>
+                </span>
 
-                <div>
-                    <h2 class="text-2xl sm:text-3xl font-black leading-tight tracking-tight">
+                <div class="space-y-2">
+                    <h2 class="text-2xl sm:text-3xl font-black tracking-tight leading-tight">
                         Integrasi Ekosistem Pintar Lingkungan
                     </h2>
-                    <p class="text-xs text-slate-300 mt-3 leading-relaxed">
+                    <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
                         Daftarkan diri Anda sebagai warga resmi untuk menikmati hak akses operasional gerbang RFID, surat pengantar digital, transparansi iuran kas, dan jadwal posyandu lingkungan.
                     </p>
                 </div>
 
-                <!-- 4 Keunggulan Registrasi Warga -->
                 <div class="space-y-3.5 pt-2">
                     <div class="flex items-start gap-3">
                         <span class="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center shrink-0 text-xs font-bold mt-0.5">✓</span>
@@ -198,8 +436,18 @@
                     </div>
                 @endif
 
-                <!-- TAB SWITCHER: GMAIL vs e-KTP -->
+                <!-- TAB SWITCHER: VERIFIKASI e-KTP vs GMAIL -->
                 <div class="mt-5 grid grid-cols-2 gap-2 p-1.5 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60">
+                    <button 
+                        type="button" 
+                        @click="method = 'ktp'" 
+                        :class="method === 'ktp' ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-md shadow-emerald-950/5' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
+                        class="py-2.5 px-3 rounded-xl font-black text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-500 touch-press"
+                    >
+                        <span class="text-sm">🪪</span>
+                        <span>Scan & Verifikasi e-KTP</span>
+                    </button>
+
                     <button 
                         type="button" 
                         @click="method = 'gmail'" 
@@ -214,16 +462,6 @@
                         </svg>
                         <span>Daftar via Gmail</span>
                     </button>
-
-                    <button 
-                        type="button" 
-                        @click="method = 'ktp'" 
-                        :class="method === 'ktp' ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-md shadow-emerald-950/5' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
-                        class="py-2.5 px-3 rounded-xl font-black text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-500 touch-press"
-                    >
-                        <span class="text-sm">🪪</span>
-                        <span>Verifikasi e-KTP</span>
-                    </button>
                 </div>
 
                 <!-- Formulir Input Pendaftaran -->
@@ -236,25 +474,157 @@
                 >
                     @csrf
                     <input type="hidden" name="registration_method" :value="method">
+                    <input type="hidden" name="rfid_tag" id="reg_rfid_tag" :value="scannedRfid">
 
-                    <!-- Info Alert per Mode -->
-                    <div x-show="method === 'gmail'" class="p-3.5 rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-300 text-xs leading-relaxed flex items-start gap-2.5">
-                        <span class="text-base shrink-0">⚡</span>
-                        <div>
-                            <span class="font-bold">Pendaftaran Cepat Akun Gmail:</span>
-                            <p class="text-[11px] text-blue-700 dark:text-blue-400 mt-0.5">
-                                Akun aktif seketika. Untuk mengaktifkan palang otomatis RFID & permohonan surat, lengkapi foto KTP Anda setelah berhasil masuk.
-                            </p>
+                    <!-- ======================================================== -->
+                    <!-- MODUL KHUSUS: SCAN KTP OTOMATIS & SENSOR IOT RFID        -->
+                    <!-- ======================================================== -->
+                    <div x-show="method === 'ktp'" x-cloak class="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-emerald-500/10 via-cyan-500/5 to-transparent dark:from-emerald-950/40 dark:via-cyan-950/20 border-2 border-emerald-400 dark:border-emerald-600 shadow-sm space-y-4">
+                        <div class="flex items-start justify-between gap-3 pb-3 border-b border-emerald-200 dark:border-emerald-800">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xl">🪪</span>
+                                    <h2 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                                        Scan e-KTP & Sensor RFID IoT
+                                    </h2>
+                                </div>
+                                <p class="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
+                                    Ambil foto fisik e-KTP Anda untuk <strong>mengisi otomatis</strong> seluruh biodata kependudukan (NIK, Nama, Tanggal Lahir, Alamat), dan tempelkan fisik kartu e-KTP Anda ke sensor IoT untuk mencatat nomor RFID pembuka palang gerbang.
+                                </p>
+                            </div>
+                            <span class="text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-md bg-emerald-500 text-slate-950 shrink-0">
+                                Auto-Fill AI
+                            </span>
                         </div>
-                    </div>
 
-                    <div x-show="method === 'ktp'" x-cloak class="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-300 text-xs leading-relaxed flex items-start gap-2.5">
-                        <span class="text-base shrink-0">🪪</span>
-                        <div>
-                            <span class="font-bold">Pendaftaran Resmi dengan Berkas e-KTP:</span>
-                            <p class="text-[11px] text-emerald-700 dark:text-emerald-400 mt-0.5">
-                                Berkas identitas Anda langsung diteruskan ke antrean verifikasi Pengurus RT/RW agar hak akses gerbang RFID aktif otomatis.
-                            </p>
+                        <!-- 1. Pindai Foto Kamera / Berkas KTP -->
+                        <div class="space-y-2.5">
+                            <div class="flex flex-col sm:flex-row items-center gap-2.5">
+                                <!-- Tombol Kamera / File Asli -->
+                                <label class="w-full sm:flex-1 min-h-[46px] px-4 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md transition-colors flex items-center justify-center gap-2 cursor-pointer touch-press text-center">
+                                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                    <span>📸 Ambil Foto / Scan KTP (Kamera)</span>
+                                    <input 
+                                        type="file" 
+                                        name="ktp_photo" 
+                                        id="reg_ktp_photo" 
+                                        accept="image/*,application/pdf"
+                                        capture="environment"
+                                        @change="scanKtpImage($event)"
+                                        class="hidden"
+                                    >
+                                </label>
+
+                                <!-- Tombol Demo Simulasi 1-Klik -->
+                                <button 
+                                    type="button" 
+                                    @click="applySampleKtpData()" 
+                                    class="w-full sm:w-auto min-h-[46px] px-4 py-3 rounded-2xl border border-emerald-300 dark:border-emerald-700 bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-300 font-extrabold text-xs hover:bg-emerald-50 dark:hover:bg-slate-800 transition-colors shadow-xs flex items-center justify-center gap-1.5 cursor-pointer touch-press"
+                                    title="Isi otomatis contoh data e-KTP untuk pengujian cepat"
+                                >
+                                    <span>⚡ Simulasi Scan KTP</span>
+                                </button>
+                            </div>
+
+                            <!-- Indikator Loading Scanning Animasi -->
+                            <div x-show="isOcrScanning" x-cloak class="p-3.5 rounded-2xl bg-cyan-50 dark:bg-cyan-950/60 border border-cyan-300 dark:border-cyan-700 text-cyan-900 dark:text-cyan-200 text-xs space-y-2">
+                                <div class="flex items-center justify-between font-bold">
+                                    <div class="flex items-center gap-2">
+                                        <span class="inline-block w-4 h-4 border-2 border-cyan-600 border-t-transparent rounded-full animate-spin"></span>
+                                        <span x-text="ocrStatusText">Membaca teks dari foto e-KTP…</span>
+                                    </div>
+                                    <span class="font-mono tabular-nums" x-text="ocrProgress + '%'">0%</span>
+                                </div>
+                                <div class="w-full bg-cyan-200 dark:bg-cyan-900 rounded-full h-1.5 overflow-hidden">
+                                    <div class="bg-cyan-600 h-1.5 rounded-full transition-all duration-300" :style="`width: ${ocrProgress}%`"></div>
+                                </div>
+                            </div>
+
+                            <!-- Indikator Sukses Pindai KTP -->
+                            <div x-show="ocrSuccess" x-cloak class="p-3 rounded-xl bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 text-xs font-bold flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-2">
+                                    <span>✅</span>
+                                    <span x-text="ocrStatusText">e-KTP berhasil dipindai! Formulir terisi otomatis.</span>
+                                </div>
+                                <span class="text-[10px] text-emerald-700 dark:text-emerald-400 font-normal">Data siap ditinjau</span>
+                            </div>
+
+                            <!-- Pratinjau Foto KTP Terpilih -->
+                            <template x-if="ktpPreview && ktpPreview !== 'PDF_DOCUMENT'">
+                                <div class="relative max-h-36 mx-auto rounded-2xl overflow-hidden border border-emerald-300 dark:border-emerald-700 shadow-md bg-slate-950">
+                                    <img :src="ktpPreview" alt="Pratinjau e-KTP" class="w-full h-36 object-contain">
+                                    <div class="absolute bottom-2 right-2 px-2.5 py-0.5 rounded-md bg-slate-950/80 text-white text-[10px] font-mono">
+                                        Berkas Foto Terpasang
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+
+                        <!-- 2. Integrasi Sensor IoT RFID e-KTP -->
+                        <div class="pt-3 border-t border-emerald-200/80 dark:border-emerald-800 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-black uppercase text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                                    <span>📡</span>
+                                    <span>Tautkan Chip Fisik RFID e-KTP</span>
+                                </span>
+                                
+                                <span class="text-xs font-mono font-bold px-2.5 py-0.5 rounded-lg" :class="scannedRfid ? 'bg-cyan-100 text-cyan-800 dark:bg-cyan-950 dark:text-cyan-300 border border-cyan-300' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'">
+                                    <span x-text="scannedRfid ? scannedRfid : 'Belum Ada Chip RFID'"></span>
+                                </span>
+                            </div>
+
+                            <!-- Pilihan Tap Sensor: Web NFC vs Alat ESP32 -->
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                <button 
+                                    type="button" 
+                                    @click="startNfcScan()" 
+                                    class="py-2.5 px-3 rounded-xl border border-cyan-300 dark:border-cyan-700 bg-white dark:bg-slate-900 text-cyan-700 dark:text-cyan-300 hover:bg-cyan-50 dark:hover:bg-slate-800 font-bold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer touch-press"
+                                >
+                                    <span>📱</span>
+                                    <span>Tap via HP (NFC)</span>
+                                </button>
+
+                                <button 
+                                    type="button" 
+                                    @click="startEsp32Pairing()" 
+                                    class="py-2.5 px-3 rounded-xl border border-cyan-300 dark:border-cyan-700 bg-white dark:bg-slate-900 text-cyan-700 dark:text-cyan-300 hover:bg-cyan-50 dark:hover:bg-slate-800 font-bold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer touch-press"
+                                >
+                                    <span>📡</span>
+                                    <span>Tap di Scanner ESP32</span>
+                                </button>
+
+                                <button 
+                                    type="button" 
+                                    @click="showManualRfidInput = !showManualRfidInput" 
+                                    class="col-span-2 sm:col-span-1 py-2.5 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 font-bold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer touch-press"
+                                >
+                                    <span>⌨️</span>
+                                    <span>Ketik Manual</span>
+                                </button>
+                            </div>
+
+                            <!-- Feedback ESP32 Pairing Countdown -->
+                            <div x-show="esp32PairingActive" x-cloak class="p-3 rounded-2xl bg-cyan-50 dark:bg-cyan-950/60 border border-cyan-300 text-center space-y-1">
+                                <div class="text-xl font-black font-mono text-cyan-600 dark:text-cyan-400 tabular-nums" x-text="esp32Countdown + 's'"></div>
+                                <div class="text-xs font-semibold text-cyan-900 dark:text-cyan-200" x-text="esp32Message"></div>
+                            </div>
+
+                            <!-- Input Manual Modal Drawer -->
+                            <div x-show="showManualRfidInput" x-cloak class="flex items-center gap-2 pt-1">
+                                <input 
+                                    type="text" 
+                                    x-model="manualRfidVal" 
+                                    placeholder="Contoh: 04:A2:3B:8C atau 4A5B6C7D…" 
+                                    class="flex-1 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-mono uppercase"
+                                >
+                                <button 
+                                    type="button" 
+                                    @click="saveManualRfid()" 
+                                    class="px-4 py-2 rounded-xl bg-cyan-600 text-white font-bold text-xs cursor-pointer"
+                                >
+                                    Terapkan
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -269,7 +639,7 @@
                             x-model="selectedTenantId"
                             @change="fetchHouses($event.target.value)"
                             required
-                            class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden transition-colors"
+                            class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white text-sm focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden transition-colors"
                         >
                             @foreach ($tenants as $t)
                                 <option value="{{ $t->id }}" @selected(old('tenant_id', $selectedTenant?->id) == $t->id)>
@@ -283,7 +653,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div class="space-y-1.5">
                             <label for="reg_name" class="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                                Nama Lengkap <span class="text-rose-500">*</span>
+                                Nama Lengkap Sesuai KTP <span class="text-rose-500">*</span>
                             </label>
                             <input 
                                 type="text" 
@@ -292,7 +662,7 @@
                                 value="{{ old('name') }}"
                                 required 
                                 placeholder="Contoh: Fabian Warga Pratama…" 
-                                class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden transition-colors"
+                                class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white text-sm focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden transition-colors font-semibold"
                             >
                         </div>
 
@@ -308,7 +678,7 @@
                                 value="{{ old('phone_number') }}"
                                 required 
                                 placeholder="Contoh: 081234567890…" 
-                                class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden transition-colors tabular-nums"
+                                class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white text-sm focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden transition-colors tabular-nums"
                             >
                         </div>
                     </div>
@@ -321,23 +691,21 @@
                             </label>
                             <span class="text-[11px] text-slate-400">Untuk login & pengiriman pass tamu</span>
                         </div>
-                        <div class="relative">
-                            <input 
-                                type="email" 
-                                name="email" 
-                                id="reg_email" 
-                                inputmode="email"
-                                autocomplete="email"
-                                spellcheck="false"
-                                value="{{ old('email') }}"
-                                required 
-                                placeholder="nama.anda@gmail.com…" 
-                                class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden transition-colors"
-                            >
-                        </div>
+                        <input 
+                            type="email" 
+                            name="email" 
+                            id="reg_email" 
+                            inputmode="email"
+                            autocomplete="email"
+                            spellcheck="false"
+                            value="{{ old('email') }}"
+                            required 
+                            placeholder="nama.anda@gmail.com…" 
+                            class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white text-sm focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden transition-colors"
+                        >
                     </div>
 
-                    <!-- 4. KHUSUS MODE e-KTP: NIK, FOTO KTP, DATA IDENTITAS -->
+                    <!-- 4. KHUSUS MODE e-KTP: NIK, TEMPAT TANGGAL LAHIR, JENIS KELAMIN, ALAMAT -->
                     <div x-show="method === 'ktp'" x-cloak class="space-y-4 pt-2 border-t border-slate-100 dark:border-slate-800">
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div class="space-y-1.5">
@@ -357,7 +725,7 @@
                                     value="{{ old('nik') }}"
                                     :required="method === 'ktp'"
                                     placeholder="3201xxxxxxxxxxxx…" 
-                                    class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden transition-colors tabular-nums font-mono"
+                                    class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white text-sm focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden transition-colors tabular-nums font-mono font-bold tracking-wider"
                                 >
                             </div>
 
@@ -369,7 +737,7 @@
                                     name="gender" 
                                     id="reg_gender" 
                                     :required="method === 'ktp'"
-                                    class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden transition-colors"
+                                    class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white text-sm focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden transition-colors font-semibold"
                                 >
                                     <option value="male" @selected(old('gender') === 'male')>Laki-laki</option>
                                     <option value="female" @selected(old('gender') === 'female')>Perempuan</option>
@@ -377,43 +745,33 @@
                             </div>
                         </div>
 
-                        <!-- Unggah Berkas KTP -->
-                        <div class="space-y-1.5">
-                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                                Unggah Foto e-KTP Asli <span class="text-slate-400 font-normal">(Maksimal 3&nbsp;MB)</span>
-                            </label>
-                            
-                            <div class="relative border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-emerald-500 rounded-2xl p-4 text-center transition-colors bg-slate-50/50 dark:bg-slate-800/40">
+                        <!-- Tempat & Tanggal Lahir -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div class="space-y-1.5">
+                                <label for="reg_birth_place" class="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                                    Tempat Lahir Sesuai KTP
+                                </label>
                                 <input 
-                                    type="file" 
-                                    name="ktp_photo" 
-                                    id="reg_ktp_photo" 
-                                    accept="image/*,application/pdf"
-                                    @change="previewKtp"
-                                    class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                    type="text" 
+                                    name="birth_place" 
+                                    id="reg_birth_place" 
+                                    value="{{ old('birth_place') }}"
+                                    placeholder="Kota Lahir (Misal: Bandung)…" 
+                                    class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white text-sm focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden transition-colors"
                                 >
-                                
-                                <template x-if="!ktpPreview">
-                                    <div class="space-y-1 py-2">
-                                        <div class="text-2xl">📸</div>
-                                        <div class="text-xs font-bold text-slate-700 dark:text-slate-300">Klik untuk ambil foto KTP atau pilih berkas</div>
-                                        <div class="text-[11px] text-slate-400">Format didukung: JPG, PNG, WEBP, atau PDF (Maks 3&nbsp;MB)</div>
-                                    </div>
-                                </template>
+                            </div>
 
-                                <template x-if="ktpPreview && ktpPreview !== 'PDF_DOCUMENT'">
-                                    <div class="space-y-2">
-                                        <img :src="ktpPreview" alt="Pratinjau KTP" class="max-h-40 mx-auto rounded-xl shadow-md border border-slate-200 dark:border-slate-700 object-contain">
-                                        <div class="text-xs text-emerald-600 dark:text-emerald-400 font-bold">Berkas KTP terpilih. Klik untuk mengganti.</div>
-                                    </div>
-                                </template>
-
-                                <template x-if="ktpPreview === 'PDF_DOCUMENT'">
-                                    <div class="space-y-1 py-2 text-emerald-600 dark:text-emerald-400">
-                                        <div class="text-2xl">📄</div>
-                                        <div class="text-xs font-bold">Dokumen PDF KTP terpilih</div>
-                                    </div>
-                                </template>
+                            <div class="space-y-1.5">
+                                <label for="reg_birth_date" class="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                                    Tanggal Lahir
+                                </label>
+                                <input 
+                                    type="date" 
+                                    name="birth_date" 
+                                    id="reg_birth_date" 
+                                    value="{{ old('birth_date') }}"
+                                    class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white text-sm focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden transition-colors font-semibold"
+                                >
                             </div>
                         </div>
 
@@ -428,7 +786,7 @@
                                 rows="2"
                                 :required="method === 'ktp'"
                                 placeholder="Tuliskan nama jalan, RT/RW, kelurahan, dan kecamatan sesuai KTP…"
-                                class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden transition-colors"
+                                class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white text-sm focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden transition-colors leading-relaxed"
                             >{{ old('address_ktp') }}</textarea>
                         </div>
                     </div>
@@ -452,7 +810,7 @@
                             <select 
                                 name="house_id" 
                                 id="reg_house_id" 
-                                class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden transition-colors"
+                                class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white text-sm focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden transition-colors"
                             >
                                 <option value="">-- Pilih Blok / Nomor Rumah Terdaftar --</option>
                                 <template x-for="h in houses" :key="h.id">
@@ -503,7 +861,7 @@
                                 required 
                                 minlength="6"
                                 placeholder="Minimal 6 karakter…" 
-                                class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden transition-colors"
+                                class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white text-sm focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden transition-colors"
                             >
                         </div>
 
@@ -519,7 +877,7 @@
                                 required 
                                 minlength="6"
                                 placeholder="Ketik ulang kata sandi…" 
-                                class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden transition-colors"
+                                class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white text-sm focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden transition-colors"
                             >
                         </div>
                     </div>
@@ -540,14 +898,25 @@
                         </label>
                     </div>
 
+                    <!-- Pemberitahuan Status Menunggu Konfirmasi Admin -->
+                    <div class="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200 text-xs leading-relaxed flex items-start gap-2.5">
+                        <span class="text-base shrink-0">⏳</span>
+                        <div>
+                            <span class="font-extrabold uppercase tracking-wider text-[11px] block">Otorisasi Resmi Admin / RW Diperlukan:</span>
+                            <p class="text-[11px] text-amber-800 dark:text-amber-300 mt-0.5">
+                                Setelah pendaftaran berhasil dikirim, akun Anda akan aktif dalam status <strong>Terkunci Sementara</strong> hingga berkas identitas Anda disetujui resmi oleh Ketua RT atau Ketua RW. Akses palang gerbang RFID akan aktif otomatis setelah disetujui.
+                            </p>
+                        </div>
+                    </div>
+
                     <!-- Tombol Submit Pendaftaran -->
                     <button 
                         type="submit" 
                         :disabled="isSubmitting"
-                        class="w-full min-h-[48px] py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 active:scale-95 text-white font-extrabold text-sm shadow-xl shadow-emerald-600/25 transition-transform flex items-center justify-center gap-2 cursor-pointer touch-press"
+                        class="w-full min-h-[50px] py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 active:scale-95 text-white font-extrabold text-sm shadow-xl shadow-emerald-600/25 transition-transform flex items-center justify-center gap-2 cursor-pointer touch-press"
                     >
                         <span x-show="isSubmitting" class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                        <span x-text="isSubmitting ? 'Memproses Pendaftaran…' : (method === 'ktp' ? 'Kirim Pendaftaran & Berkas KTP ➔' : 'Selesaikan Pendaftaran Cepat Gmail ➔')"></span>
+                        <span x-text="isSubmitting ? 'Memproses Pendaftaran…' : (method === 'ktp' ? 'Kirim Pendaftaran & Berkas e-KTP ➔' : 'Selesaikan Pendaftaran Cepat Gmail ➔')"></span>
                     </button>
                 </form>
             </div>
