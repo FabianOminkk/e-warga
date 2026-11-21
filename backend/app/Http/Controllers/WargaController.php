@@ -518,24 +518,25 @@ class WargaController extends Controller
     public function checkEsp32DeviceStatus(Request $request)
     {
         $tenantId = (int) (Auth::user()?->tenant_id ?? 1);
-        $cachedHeartbeat = \Illuminate\Support\Facades\Cache::get("esp32_heartbeat_tenant_{$tenantId}");
+        $cachedHeartbeat = \Illuminate\Support\Facades\Cache::get("esp32_heartbeat_tenant_{$tenantId}")
+            ?? \Illuminate\Support\Facades\Cache::get("esp32_heartbeat_tenant_1")
+            ?? \Illuminate\Support\Facades\Cache::get("esp32_heartbeat_global");
         $isOnline = false;
         $secondsAgo = null;
 
         if ($cachedHeartbeat) {
             $secondsAgo = now()->timestamp - $cachedHeartbeat;
-            if ($secondsAgo <= 25) {
+            if ($secondsAgo <= 60) {
                 $isOnline = true;
             }
         }
 
         if (!$isOnline) {
-            $latestGate = \App\Models\SmartGate::where('tenant_id', $tenantId)
-                ->whereNotNull('last_ping_at')
+            $latestGate = \App\Models\SmartGate::whereNotNull('last_ping_at')
                 ->latest('last_ping_at')
                 ->first();
 
-            if ($latestGate && $latestGate->last_ping_at && $latestGate->last_ping_at->diffInSeconds(now()) <= 25) {
+            if ($latestGate && $latestGate->last_ping_at && $latestGate->last_ping_at->diffInSeconds(now()) <= 60) {
                 $isOnline = true;
                 $secondsAgo = $latestGate->last_ping_at->diffInSeconds(now());
             }
@@ -567,11 +568,13 @@ class WargaController extends Controller
         $tenantId = $user->tenant_id ?? 1;
         $pairingSuccess = \Illuminate\Support\Facades\Cache::pull("rfid_pairing_success_{$user->id}");
 
-        $cachedHeartbeat = \Illuminate\Support\Facades\Cache::get("esp32_heartbeat_tenant_{$tenantId}");
-        $isOnline = $cachedHeartbeat && (now()->timestamp - $cachedHeartbeat <= 25);
+        $cachedHeartbeat = \Illuminate\Support\Facades\Cache::get("esp32_heartbeat_tenant_{$tenantId}")
+            ?? \Illuminate\Support\Facades\Cache::get("esp32_heartbeat_tenant_1")
+            ?? \Illuminate\Support\Facades\Cache::get("esp32_heartbeat_global");
+        $isOnline = $cachedHeartbeat && (now()->timestamp - $cachedHeartbeat <= 60);
         if (!$isOnline) {
-            $gate = \App\Models\SmartGate::where('tenant_id', $tenantId)->whereNotNull('last_ping_at')->latest('last_ping_at')->first();
-            if ($gate && $gate->last_ping_at && $gate->last_ping_at->diffInSeconds(now()) <= 25) {
+            $gate = \App\Models\SmartGate::whereNotNull('last_ping_at')->latest('last_ping_at')->first();
+            if ($gate && $gate->last_ping_at && $gate->last_ping_at->diffInSeconds(now()) <= 60) {
                 $isOnline = true;
             }
         }

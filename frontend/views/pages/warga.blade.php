@@ -1316,17 +1316,33 @@ function wargaApp() {
             if (manual) this.isCheckingStatus = true;
             try {
                 const res = await fetch("{{ route('warga.esp32-status') }}");
-                const data = await res.json();
-                this.esp32Online = !!data.online;
-                if (this.esp32PairingActive && !this.esp32Success) {
-                    if (this.esp32Online) {
-                        this.esp32Message = 'Sensor siap! Tempelkan fisik e-KTP Anda ke scanner RFID di pos satpam / gerbang sekarang…';
-                    } else {
-                        this.esp32Message = 'Scanner Offline: Alat ESP32 belum terhubung ke hotspot "BIAN". Menunggu alat online…';
+                if (res.ok) {
+                    const data = await res.json();
+                    this.esp32Online = !!data.online;
+                    if (this.esp32PairingActive && !this.esp32Success) {
+                        if (this.esp32Online) {
+                            this.esp32Message = 'Sensor siap! Tempelkan fisik e-KTP Anda ke scanner RFID di pos satpam / gerbang sekarang…';
+                        } else {
+                            this.esp32Message = 'Scanner Offline: Alat ESP32 belum terhubung ke hotspot "BIAN". Menunggu alat online…';
+                        }
+                    }
+                } else {
+                    const resPub = await fetch("/api/v1/esp32/status?tenant_id={{ Auth::user()?->tenant_id ?? 1 }}");
+                    if (resPub.ok) {
+                        const dataPub = await resPub.json();
+                        this.esp32Online = !!dataPub.online;
                     }
                 }
             } catch (e) {
-                this.esp32Online = false;
+                try {
+                    const resPub = await fetch("/api/v1/esp32/status?tenant_id={{ Auth::user()?->tenant_id ?? 1 }}");
+                    if (resPub.ok) {
+                        const dataPub = await resPub.json();
+                        this.esp32Online = !!dataPub.online;
+                    }
+                } catch (err) {
+                    this.esp32Online = false;
+                }
             } finally {
                 if (manual) setTimeout(() => { this.isCheckingStatus = false; }, 400);
             }
@@ -1336,9 +1352,12 @@ function wargaApp() {
         async startEsp32Pairing() {
             this.esp32PairingActive = true;
             this.esp32Countdown = 60;
-            this.esp32Message = 'Menghubungkan ke alat scanner ESP32…';
             this.esp32Success = false;
             await this.checkEsp32DeviceStatus();
+
+            this.esp32Message = this.esp32Online
+                ? 'Sensor siap! Tempelkan fisik e-KTP Anda ke scanner RFID di pos satpam / gerbang sekarang…'
+                : 'Menghubungkan ke sensor scanner ESP32… Pastikan hotspot "BIAN" aktif.';
 
             try {
                 const res = await fetch("{{ route('warga.esp32-pair.start') }}", {
@@ -1354,10 +1373,6 @@ function wargaApp() {
                     this.esp32PairingActive = false;
                     return;
                 }
-
-                this.esp32Message = this.esp32Online
-                    ? 'Sensor siap! Tempelkan fisik e-KTP Anda ke scanner RFID di pos satpam / gerbang sekarang…'
-                    : 'Peringatan: Scanner ESP32 sedang Offline (Belum terhubung ke hotspot "BIAN").';
 
                 // Start countdown
                 if (this.esp32TimerInterval) clearInterval(this.esp32TimerInterval);
@@ -1387,6 +1402,14 @@ function wargaApp() {
 
                 if (data.is_online !== undefined) {
                     this.esp32Online = !!data.is_online;
+                }
+
+                if (!this.esp32Success) {
+                    if (this.esp32Online) {
+                        this.esp32Message = data.message || 'Sensor siap! Tempelkan fisik e-KTP Anda ke scanner RFID sekarang…';
+                    } else {
+                        this.esp32Message = 'Scanner Offline: Alat ESP32 belum terhubung ke hotspot "BIAN". Menunggu alat online…';
+                    }
                 }
 
                 if (data.paired) {

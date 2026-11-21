@@ -19,13 +19,14 @@ class RegistrationDeviceController extends BaseApiController
         $deviceUid = $request->input('device_uid', 'ESP32-REGIS-DESK-01');
         $tenantId = (int) ($request->input('tenant_id') ?? 1);
         
-        // Simpan penanda detak jantung (heartbeat) aktif selama 30 detik
-        Cache::put("esp32_heartbeat_tenant_{$tenantId}", now()->timestamp, 35);
+        // Simpan penanda detak jantung (heartbeat) aktif selama 90 detik
+        Cache::put("esp32_heartbeat_tenant_{$tenantId}", now()->timestamp, 90);
+        Cache::put("esp32_heartbeat_global", now()->timestamp, 90);
         Cache::put("esp32_device_{$deviceUid}_last_ping", [
             'timestamp' => now()->timestamp,
             'ip' => $request->ip(),
             'time' => now()->toIso8601String(),
-        ], 35);
+        ], 90);
 
         try {
             \App\Models\SmartGate::updateOrCreate(
@@ -57,24 +58,25 @@ class RegistrationDeviceController extends BaseApiController
         $tenantId = (int) ($request->input('tenant_id') ?? 1);
         $deviceUid = $request->input('device_uid', 'ESP32-REGIS-DESK-01');
 
-        $cachedHeartbeat = Cache::get("esp32_heartbeat_tenant_{$tenantId}");
+        $cachedHeartbeat = Cache::get("esp32_heartbeat_tenant_{$tenantId}")
+            ?? Cache::get("esp32_heartbeat_tenant_1")
+            ?? Cache::get("esp32_heartbeat_global");
         $isOnline = false;
         $secondsAgo = null;
 
         if ($cachedHeartbeat) {
             $secondsAgo = now()->timestamp - $cachedHeartbeat;
-            if ($secondsAgo <= 25) {
+            if ($secondsAgo <= 60) {
                 $isOnline = true;
             }
         }
 
         if (!$isOnline) {
-            $latestGate = \App\Models\SmartGate::where('tenant_id', $tenantId)
-                ->whereNotNull('last_ping_at')
+            $latestGate = \App\Models\SmartGate::whereNotNull('last_ping_at')
                 ->latest('last_ping_at')
                 ->first();
 
-            if ($latestGate && $latestGate->last_ping_at && $latestGate->last_ping_at->diffInSeconds(now()) <= 25) {
+            if ($latestGate && $latestGate->last_ping_at && $latestGate->last_ping_at->diffInSeconds(now()) <= 60) {
                 $isOnline = true;
                 $secondsAgo = $latestGate->last_ping_at->diffInSeconds(now());
             }
