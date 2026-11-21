@@ -237,7 +237,8 @@ class RegisterController extends Controller
     public function checkEsp32PairingStatus(Request $request)
     {
         $tenantId = $request->input('tenant_id') ?? 1;
-        $pairedTag = \Illuminate\Support\Facades\Cache::pull("reg_pairing_result_{$tenantId}");
+        $pairedTag = \Illuminate\Support\Facades\Cache::pull("reg_pairing_result_{$tenantId}")
+            ?? \Illuminate\Support\Facades\Cache::pull("reg_latest_tap_tenant_{$tenantId}");
 
         if ($pairedTag) {
             return response()->json([

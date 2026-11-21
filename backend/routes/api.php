@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\DashboardApiController;
 use App\Http\Controllers\Api\IoTGateController;
 use App\Http\Controllers\Api\LetterApiController;
 use App\Http\Controllers\Api\PosyanduApiController;
+use App\Http\Controllers\Api\RegistrationDeviceController;
 use App\Http\Controllers\Api\SatpamApiController;
 use App\Http\Controllers\Api\ScheduleApiController;
 use App\Http\Controllers\Api\SystemDeploymentController;
@@ -37,6 +38,13 @@ Route::prefix('v1')->group(function () {
         Route::post('/scan-rfid', [IoTGateController::class, 'scanRfid'])->name('api.gate.scan-rfid');
         Route::post('/scan-qr', [IoTGateController::class, 'scanQr'])->name('api.gate.scan-qr');
     });
+
+    // Perangkat IoT Scanner ESP32 Meja Registrasi Warga Baru (Desk RFID Reader)
+    Route::prefix('registration-device')->group(function () {
+        Route::match(['get', 'post'], '/ping', [RegistrationDeviceController::class, 'ping'])->name('api.registration.ping');
+        Route::post('/scan', [RegistrationDeviceController::class, 'scan'])->name('api.registration.scan');
+    });
+    Route::post('/registration/scan-rfid', [RegistrationDeviceController::class, 'scan'])->name('api.registration.scan-rfid');
 
     // --- C. AI ASSISTANT (BANG WARGA AI INTERACTIVE ENGINE) ---
     Route::post('/ai/chat', [AiAssistantController::class, 'chat'])->name('api.ai.chat')->middleware('throttle:20,1');

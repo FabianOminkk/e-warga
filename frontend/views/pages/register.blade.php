@@ -360,7 +360,7 @@
             <div class="space-y-6 relative z-10">
                 <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-black tracking-wider uppercase border border-emerald-500/30">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span>Pendaftaran Warga Resmi</span>
+                    <span>Pendaftaran Warga Resmi & Registrasi Kilat</span>
                 </span>
 
                 <div class="space-y-2">
@@ -436,7 +436,7 @@
                     </div>
                 @endif
 
-                <!-- TAB SWITCHER: VERIFIKASI e-KTP vs GMAIL -->
+                <!-- TAB SWITCHER: REGISTRASI KILAT e-KTP vs GMAIL -->
                 <div class="mt-5 grid grid-cols-2 gap-2 p-1.5 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60">
                     <button 
                         type="button" 
@@ -444,8 +444,8 @@
                         :class="method === 'ktp' ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-md shadow-emerald-950/5' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
                         class="py-2.5 px-3 rounded-xl font-black text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-500 touch-press"
                     >
-                        <span class="text-sm">🪪</span>
-                        <span>Scan & Verifikasi e-KTP</span>
+                        <span class="text-sm">⚡</span>
+                        <span>Registrasi Kilat e-KTP</span>
                     </button>
 
                     <button 
@@ -477,23 +477,23 @@
                     <input type="hidden" name="rfid_tag" id="reg_rfid_tag" :value="scannedRfid">
 
                     <!-- ======================================================== -->
-                    <!-- MODUL KHUSUS: SCAN KTP OTOMATIS & SENSOR IOT RFID        -->
+                    <!-- MODUL KHUSUS: REGISTRASI KILAT e-KTP & SENSOR IOT RFID   -->
                     <!-- ======================================================== -->
                     <div x-show="method === 'ktp'" x-cloak class="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-emerald-500/10 via-cyan-500/5 to-transparent dark:from-emerald-950/40 dark:via-cyan-950/20 border-2 border-emerald-400 dark:border-emerald-600 shadow-sm space-y-4">
                         <div class="flex items-start justify-between gap-3 pb-3 border-b border-emerald-200 dark:border-emerald-800">
                             <div>
                                 <div class="flex items-center gap-2">
-                                    <span class="text-xl">🪪</span>
+                                    <span class="text-xl">⚡</span>
                                     <h2 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
-                                        Scan e-KTP & Sensor RFID IoT
+                                        Registrasi Kilat: Scan e-KTP & Sensor RFID ESP32
                                     </h2>
                                 </div>
                                 <p class="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
-                                    Ambil foto fisik e-KTP Anda untuk <strong>mengisi otomatis</strong> seluruh biodata kependudukan (NIK, Nama, Tanggal Lahir, Alamat), dan tempelkan fisik kartu e-KTP Anda ke sensor IoT untuk mencatat nomor RFID pembuka palang gerbang.
+                                    Ambil foto fisik e-KTP Anda untuk <strong>mengisi otomatis (Kilat Auto-Fill)</strong> seluruh biodata kependudukan (NIK, Nama, Tanggal Lahir, Alamat), dan tempelkan fisik kartu e-KTP Anda ke alat scanner ESP32 Meja Registrasi (atau NFC HP) untuk mencatat nomor RFID pembuka palang gerbang secara instan.
                                 </p>
                             </div>
                             <span class="text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-md bg-emerald-500 text-slate-950 shrink-0">
-                                Auto-Fill AI
+                                ⚡ Registrasi Kilat
                             </span>
                         </div>
 
@@ -916,7 +916,7 @@
                         class="w-full min-h-[50px] py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 active:scale-95 text-white font-extrabold text-sm shadow-xl shadow-emerald-600/25 transition-transform flex items-center justify-center gap-2 cursor-pointer touch-press"
                     >
                         <span x-show="isSubmitting" class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                        <span x-text="isSubmitting ? 'Memproses Pendaftaran…' : (method === 'ktp' ? 'Kirim Pendaftaran & Berkas e-KTP ➔' : 'Selesaikan Pendaftaran Cepat Gmail ➔')"></span>
+                        <span x-text="isSubmitting ? 'Memproses Pendaftaran…' : (method === 'ktp' ? '⚡ Selesaikan Registrasi Kilat e-KTP ➔' : 'Selesaikan Pendaftaran Cepat Gmail ➔')"></span>
                     </button>
                 </form>
             </div>

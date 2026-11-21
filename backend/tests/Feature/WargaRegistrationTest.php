@@ -46,7 +46,7 @@ class WargaRegistrationTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('Formulir Pendaftaran Warga');
         $response->assertSee('Daftar via Gmail');
-        $response->assertSee('Verifikasi e-KTP');
+        $response->assertSee('Registrasi Kilat');
         $response->assertSee($this->tenant->name);
     }
 
@@ -318,6 +318,71 @@ class WargaRegistrationTest extends TestCase
             ->assertJson([
                 'status' => 'paired',
                 'rfid_tag' => 'RFID-5A4B3C2D',
+            ]);
+    }
+
+    public function test_esp32_standalone_registration_desk_device_flow(): void
+    {
+        // 1. Tes ping perangkat scanner meja
+        $pingResponse = $this->getJson('/api/v1/registration-device/ping');
+        $pingResponse->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'data' => [
+                    'status' => 'online',
+                ],
+            ]);
+
+        // 2. Scanner ESP32 mendeteksi e-KTP baru
+        $scanResponse = $this->postJson('/api/v1/registration-device/scan', [
+            'device_uid' => 'ESP32-REGIS-DESK-01',
+            'rfid_uid' => '7E:8D:9C:0A',
+            'tenant_id' => $this->tenant->id,
+        ]);
+
+        $scanResponse->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'status' => 'paired',
+                'lcd_line1' => 'KTP TERCATAT!',
+                'lcd_line2' => 'REGIS KILAT OK',
+                'rfid_uid' => 'RFID-7E8D9C0A',
+            ]);
+
+        // 3. Formulir pendaftaran kilat menerima UID secara real-time
+        $statusResponse = $this->getJson(route('api.register.esp32-pair.status', [
+            'tenant_id' => $this->tenant->id,
+        ]));
+        $statusResponse->assertStatus(200)
+            ->assertJson([
+                'status' => 'paired',
+                'rfid_tag' => 'RFID-7E8D9C0A',
+            ]);
+
+        // 4. Jika kartu yang sama di-tap lagi oleh orang lain, tolak dengan status 422
+        User::create([
+            'tenant_id' => $this->tenant->id,
+            'name' => 'Warga Pemilik Kartu',
+            'email' => 'kartu.terdaftar@gmail.com',
+            'phone_number' => '081233334444',
+            'nik' => '3201444455550001',
+            'rfid_tag' => 'RFID-7E8D9C0A',
+            'password' => bcrypt('password123'),
+            'role' => 'warga',
+        ]);
+
+        $duplicateScanResponse = $this->postJson('/api/v1/registration-device/scan', [
+            'device_uid' => 'ESP32-REGIS-DESK-01',
+            'rfid_uid' => '7E:8D:9C:0A',
+            'tenant_id' => $this->tenant->id,
+        ]);
+
+        $duplicateScanResponse->assertStatus(422)
+            ->assertJson([
+                'success' => false,
+                'status' => 'denied',
+                'lcd_line1' => 'REGIS GAGAL!',
+                'lcd_line2' => 'KARTU SUDAH ADA',
             ]);
     }
 }
