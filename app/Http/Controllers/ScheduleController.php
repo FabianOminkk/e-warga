@@ -34,8 +34,14 @@ class ScheduleController extends Controller
             ->with(['officer.house'])
             ->get();
 
-        $satpamUsers = User::where('role', 'satpam')->get();
-        $wargaUsers = User::where('role', 'warga')->with('house')->get();
+        $satpamUsers = User::where('tenant_id', $tenant?->id ?? 1)->where('role', 'satpam')->get();
+        if ($satpamUsers->isEmpty()) {
+            $satpamUsers = User::where('role', 'satpam')->get();
+        }
+        $wargaUsers = User::where('tenant_id', $tenant?->id ?? 1)->where('role', 'warga')->with('house')->get();
+        if ($wargaUsers->isEmpty()) {
+            $wargaUsers = User::where('role', 'warga')->with('house')->get();
+        }
 
         return view('pages.schedules', compact('tenant', 'schedules', 'todaySchedules', 'type', 'month', 'satpamUsers', 'wargaUsers'));
     }
@@ -60,7 +66,7 @@ class ScheduleController extends Controller
         $tenant = Tenant::getActiveTenant() ?? Tenant::first();
 
         SecuritySchedule::create([
-            'tenant_id' => $tenant->id,
+            'tenant_id' => $tenant?->id ?? 1,
             'user_id' => $validated['user_id'],
             'schedule_type' => $validated['schedule_type'],
             'duty_date' => $validated['duty_date'],

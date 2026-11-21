@@ -314,7 +314,7 @@
                 <button @click="showRejectModal = false" class="text-slate-400 hover:text-slate-600">&times;</button>
             </div>
 
-            <form :action="'/surat-pengantar/' + selectedLetterId + '/reject'" method="POST" class="space-y-4 mt-4">
+            <form :action="'{{ url('/surat-pengantar') }}/' + selectedLetterId + '/reject'" method="POST" class="space-y-4 mt-4">
                 @csrf
                 <p class="text-xs text-slate-500" x-text="selectedLetterTitle"></p>
                 <div>

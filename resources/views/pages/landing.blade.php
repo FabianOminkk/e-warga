@@ -166,7 +166,7 @@
                             type="button" 
                             @click="triggerOpen()" 
                             :disabled="isOpen"
-                            class="w-full py-2.5 px-4 rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-slate-500 text-white shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer touch-press"
+                            class="w-full py-2.5 px-4 rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-slate-500 text-white shadow-md transition-colors duration-200 flex items-center justify-center gap-2 cursor-pointer touch-press"
                         >
                             <span x-show="!isOpen">👆 Tekan untuk Uji Buka Palang (Live Demo)</span>
                             <span x-show="isOpen" x-cloak>⚡ Palang Terbuka! Menutup otomatis dalam <strong x-text="timer + 's'"></strong></span>
@@ -372,14 +372,14 @@
                 6 Pilar Solusi Tata Kelola Digital Lingkungan
             </h2>
             <p class="text-base text-slate-600 dark:text-slate-400">
-                Dirancang khusus dengan alur kerja yang intuitif, aman, dan mudah dioperasikan oleh seluruh kalangan warga.
+                Standardisasi tata kelola kas RT/RW berstempel QR resmi, akses palang gerbang otomatis, surat digital, dan posyandu terpadu.
             </p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <!-- 1. Smart Gate -->
-            <div class="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:border-emerald-500 transition-all group space-y-4">
-                <div class="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-950/70 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-3xl font-bold group-hover:scale-110 transition">
+            <div class="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:border-emerald-500 transition-colors duration-200 group space-y-4">
+                <div class="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-950/70 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-3xl font-bold group-hover:scale-110 transition-transform duration-200">
                     🚪
                 </div>
                 <h3 class="text-xl font-black text-slate-900 dark:text-white">Palang Pintu Otomatis (Smart Gate)</h3>
@@ -395,8 +395,8 @@
             </div>
 
             <!-- 2. Kas RT Terbuka -->
-            <div class="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:border-emerald-500 transition-all group space-y-4">
-                <div class="w-14 h-14 rounded-2xl bg-blue-50 dark:bg-blue-950/70 text-blue-600 dark:text-blue-400 flex items-center justify-center text-3xl font-bold group-hover:scale-110 transition">
+            <div class="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:border-emerald-500 transition-colors duration-200 group space-y-4">
+                <div class="w-14 h-14 rounded-2xl bg-blue-50 dark:bg-blue-950/70 text-blue-600 dark:text-blue-400 flex items-center justify-center text-3xl font-bold group-hover:scale-110 transition-transform duration-200">
                     📊
                 </div>
                 <h3 class="text-xl font-black text-slate-900 dark:text-white">Buku Kas RT & Analisis Grafik</h3>
@@ -412,8 +412,8 @@
             </div>
 
             <!-- 3. Posyandu Digital -->
-            <div id="posyandu" class="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:border-pink-500 transition-all group space-y-4">
-                <div class="w-14 h-14 rounded-2xl bg-pink-50 dark:bg-pink-950/70 text-pink-600 dark:text-pink-400 flex items-center justify-center text-3xl font-bold group-hover:scale-110 transition">
+            <div id="posyandu" class="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:border-pink-500 transition-colors duration-200 group space-y-4">
+                <div class="w-14 h-14 rounded-2xl bg-pink-50 dark:bg-pink-950/70 text-pink-600 dark:text-pink-400 flex items-center justify-center text-3xl font-bold group-hover:scale-110 transition-transform duration-200">
                     🩺
                 </div>
                 <h3 class="text-xl font-black text-slate-900 dark:text-white">Posyandu Digital & Cegah Stunting</h3>
@@ -429,8 +429,8 @@
             </div>
 
             <!-- 4. Surat Pengantar RT Online -->
-            <div class="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:border-indigo-500 transition-all group space-y-4">
-                <div class="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-950/70 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-3xl font-bold group-hover:scale-110 transition">
+            <div class="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:border-indigo-500 transition-colors duration-200 group space-y-4">
+                <div class="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-950/70 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-3xl font-bold group-hover:scale-110 transition-transform duration-200">
                     📜
                 </div>
                 <h3 class="text-xl font-black text-slate-900 dark:text-white">Surat Pengantar RT Online Ber-QR</h3>
@@ -446,8 +446,8 @@
             </div>
 
             <!-- 5. Jadwal Keamanan Satpam & Ronda -->
-            <div class="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:border-amber-500 transition-all group space-y-4">
-                <div class="w-14 h-14 rounded-2xl bg-amber-50 dark:bg-amber-950/70 text-amber-600 dark:text-amber-400 flex items-center justify-center text-3xl font-bold group-hover:scale-110 transition">
+            <div class="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:border-amber-500 transition-colors duration-200 group space-y-4">
+                <div class="w-14 h-14 rounded-2xl bg-amber-50 dark:bg-amber-950/70 text-amber-600 dark:text-amber-400 flex items-center justify-center text-3xl font-bold group-hover:scale-110 transition-transform duration-200">
                     🔦
                 </div>
                 <h3 class="text-xl font-black text-slate-900 dark:text-white">Jadwal Satpam & Ronda Warga</h3>
@@ -463,8 +463,8 @@
             </div>
 
             <!-- 6. Portal Mandiri Warga & Panic Button -->
-            <div class="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:border-rose-500 transition-all group space-y-4">
-                <div class="w-14 h-14 rounded-2xl bg-rose-50 dark:bg-rose-950/70 text-rose-600 dark:text-rose-400 flex items-center justify-center text-3xl font-bold group-hover:scale-110 transition">
+            <div class="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:border-rose-500 transition-colors duration-200 group space-y-4">
+                <div class="w-14 h-14 rounded-2xl bg-rose-50 dark:bg-rose-950/70 text-rose-600 dark:text-rose-400 flex items-center justify-center text-3xl font-bold group-hover:scale-110 transition-transform duration-200">
                     🚨
                 </div>
                 <h3 class="text-xl font-black text-slate-900 dark:text-white">Portal Mandiri Warga & Tombol Panik</h3>
@@ -769,7 +769,7 @@
                 </div>
 
                 <div class="text-center pt-2">
-                    <button type="submit" class="w-full sm:w-auto px-12 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl shadow-xl shadow-emerald-600/30 text-base sm:text-lg transition-all transform hover:-translate-y-0.5 cursor-pointer touch-press">
+                    <button type="submit" class="w-full sm:w-auto px-12 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl shadow-xl shadow-emerald-600/30 text-base sm:text-lg transition-transform duration-200 transform hover:-translate-y-0.5 cursor-pointer touch-press">
                         Kirim Permohonan & Jadwalkan Survei
                     </button>
                 </div>

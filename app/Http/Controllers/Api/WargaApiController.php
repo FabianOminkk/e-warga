@@ -64,6 +64,13 @@ class WargaApiController extends BaseApiController
             return $this->error('Unauthenticated.', null, 401);
         }
 
+        if (!$user->canAccessGate() && !$user->isPengurus()) {
+            $msg = $user->verification_status === 'pending_rw'
+                ? 'Akses gerbang terkunci sementara: Berkas identitas Anda sedang ditinjau Ketua RW.'
+                : 'Akses gerbang terkunci: Lengkapi berkas KTP Anda untuk diverifikasi Ketua RW.';
+            return $this->error($msg, ['verification_status' => $user->verification_status], 403);
+        }
+
         $tenant = Tenant::getActiveTenant() ?? Tenant::first();
         $smartGate = SmartGate::where('tenant_id', $tenant?->id)->first() ?? SmartGate::first();
 
@@ -159,10 +166,11 @@ class WargaApiController extends BaseApiController
         }
 
         $tenant = Tenant::getActiveTenant() ?? Tenant::first();
-        $smartGate = SmartGate::where('tenant_id', $tenant?->id)->first() ?? SmartGate::first();
+        $tenantId = $tenant?->id ?? 1;
+        $smartGate = SmartGate::where('tenant_id', $tenantId)->first() ?? SmartGate::first();
 
         // Broadcast panic alert ke cache
-        Cache::put("panic_alert_active_{$tenant->id}", [
+        Cache::put("panic_alert_active_{$tenantId}", [
             'user_name'    => $user->name,
             'house'        => $user->house ? $user->house->block_and_number : 'Warga',
             'phone_number' => $user->phone_number,
@@ -171,7 +179,7 @@ class WargaApiController extends BaseApiController
 
         if ($smartGate) {
             GateLog::create([
-                'tenant_id'     => $tenant?->id ?? $smartGate->tenant_id,
+                'tenant_id'     => $tenantId,
                 'smart_gate_id' => $smartGate->id,
                 'user_id'       => $user->id,
                 'access_method' => 'mobile_button',
@@ -223,9 +231,17 @@ class WargaApiController extends BaseApiController
             'name'         => 'required|string|max:100',
             'phone_number' => 'required|string|max:20|unique:users,phone_number,' . $user->id,
             'email'        => 'required|email|max:100|unique:users,email,' . $user->id,
-            'gender'       => 'nullable|in:L,P',
+            'gender'       => 'nullable|in:male,female,L,P',
             'occupation'   => 'nullable|string|max:100',
         ]);
+
+        if (isset($validated['gender'])) {
+            $validated['gender'] = match ($validated['gender']) {
+                'L' => 'male',
+                'P' => 'female',
+                default => $validated['gender'],
+            };
+        }
 
         $user->update($validated);
 

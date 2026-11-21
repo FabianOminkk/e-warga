@@ -269,25 +269,25 @@
                     <!-- CTA Masuk Sistem / Dashboard -->
                     @auth
                         @if($currentUser?->role === 'super_admin')
-                            <a href="{{ route('superadmin.index') }}" class="px-4 sm:px-5 py-2 sm:py-2.5 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-md shadow-amber-500/25 transition-all duration-200 hover:scale-105 active:scale-95 flex items-center gap-1.5 sm:gap-2">
+                            <a href="{{ route('superadmin.index') }}" class="px-4 sm:px-5 py-2 sm:py-2.5 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-md shadow-amber-500/25 transition-transform duration-200 hover:scale-105 active:scale-95 flex items-center gap-1.5 sm:gap-2">
                                 <span>⚡ Super Admin</span>
                                 <span>➔</span>
                             </a>
                         @else
-                            <a href="{{ route('dashboard') }}" class="px-4 sm:px-5 py-2 sm:py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shadow-md shadow-emerald-600/25 transition-all duration-200 hover:scale-105 active:scale-95 flex items-center gap-1.5 sm:gap-2">
+                            <a href="{{ route('dashboard') }}" class="px-4 sm:px-5 py-2 sm:py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shadow-md shadow-emerald-600/25 transition-transform duration-200 hover:scale-105 active:scale-95 flex items-center gap-1.5 sm:gap-2">
                                 <span>Buka Dashboard</span>
                                 <span>➔</span>
                             </a>
                         @endif
                     @else
                         <!-- Tombol Masuk Berprofil Frosted Glass -->
-                        <a href="{{ route('login') }}" class="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-slate-300/80 dark:border-white/15 bg-white/40 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-800 dark:text-slate-100 font-bold text-xs transition-all duration-200 active:scale-95 shadow-xs group">
+                        <a href="{{ route('login') }}" class="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-slate-300/80 dark:border-white/15 bg-white/40 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-800 dark:text-slate-100 font-bold text-xs transition-transform duration-200 active:scale-95 shadow-xs group">
                             <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
                             <span>Masuk</span>
                         </a>
 
                         <!-- Tombol CTA Utama dengan Efek Linear Shimmer & Glide Arrow (Responsif Mobile) -->
-                        <a href="#kerjasama" class="relative group overflow-hidden px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-full bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-400 text-white font-extrabold text-[11px] sm:text-xs shadow-lg shadow-emerald-600/30 transition-all duration-300 transform hover:-translate-y-0.5 active:scale-95 flex items-center gap-1.5 sm:gap-2 cursor-pointer touch-press btn-shimmer">
+                        <a href="#kerjasama" class="relative group overflow-hidden px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-full bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-400 text-white font-extrabold text-[11px] sm:text-xs shadow-lg shadow-emerald-600/30 transition-transform duration-300 transform hover:-translate-y-0.5 active:scale-95 flex items-center gap-1.5 sm:gap-2 cursor-pointer touch-press btn-shimmer">
                             <span class="relative z-10">Konsultasi<span class="hidden sm:inline"> & Survei</span></span>
                             <span class="relative z-10 transition-transform duration-300 group-hover:translate-x-1 font-bold">➔</span>
                         </a>
@@ -447,9 +447,9 @@
                 </div>
             </div>
 
-            <div class="pt-8 border-t border-slate-100 dark:border-slate-800 flex flex-col lg:flex-row justify-between items-center gap-4 text-slate-400 pb-16 lg:pb-8">
-                <div class="text-xs text-center lg:text-left">&copy; {{ date('Y') }} E-WARGA by Fabian Ganteng &bull; Seluruh hak cipta dilindungi undang-undang.</div>
-                <div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[11px] lg:mr-72 xl:mr-80">
+            <div class="pt-8 border-t border-slate-100 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-slate-400 pb-24 sm:pb-28 lg:pb-12">
+                <div class="text-xs text-center md:text-left">&copy; {{ date('Y') }} E-WARGA by Fabian Ganteng &bull; Seluruh hak cipta dilindungi undang-undang.</div>
+                <div class="flex flex-wrap items-center justify-center md:justify-end gap-x-4 gap-y-2 text-[11px] sm:pr-56 md:pr-64 lg:pr-72 xl:pr-80">
                     <a href="#kerjasama" class="hover:text-slate-600 dark:hover:text-slate-300 transition-colors">Hubungi Konsultan</a>
                     <span>•</span>
                     <a href="{{ route('login') }}" class="hover:text-slate-600 dark:hover:text-slate-300 transition-colors">Login Sistem</a>

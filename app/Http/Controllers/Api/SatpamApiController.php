@@ -31,7 +31,8 @@ class SatpamApiController extends BaseApiController
             ->take(15)
             ->get();
 
-        $activeVisitors = Visitor::where('is_used', false)
+        $activeVisitors = Visitor::where('tenant_id', $tenant?->id)
+            ->where('is_used', false)
             ->where('valid_until', '>=', now())
             ->with(['hostHouse', 'invitedBy'])
             ->latest()
@@ -44,7 +45,8 @@ class SatpamApiController extends BaseApiController
             ->with(['house'])
             ->get();
 
-        $panicAlert = Cache::get("panic_alert_active_{$tenant?->id}");
+        $tenantId = $tenant?->id ?? 1;
+        $panicAlert = Cache::get("panic_alert_active_{$tenantId}");
 
         return $this->success([
             'tenant'              => $tenant,

@@ -63,7 +63,7 @@ class LetterController extends Controller
             'supporting_data' => 'nullable|string',
         ]);
 
-        $validated['tenant_id'] = $tenant->id;
+        $validated['tenant_id'] = $tenant?->id ?? 1;
         $validated['user_id'] = Auth::id() ?? $wargaUser?->id ?? 1;
         $validated['status'] = 'pending';
 

@@ -107,7 +107,7 @@ class PosyanduController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        $validated['tenant_id'] = $tenant->id;
+        $validated['tenant_id'] = $tenant?->id ?? 1;
 
         PosyanduMember::create($validated);
 
@@ -178,7 +178,7 @@ class PosyanduController extends Controller
             }
         }
 
-        $validated['tenant_id'] = $tenant->id;
+        $validated['tenant_id'] = $tenant?->id ?? 1;
         $validated['examiner_name'] = $validated['examiner_name'] ?? 'Bidan Desa / Kader Posyandu';
 
         PosyanduRecord::create($validated);

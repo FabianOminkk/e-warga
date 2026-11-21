@@ -62,32 +62,33 @@ class PosyanduApiController extends BaseApiController
     public function storeMember(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'category'       => 'required|in:balita,anak,ibu_hamil,ibu,lansia',
-            'name'           => 'required|string|max:150',
-            'nik'            => 'nullable|string|max:20',
-            'gender'         => 'required|in:L,P',
-            'birth_date'     => 'required|date',
-            'parent_name'    => 'nullable|string|max:150',
-            'address'        => 'nullable|string',
-            'phone'          => 'nullable|string|max:20',
-            'blood_type'     => 'nullable|string|max:5',
-            'medical_notes'  => 'nullable|string',
+            'category'           => 'required|in:balita,anak,ibu_hamil,ibu,lansia',
+            'name'               => 'required|string|max:150',
+            'family_card_number' => 'nullable|string|max:20',
+            'nik'                => 'nullable|string|max:20',
+            'gender'             => 'required|in:L,P',
+            'birth_date'         => 'required|date',
+            'parent_name'        => 'nullable|string|max:150',
+            'address'            => 'nullable|string',
+            'phone'              => 'nullable|string|max:20',
+            'notes'              => 'nullable|string',
+            'medical_notes'      => 'nullable|string',
         ]);
 
         $tenant = Tenant::getActiveTenant() ?? Tenant::first();
 
         $member = PosyanduMember::create([
-            'tenant_id'     => $tenant->id,
-            'category'      => $validated['category'],
-            'name'          => $validated['name'],
-            'nik'           => $validated['nik'] ?? null,
-            'gender'        => $validated['gender'],
-            'birth_date'    => $validated['birth_date'],
-            'parent_name'   => $validated['parent_name'] ?? null,
-            'address'       => $validated['address'] ?? null,
-            'phone'         => $validated['phone'] ?? null,
-            'blood_type'    => $validated['blood_type'] ?? null,
-            'medical_notes' => $validated['medical_notes'] ?? null,
+            'tenant_id'          => $tenant?->id ?? 1,
+            'category'           => $validated['category'],
+            'name'               => $validated['name'],
+            'family_card_number' => $validated['family_card_number'] ?? null,
+            'nik'                => $validated['nik'] ?? null,
+            'gender'             => $validated['gender'],
+            'birth_date'         => $validated['birth_date'],
+            'parent_name'        => $validated['parent_name'] ?? null,
+            'address'            => $validated['address'] ?? null,
+            'phone'              => $validated['phone'] ?? null,
+            'notes'              => $validated['notes'] ?? $validated['medical_notes'] ?? null,
         ]);
 
         return $this->success($member, 'Warga sasaran posyandu berhasil didaftarkan.', 201);
@@ -99,19 +100,26 @@ class PosyanduApiController extends BaseApiController
     public function storeRecord(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'posyandu_member_id'   => 'required|exists:posyandu_members,id',
-            'checkup_date'         => 'required|date',
-            'weight_kg'            => 'required|numeric|min:1|max:300',
-            'height_cm'            => 'nullable|numeric|min:10|max:250',
-            'head_circumference_cm'=> 'nullable|numeric',
-            'systolic'             => 'nullable|integer',
-            'diastolic'            => 'nullable|integer',
-            'blood_sugar'          => 'nullable|numeric',
-            'gestational_age_weeks'=> 'nullable|integer',
-            'vitamin_a'            => 'nullable|boolean',
-            'deworming_medicine'   => 'nullable|boolean',
-            'immunization_name'    => 'nullable|string|max:100',
-            'notes'                => 'nullable|string',
+            'posyandu_member_id'    => 'required|exists:posyandu_members,id',
+            'checkup_date'          => 'required|date',
+            'weight_kg'             => 'required|numeric|min:1|max:300',
+            'height_cm'             => 'nullable|numeric|min:10|max:250',
+            'head_circumference_cm' => 'nullable|numeric',
+            'arm_circumference_cm'  => 'nullable|numeric',
+            'systolic'              => 'nullable|integer',
+            'diastolic'             => 'nullable|integer',
+            'blood_pressure'        => 'nullable|string|max:20',
+            'blood_sugar'           => 'nullable|numeric',
+            'cholesterol'           => 'nullable|integer',
+            'uric_acid'             => 'nullable|numeric',
+            'gestational_age_weeks' => 'nullable|string|max:30',
+            'vitamin_a'             => 'nullable|boolean',
+            'deworming_medicine'    => 'nullable|boolean',
+            'immunization_name'     => 'nullable|string|max:100',
+            'vitamins_or_vaccines'  => 'nullable|string|max:255',
+            'examiner_name'         => 'nullable|string|max:100',
+            'action_plan'           => 'nullable|string',
+            'notes'                 => 'nullable|string',
         ]);
 
         $member = PosyanduMember::findOrFail($validated['posyandu_member_id']);
@@ -147,25 +155,57 @@ class PosyanduApiController extends BaseApiController
             }
         }
 
+        $bloodPressure = null;
+        if (!empty($validated['blood_pressure'])) {
+            $bloodPressure = $validated['blood_pressure'];
+        } elseif (!empty($validated['systolic'])) {
+            $bloodPressure = $validated['systolic'] . '/' . ($validated['diastolic'] ?? 80);
+        }
+
+        $vitamins = [];
+        if (!empty($validated['vitamins_or_vaccines'])) {
+            $vitamins[] = $validated['vitamins_or_vaccines'];
+        }
+        if ($request->boolean('vitamin_a')) {
+            $vitamins[] = 'Vitamin A';
+        }
+        if ($request->boolean('deworming_medicine')) {
+            $vitamins[] = 'Obat Cacing';
+        }
+        if (!empty($validated['immunization_name'])) {
+            $vitamins[] = 'Imunisasi: ' . $validated['immunization_name'];
+        }
+        $vitaminsText = !empty($vitamins) ? implode(', ', $vitamins) : null;
+
+        $actionPlan = $validated['action_plan'] ?? null;
+        if (empty($actionPlan)) {
+            $planParts = [];
+            if (!empty($stuntingAnalysis)) {
+                $planParts[] = $stuntingAnalysis;
+            }
+            if (!empty($validated['notes'])) {
+                $planParts[] = 'Catatan: ' . $validated['notes'];
+            }
+            $actionPlan = !empty($planParts) ? implode(' | ', $planParts) : null;
+        }
+
         $record = PosyanduRecord::create([
-            'tenant_id'              => $tenant->id,
+            'tenant_id'              => $tenant?->id ?? 1,
             'posyandu_member_id'     => $member->id,
-            'recorded_by_user_id'    => Auth::id(),
             'checkup_date'           => $validated['checkup_date'],
-            'age_in_months'          => $ageMonths,
             'weight_kg'              => $validated['weight_kg'],
             'height_cm'              => $validated['height_cm'] ?? null,
             'head_circumference_cm'  => $validated['head_circumference_cm'] ?? null,
-            'systolic'               => $validated['systolic'] ?? null,
-            'diastolic'              => $validated['diastolic'] ?? null,
+            'arm_circumference_cm'   => $validated['arm_circumference_cm'] ?? null,
+            'blood_pressure'         => $bloodPressure,
             'blood_sugar'            => $validated['blood_sugar'] ?? null,
+            'cholesterol'            => $validated['cholesterol'] ?? null,
+            'uric_acid'              => $validated['uric_acid'] ?? null,
             'gestational_age_weeks'  => $validated['gestational_age_weeks'] ?? null,
             'nutrition_status'       => $nutritionStatus,
-            'vitamin_a'              => $request->boolean('vitamin_a'),
-            'deworming_medicine'     => $request->boolean('deworming_medicine'),
-            'immunization_name'      => $validated['immunization_name'] ?? null,
-            'stunting_analysis_notes'=> $stuntingAnalysis,
-            'notes'                  => $validated['notes'] ?? null,
+            'vitamins_or_vaccines'   => $vitaminsText,
+            'examiner_name'          => $validated['examiner_name'] ?? 'Bidan Desa / Kader Posyandu',
+            'action_plan'            => $actionPlan,
         ]);
 
         return $this->success($record, 'Catatan pemeriksaan kesehatan posyandu berhasil disimpan.', 201);

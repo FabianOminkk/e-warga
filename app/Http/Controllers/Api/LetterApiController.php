@@ -63,7 +63,7 @@ class LetterApiController extends BaseApiController
         $qrCode = 'QR-SURAT-' . strtoupper(Str::random(10));
 
         $letter = LetterRequest::create([
-            'tenant_id'            => $tenant->id,
+            'tenant_id'            => $tenant?->id ?? 1,
             'user_id'              => $user?->id ?? 1,
             'letter_type'          => $validated['letter_type'],
             'applicant_name'       => $validated['applicant_name'],

@@ -74,6 +74,9 @@ class DashboardApiController extends BaseApiController
     public function cashbook(Request $request): JsonResponse
     {
         $tenant = Tenant::getActiveTenant() ?? Tenant::first();
+        if (!$tenant) {
+            return $this->error('Tenant komplek belum terdaftar.', null, 404);
+        }
         $query = CashBook::where('tenant_id', $tenant->id)->with('creator');
 
         if ($request->has('type') && in_array($request->type, ['income', 'expense'])) {
@@ -99,6 +102,9 @@ class DashboardApiController extends BaseApiController
         ]);
 
         $tenant = Tenant::getActiveTenant() ?? Tenant::first();
+        if (!$tenant) {
+            return $this->error('Tenant komplek belum terdaftar.', null, 404);
+        }
         $userId = Auth::id() ?? User::where('role', 'bendahara')->value('id') ?? User::first()?->id;
 
         $entry = CashBook::create([
@@ -125,7 +131,7 @@ class DashboardApiController extends BaseApiController
             'reason' => 'nullable|string',
         ]);
 
-        $payment = Payment::with(['billing', 'payer'])->findOrFail($id);
+        $payment = Payment::with(['billing.house', 'payer'])->findOrFail($id);
         $verifierId = Auth::id() ?? User::where('role', 'bendahara')->value('id') ?? User::first()?->id;
 
         if ($validated['action'] === 'approve') {
@@ -134,19 +140,24 @@ class DashboardApiController extends BaseApiController
                 'verified_by_user_id' => $verifierId,
             ]);
 
-            $payment->billing->update([
-                'status'  => 'paid',
-                'paid_at' => now(),
-            ]);
+            if ($payment->billing) {
+                $payment->billing->update([
+                    'status'  => 'paid',
+                    'paid_at' => now(),
+                ]);
+            }
 
             $tenant = Tenant::getActiveTenant() ?? Tenant::first();
+            $houseInfo = $payment->billing?->house?->block_and_number ?? 'Warga';
+            $billingTitle = $payment->billing?->description ?? 'Iuran Rumah ' . $houseInfo;
+
             CashBook::create([
-                'tenant_id'          => $tenant->id,
+                'tenant_id'          => $tenant?->id ?? $payment->billing?->tenant_id ?? 1,
                 'created_by_user_id' => $verifierId,
                 'type'               => 'income',
                 'category'           => 'Iuran Warga',
-                'title'              => 'Pembayaran ' . $payment->billing->title,
-                'amount'             => $payment->amount,
+                'title'              => 'Pembayaran ' . $billingTitle,
+                'amount'             => $payment->amount_paid,
                 'transaction_date'   => now(),
                 'notes'              => 'Otomatis dari verifikasi pembayaran transfer #' . $payment->id,
             ]);
@@ -168,6 +179,9 @@ class DashboardApiController extends BaseApiController
     public function verifications(Request $request): JsonResponse
     {
         $tenant = Tenant::getActiveTenant() ?? Tenant::first();
+        if (!$tenant) {
+            return $this->error('Tenant komplek belum terdaftar.', null, 404);
+        }
 
         $citizens = User::where('tenant_id', $tenant->id)
             ->where('role', 'warga')

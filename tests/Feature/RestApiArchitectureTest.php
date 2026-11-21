@@ -52,6 +52,7 @@ class RestApiArchitectureTest extends TestCase
             'password'            => Hash::make('password123'),
             'role'                => 'warga',
             'verification_status' => 'approved',
+            'gate_access_enabled' => true,
             'status'              => 'active',
         ]);
 

@@ -21,11 +21,12 @@ class SatpamController extends Controller
         }
 
         $tenant = Tenant::getActiveTenant() ?? Tenant::first();
-        $smartGate = SmartGate::where('tenant_id', $tenant->id)->where('status', 'online')->first() 
-            ?? SmartGate::where('tenant_id', $tenant->id)->first() 
+        $smartGate = SmartGate::where('tenant_id', $tenant?->id)->where('status', 'online')->first() 
+            ?? SmartGate::where('tenant_id', $tenant?->id)->first() 
             ?? SmartGate::first();
-        $recentLogs = GateLog::where('tenant_id', $tenant->id)->with(['user'])->latest('triggered_at')->take(10)->get();
-        $activeVisitors = Visitor::where('is_used', false)
+        $recentLogs = GateLog::where('tenant_id', $tenant?->id)->with(['user'])->latest('triggered_at')->take(10)->get();
+        $activeVisitors = Visitor::where('tenant_id', $tenant?->id)
+            ->where('is_used', false)
             ->where('valid_until', '>=', now())
             ->with(['hostHouse', 'invitedBy'])
             ->latest()
@@ -33,7 +34,7 @@ class SatpamController extends Controller
             ->get();
 
         // Whitelist Warga & E-KTP / RFID yang Di-ACC oleh Pak RW
-        $verifiedWargaList = User::where('tenant_id', $tenant->id)
+        $verifiedWargaList = User::where('tenant_id', $tenant?->id)
             ->where('role', 'warga')
             ->with(['house', 'verifiedBy'])
             ->orderByRaw("CASE WHEN verification_status = 'approved' THEN 1 WHEN verification_status = 'pending_rw' THEN 2 ELSE 3 END")
