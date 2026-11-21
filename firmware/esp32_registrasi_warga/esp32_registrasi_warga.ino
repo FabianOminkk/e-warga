@@ -26,6 +26,7 @@
  */
 
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
 #include <HTTPClient.h>
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
@@ -37,7 +38,7 @@
 // 1. PENGATURAN WI-FI & URL SERVER E-WARGA
 // ------------------------------------------------------------------------------
 const char* WIFI_SSID     = "BIAN";         // Ganti dengan SSID Wi-Fi / Hotspot Anda
-const char* WIFI_PASSWORD = "00000000";     // Ganti dengan Password Wi-Fi / Hotspot Anda
+const char* WIFI_PASSWORD = "12345678";     // Password Hotspot BIAN yang benar
 
 // Masukkan IP laptop/server lokal (contoh: "http://192.168.1.10:8000")
 // atau URL domain produksi (contoh: "https://e-warga.unique-monsters.my.id")
@@ -127,9 +128,12 @@ void sendRfidToRegistrationServer(String rfidUid) {
     updateLcd("MENCATAT e-KTP..", rfidUid.c_str());
 
     HTTPClient http;
+    WiFiClientSecure client;
+    client.setInsecure(); // Mengabaikan verifikasi CA SSL pada ESP32 agar HTTPS lancar
+
     // Endpoint REST API Registrasi Kilat
     String endpoint = String(SERVER_BASE_URL) + "/api/v1/registration-device/scan";
-    http.begin(endpoint);
+    http.begin(client, endpoint);
     http.addHeader("Content-Type", "application/json");
     http.addHeader("X-Device-UID", DEVICE_UID);
 
@@ -201,16 +205,20 @@ void sendHeartbeatPing() {
     if (WiFi.status() != WL_CONNECTED) return;
 
     HTTPClient http;
+    WiFiClientSecure client;
+    client.setInsecure(); // Mengabaikan verifikasi CA SSL pada ESP32
+
     String endpoint = String(SERVER_BASE_URL) + "/api/v1/registration-device/ping?device_uid=" + String(DEVICE_UID) + "&tenant_id=" + String(TENANT_ID);
-    http.begin(endpoint);
+    http.begin(client, endpoint);
     http.addHeader("X-Device-UID", DEVICE_UID);
-    http.setTimeout(3000);
+    http.setTimeout(4000);
 
     int httpResponseCode = http.GET();
     if (httpResponseCode == 200) {
-        Serial.printf("[HEARTBEAT] Ping server sukses. Status: ONLINE di Hotspot %s\n", WIFI_SSID);
+        Serial.printf("[HEARTBEAT] Ping server sukses! Status: ONLINE di Hotspot %s (IP: %s, RSSI: %d dBm)\n", 
+                      WIFI_SSID, WiFi.localIP().toString().c_str(), WiFi.RSSI());
     } else {
-        Serial.printf("[HEARTBEAT] Ping respon: %d\n", httpResponseCode);
+        Serial.printf("[HEARTBEAT] Ping gagal / respon: %d\n", httpResponseCode);
     }
     http.end();
 }
@@ -262,12 +270,10 @@ void setup() {
     WiFi.disconnect(true);
     delay(200);
     WiFi.mode(WIFI_STA);
-    WiFi.persistent(false);
-    WiFi.setAutoReconnect(true);
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
     int attempts = 0;
-    while (WiFi.status() != WL_CONNECTED && attempts < 40) {
+    while (WiFi.status() != WL_CONNECTED && attempts < 30) {
         delay(500);
         Serial.print(".");
         attempts++;
@@ -276,19 +282,19 @@ void setup() {
 
     if (WiFi.status() == WL_CONNECTED) {
         digitalWrite(PIN_LED_STATUS, HIGH);
-        Serial.printf("\n[WIFI OK] Terhubung! IP ESP32: %s\n", WiFi.localIP().toString().c_str());
+        Serial.printf("\n[WIFI OK] Terhubung! IP ESP32: %s (Signal: %d dBm)\n", WiFi.localIP().toString().c_str(), WiFi.RSSI());
         beepSuccess();
         updateLcd("WI-FI ONLINE", WiFi.localIP().toString().c_str());
         delay(2000);
         sendHeartbeatPing();
     } else {
-        Serial.println("\n[WIFI TIMEOUT] Wi-Fi gagal terhubung pada boot awal.");
-        Serial.println("[TIPS HOTSPOT] 1. Pastikan Hotspot menggunakan frekuensi 2.4 GHz (bukan 5 GHz).");
-        Serial.println("[TIPS HOTSPOT] 2. Pastikan Nama SSID dan Password tepat.");
-        Serial.println("[TIPS HOTSPOT] 3. Alat akan otomatis terus mencoba menghubungkan di background.");
+        Serial.printf("\n[WIFI TIMEOUT] Status code: %d. Wi-Fi belum terhubung pada boot awal.\n", WiFi.status());
+        Serial.println("[TIPS HOTSPOT] 1. Pastikan Hotspot HP aktif pada frekuensi 2.4 GHz (matikan 5 GHz / aktifkan 'Maximize Compatibility').");
+        Serial.println("[TIPS HOTSPOT] 2. Pastikan SSID ('BIAN') dan Password ('00000000') sudah sesuai.");
+        Serial.println("[TIPS HOTSPOT] 3. Alat akan otomatis terus mencoba menghubungkan setiap 8 detik.");
         beepError();
-        updateLcd("WIFI GAGAL!", "CEK 2.4GHz BIAN");
-        delay(2500);
+        updateLcd("WIFI BELUM KONEK", "CEK HOTSPOT BIAN");
+        delay(2000);
     }
 
     setLcdStandby();
@@ -302,10 +308,12 @@ void loop() {
     // 0. Auto Reconnect jika hotspot baru aktif atau sinyal sempat putus
     if (WiFi.status() != WL_CONNECTED) {
         static unsigned long lastReconnectAttempt = 0;
-        if (millis() - lastReconnectAttempt >= 6000) {
+        if (millis() - lastReconnectAttempt >= 8000) {
             lastReconnectAttempt = millis();
-            Serial.println("[WIFI RETRY] Menghubungkan ulang ke Hotspot " + String(WIFI_SSID) + "...");
-            WiFi.reconnect();
+            Serial.printf("[WIFI RETRY] Menghubungkan ulang ke Hotspot %s...\n", WIFI_SSID);
+            WiFi.disconnect();
+            delay(150);
+            WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
         }
     } else {
         // Heartbeat Ping berkala ke Server setiap 8 detik agar terdeteksi ONLINE di Web
