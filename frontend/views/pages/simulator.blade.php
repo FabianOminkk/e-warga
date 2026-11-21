@@ -117,7 +117,7 @@
 
             <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Simulasikan Aksi Pemicu:</div>
             
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
                 <!-- Test 1: Tombol HP Warga -->
                 <button @click="triggerGate('mobile_button')" :disabled="isOpen" class="p-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-xs text-left shadow-lg transition flex items-center gap-3 touch-press cursor-pointer">
                     <span class="text-2xl">📱</span>
@@ -127,7 +127,7 @@
                     </div>
                 </button>
 
-                <!-- Test 2: Tap Kartu RFID -->
+                <!-- Test 2: Tap Kartu RFID e-KTP -->
                 <button @click="triggerGate('rfid_card')" :disabled="isOpen" class="p-4 rounded-2xl bg-cyan-700 hover:bg-cyan-600 disabled:opacity-50 text-white font-bold text-xs text-left shadow-lg transition flex items-center gap-3 touch-press cursor-pointer">
                     <span class="text-2xl">💳</span>
                     <div>
@@ -151,6 +151,15 @@
                     <div>
                         <div class="font-extrabold text-sm">Satpam Buka Manual</div>
                         <div class="text-[11px] text-slate-300 font-normal">Kondisi darurat pos jaga</div>
+                    </div>
+                </button>
+
+                <!-- Test 5: Tap Kartu Tak Dikenal (Proteksi Keamanan) -->
+                <button @click="triggerGate('rfid_unregistered')" :disabled="isOpen" class="p-4 rounded-2xl bg-rose-700 hover:bg-rose-600 disabled:opacity-50 text-white font-bold text-xs text-left shadow-lg transition flex items-center gap-3 touch-press cursor-pointer">
+                    <span class="text-2xl">🚫</span>
+                    <div>
+                        <div class="font-extrabold text-sm">Tap KTP Tak Dikenal</div>
+                        <div class="text-[11px] text-rose-100 font-normal">Proteksi Ditolak Otomatis</div>
                     </div>
                 </button>
             </div>

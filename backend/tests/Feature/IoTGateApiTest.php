@@ -281,4 +281,19 @@ class IoTGateApiTest extends TestCase
         $response->assertSee('Iuran Lingkungan Bulan Ini');
         $response->assertSee('Layanan Surat Pengantar RT/RW');
     }
+
+    public function test_simulator_rejects_unregistered_rfid_card(): void
+    {
+        $response = $this->postJson(route('simulator.trigger'), [
+            'method' => 'rfid_unregistered',
+        ]);
+
+        $response->assertStatus(403);
+        $response->assertJson([
+            'success' => false,
+        ]);
+        $response->assertJsonFragment([
+            'status' => 'denied',
+        ]);
+    }
 }

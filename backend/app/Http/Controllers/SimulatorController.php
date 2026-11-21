@@ -53,6 +53,36 @@ class SimulatorController extends Controller
 
         $user = $userId ? User::find($userId) : User::where('role', 'warga')->first();
 
+        // SIMULASI KARTU TIDAK TERDAFTAR: Akses ditolak langsung dan palang tetap tertutup
+        if ($method === 'rfid_unregistered') {
+            $deniedReason = "AKSES DITOLAK: Kartu RFID/KTP Tidak Terdaftar di Sistem E-WARGA";
+
+            $log = GateLog::create([
+                'tenant_id' => $tenant->id,
+                'smart_gate_id' => $smartGate->id,
+                'user_id' => null,
+                'access_method' => 'rfid_card',
+                'direction' => 'entry',
+                'status' => 'denied',
+                'reason' => $deniedReason,
+                'triggered_at' => now(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'AKSES DITOLAK! ' . $deniedReason . '. Palang gerbang tetap tertutup!',
+                'log' => [
+                    'id' => $log->id,
+                    'user_name' => 'Kartu Tidak Dikenal',
+                    'house' => 'Tidak Terdaftar',
+                    'reason' => $deniedReason,
+                    'method' => 'rfid_card',
+                    'status' => 'denied',
+                    'time' => $log->triggered_at->format('H:i:s'),
+                ],
+            ], 403);
+        }
+
         // VALIDASI KEAMANAN: Warga yang belum di-ACC oleh Pak RW ditolak oleh palang otomatis!
         if ($user && in_array($method, ['mobile_button', 'rfid_card']) && !$user->canAccessGate()) {
             $deniedReason = $user->verification_status === 'pending_rw'
