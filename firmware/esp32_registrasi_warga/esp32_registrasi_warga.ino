@@ -27,17 +27,17 @@
 
 #include <WiFi.h>
 #include <HTTPClient.h>
-#include <ArduinoJson.h>
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
+#include <ArduinoJson.h>
 #include <SPI.h>
 #include <MFRC522.h>
 
 // ------------------------------------------------------------------------------
 // 1. PENGATURAN WI-FI & URL SERVER E-WARGA
 // ------------------------------------------------------------------------------
-const char* WIFI_SSID     = "BIAN";         // Ganti dengan SSID Wi-Fi Anda
-const char* WIFI_PASSWORD = "00000000";     // Ganti dengan Password Wi-Fi Anda
+const char* WIFI_SSID     = "BIAN";         // Ganti dengan SSID Wi-Fi / Hotspot Anda
+const char* WIFI_PASSWORD = "00000000";     // Ganti dengan Password Wi-Fi / Hotspot Anda
 
 // Masukkan IP laptop/server lokal (contoh: "http://192.168.1.10:8000")
 // atau URL domain produksi (contoh: "https://e-warga.unique-monsters.my.id")
@@ -133,7 +133,11 @@ void sendRfidToRegistrationServer(String rfidUid) {
     http.addHeader("Content-Type", "application/json");
     http.addHeader("X-Device-UID", DEVICE_UID);
 
+#if defined(ARDUINOJSON_VERSION_MAJOR) && ARDUINOJSON_VERSION_MAJOR >= 7
+    JsonDocument reqDoc;
+#else
     StaticJsonDocument<256> reqDoc;
+#endif
     reqDoc["device_uid"] = DEVICE_UID;
     reqDoc["rfid_uid"]   = rfidUid;
     reqDoc["tenant_id"]  = TENANT_ID;
@@ -148,7 +152,11 @@ void sendRfidToRegistrationServer(String rfidUid) {
         String response = http.getString();
         Serial.println("[HTTP RESPONSE] " + response);
 
+#if defined(ARDUINOJSON_VERSION_MAJOR) && ARDUINOJSON_VERSION_MAJOR >= 7
+        JsonDocument resDoc;
+#else
         StaticJsonDocument<512> resDoc;
+#endif
         DeserializationError error = deserializeJson(resDoc, response);
 
         if (!error) {
