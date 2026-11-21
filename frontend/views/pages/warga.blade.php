@@ -898,11 +898,12 @@
                 </button>
                 <button 
                     type="button" 
-                    @click="rfidTab = 'esp32'" 
-                    class="py-2.5 rounded-xl transition-colors cursor-pointer text-center"
+                    @click="rfidTab = 'esp32'; checkEsp32DeviceStatus();" 
+                    class="py-2.5 rounded-xl transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5"
                     :class="rfidTab === 'esp32' ? 'bg-white dark:bg-slate-900 text-cyan-600 dark:text-cyan-400 shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'"
                 >
-                    📡 Sensor ESP32
+                    <span>📡 Sensor ESP32</span>
+                    <span class="w-2 h-2 rounded-full shrink-0" :class="esp32Online ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'"></span>
                 </button>
                 <button 
                     type="button" 
@@ -949,6 +950,40 @@
 
             <!-- TAB 2: PAIRING HARDWARE ESP32 DI GERBANG / POS SATPAM -->
             <div x-show="rfidTab === 'esp32'" class="space-y-4 text-center">
+                <!-- Status Koneksi Hardware ESP32 Scanner (Online / Offline) -->
+                <div class="p-3.5 rounded-2xl border text-left transition-colors space-y-1.5"
+                     :class="esp32Online 
+                         ? 'bg-emerald-50/80 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200' 
+                         : 'bg-rose-50/80 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 text-rose-900 dark:text-rose-200'"
+                >
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="relative flex h-2.5 w-2.5 shrink-0">
+                                <span x-show="esp32Online" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2.5 w-2.5" :class="esp32Online ? 'bg-emerald-500' : 'bg-rose-500'"></span>
+                            </span>
+                            <span class="text-xs font-black uppercase tracking-wider" x-text="esp32Online ? 'Scanner ESP32: ONLINE' : 'Scanner ESP32: OFFLINE'"></span>
+                            <span class="text-[10px] px-2 py-0.5 rounded-full font-mono font-bold"
+                                  :class="esp32Online ? 'bg-emerald-200 text-emerald-900 dark:bg-emerald-900 dark:text-emerald-100' : 'bg-rose-200 text-rose-900 dark:bg-rose-900 dark:text-rose-100'"
+                                  x-text="esp32Online ? 'Hotspot BIAN Terhubung' : 'Hotspot BIAN Belum Terhubung'"
+                            ></span>
+                        </div>
+                        <button 
+                            type="button" 
+                            @click="checkEsp32DeviceStatus(true)" 
+                            class="shrink-0 text-[11px] font-bold px-2 py-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer flex items-center gap-1"
+                            title="Perbarui status koneksi ESP32"
+                        >
+                            <span :class="isCheckingStatus ? 'animate-spin inline-block' : ''">🔄</span>
+                            <span>Cek Status</span>
+                        </button>
+                    </div>
+                    <p class="text-[11px] opacity-90 leading-relaxed" x-text="esp32Online 
+                        ? 'Alat ESP32 sudah terhubung ke hotspot Anda (&quot;BIAN&quot;). Sensor siap menerima tap kartu e-KTP fisik.' 
+                        : 'Alat scanner belum terhubung ke hotspot. Pastikan hotspot HP (&quot;BIAN&quot;) aktif dan modul ESP32 sudah menyala.'">
+                    </p>
+                </div>
+
                 <div class="py-6 px-4 rounded-3xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 space-y-3">
                     <div class="w-16 h-16 rounded-2xl bg-cyan-100 text-cyan-700 dark:bg-cyan-950 dark:text-cyan-300 flex items-center justify-center text-3xl mx-auto" :class="esp32PairingActive ? 'animate-bounce' : ''">
                         <span x-text="esp32Success ? '✅' : '📡'"></span>
@@ -959,7 +994,7 @@
                             Pairing Kartu Langsung di Scanner Gerbang ESP32
                         </h4>
                         <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto leading-relaxed">
-                            Tekan tombol pairing di bawah, lalu tempelkan e-KTP fisik Anda ke sensor RFID RC522 pada tiang palang gerbang atau pos satpam.
+                            Tekan tombol pairing di bawah, lalu tempelkan e-KTP fisik Anda ke sensor RFID RC522 pada tiang palang gerbang atau meja pos satpam.
                         </p>
                     </div>
 
@@ -969,7 +1004,7 @@
                         <div class="text-[11px] text-slate-400">Menunggu kartu e-KTP Anda ditempelkan ke tiang sensor…</div>
                     </div>
 
-                    <div x-show="esp32Message" class="p-3 rounded-xl text-xs font-semibold" :class="esp32Success ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-cyan-100 text-cyan-800 dark:bg-cyan-950 dark:text-cyan-300'">
+                    <div x-show="esp32Message" class="p-3 rounded-xl text-xs font-semibold" :class="esp32Success ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : (esp32Online ? 'bg-cyan-100 text-cyan-800 dark:bg-cyan-950 dark:text-cyan-300' : 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300')">
                         <span x-text="esp32Message"></span>
                     </div>
                 </div>
@@ -979,9 +1014,13 @@
                         type="button" 
                         x-show="!esp32PairingActive"
                         @click="startEsp32Pairing()" 
-                        class="flex-1 min-h-[50px] py-3.5 rounded-2xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-black text-xs shadow-lg shadow-cyan-600/30 transition-transform active:scale-98 flex items-center justify-center gap-2 cursor-pointer touch-press"
+                        class="flex-1 min-h-[50px] py-3.5 rounded-2xl font-black text-xs shadow-lg transition-transform active:scale-98 flex items-center justify-center gap-2 cursor-pointer touch-press text-white"
+                        :class="esp32Online 
+                            ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 shadow-emerald-600/30' 
+                            : 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 shadow-cyan-600/30'"
                     >
-                        <span>📡 Mulai Sesi Pairing (60 Detik)</span>
+                        <span class="w-2 h-2 rounded-full shrink-0" :class="esp32Online ? 'bg-white animate-pulse' : 'bg-rose-400'"></span>
+                        <span x-text="esp32Online ? '📡 Tap di Scanner ESP32 (Online)' : '📡 Mulai Sesi Pairing (ESP32 Offline)'"></span>
                     </button>
 
                     <button 
@@ -1191,7 +1230,10 @@ function wargaApp() {
         nfcMessage: '',
         nfcSuccess: false,
         
-        // ESP32 Pairing State
+        // ESP32 Pairing & Connection State
+        esp32Online: false,
+        isCheckingStatus: false,
+        esp32StatusHeartbeatInterval: null,
         esp32PairingActive: false,
         esp32Countdown: 60,
         esp32TimerInterval: null,
@@ -1203,6 +1245,13 @@ function wargaApp() {
         manualUid: '',
         isSavingManualUid: false,
         manualError: '',
+
+        init() {
+            this.checkEsp32DeviceStatus();
+            this.esp32StatusHeartbeatInterval = setInterval(() => {
+                this.checkEsp32DeviceStatus();
+            }, 4000);
+        },
 
         showLockedModal(featureName) {
             this.lockedFeatureName = featureName;
@@ -1251,12 +1300,34 @@ function wargaApp() {
             }
         },
 
+        // Cek Status Koneksi Online / Offline ESP32 ke Hotspot BIAN
+        async checkEsp32DeviceStatus(manual = false) {
+            if (manual) this.isCheckingStatus = true;
+            try {
+                const res = await fetch("{{ route('warga.esp32-status') }}");
+                const data = await res.json();
+                this.esp32Online = !!data.online;
+                if (this.esp32PairingActive && !this.esp32Success) {
+                    if (this.esp32Online) {
+                        this.esp32Message = 'Sensor siap! Tempelkan fisik e-KTP Anda ke scanner RFID di pos satpam / gerbang sekarang…';
+                    } else {
+                        this.esp32Message = 'Scanner Offline: Alat ESP32 belum terhubung ke hotspot "BIAN". Menunggu alat online…';
+                    }
+                }
+            } catch (e) {
+                this.esp32Online = false;
+            } finally {
+                if (manual) setTimeout(() => { this.isCheckingStatus = false; }, 400);
+            }
+        },
+
         // ESP32 Hardware Pairing Mode
         async startEsp32Pairing() {
             this.esp32PairingActive = true;
             this.esp32Countdown = 60;
             this.esp32Message = 'Menghubungkan ke alat scanner ESP32…';
             this.esp32Success = false;
+            await this.checkEsp32DeviceStatus();
 
             try {
                 const res = await fetch("{{ route('warga.esp32-pair.start') }}", {
@@ -1273,7 +1344,9 @@ function wargaApp() {
                     return;
                 }
 
-                this.esp32Message = 'Sensor siap! Tempelkan fisik e-KTP Anda ke scanner RFID di pos satpam / gerbang sekarang…';
+                this.esp32Message = this.esp32Online
+                    ? 'Sensor siap! Tempelkan fisik e-KTP Anda ke scanner RFID di pos satpam / gerbang sekarang…'
+                    : 'Peringatan: Scanner ESP32 sedang Offline (Belum terhubung ke hotspot "BIAN").';
 
                 // Start countdown
                 if (this.esp32TimerInterval) clearInterval(this.esp32TimerInterval);
@@ -1300,6 +1373,10 @@ function wargaApp() {
             try {
                 const res = await fetch("{{ route('warga.esp32-pair.status') }}");
                 const data = await res.json();
+
+                if (data.is_online !== undefined) {
+                    this.esp32Online = !!data.is_online;
+                }
 
                 if (data.paired) {
                     this.stopEsp32Pairing();

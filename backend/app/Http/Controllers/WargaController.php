@@ -512,6 +512,49 @@ class WargaController extends Controller
     }
 
     /**
+     * Cek status konektivitas perangkat ESP32 (Online / Offline).
+     * Terhubung ke hotspot ("BIAN") jika heartbeat diterima dalam 25 detik terakhir.
+     */
+    public function checkEsp32DeviceStatus(Request $request)
+    {
+        $tenantId = (int) (Auth::user()?->tenant_id ?? 1);
+        $cachedHeartbeat = \Illuminate\Support\Facades\Cache::get("esp32_heartbeat_tenant_{$tenantId}");
+        $isOnline = false;
+        $secondsAgo = null;
+
+        if ($cachedHeartbeat) {
+            $secondsAgo = now()->timestamp - $cachedHeartbeat;
+            if ($secondsAgo <= 25) {
+                $isOnline = true;
+            }
+        }
+
+        if (!$isOnline) {
+            $latestGate = \App\Models\SmartGate::where('tenant_id', $tenantId)
+                ->whereNotNull('last_ping_at')
+                ->latest('last_ping_at')
+                ->first();
+
+            if ($latestGate && $latestGate->last_ping_at && $latestGate->last_ping_at->diffInSeconds(now()) <= 25) {
+                $isOnline = true;
+                $secondsAgo = $latestGate->last_ping_at->diffInSeconds(now());
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'online' => $isOnline,
+            'status' => $isOnline ? 'online' : 'offline',
+            'status_label' => $isOnline ? 'ESP32 Online (Terhubung ke Hotspot)' : 'ESP32 Offline (Belum Terhubung)',
+            'hotspot_ssid' => 'BIAN',
+            'last_seen_seconds_ago' => $secondsAgo,
+            'message' => $isOnline 
+                ? 'Alat ESP32 sudah terhubung ke hotspot Anda ("BIAN"). Sensor siap menerima tap kartu e-KTP.' 
+                : 'Alat ESP32 belum terhubung ke hotspot. Pastikan modul ESP32 menyala dan hotspot HP ("BIAN") aktif.',
+        ]);
+    }
+
+    /**
      * Polling status pairing dari alat ESP32.
      */
     public function checkEsp32PairingStatus(Request $request)
@@ -524,11 +567,21 @@ class WargaController extends Controller
         $tenantId = $user->tenant_id ?? 1;
         $pairingSuccess = \Illuminate\Support\Facades\Cache::pull("rfid_pairing_success_{$user->id}");
 
+        $cachedHeartbeat = \Illuminate\Support\Facades\Cache::get("esp32_heartbeat_tenant_{$tenantId}");
+        $isOnline = $cachedHeartbeat && (now()->timestamp - $cachedHeartbeat <= 25);
+        if (!$isOnline) {
+            $gate = \App\Models\SmartGate::where('tenant_id', $tenantId)->whereNotNull('last_ping_at')->latest('last_ping_at')->first();
+            if ($gate && $gate->last_ping_at && $gate->last_ping_at->diffInSeconds(now()) <= 25) {
+                $isOnline = true;
+            }
+        }
+
         if ($pairingSuccess) {
             $user->refresh();
             return response()->json([
                 'success' => true,
                 'paired' => true,
+                'is_online' => true,
                 'rfid_tag' => $pairingSuccess,
                 'message' => "Fisik e-KTP berhasil dideteksi di alat scanner ESP32! Kartu {$pairingSuccess} kini resmi terdaftar untuk akun Anda.",
                 'can_access_gate' => $user->canAccessGate(),
@@ -541,7 +594,11 @@ class WargaController extends Controller
         return response()->json([
             'success' => true,
             'paired' => false,
+            'is_online' => $isOnline,
             'waiting' => $isWaiting,
+            'message' => $isOnline 
+                ? 'Alat scanner ESP32 terhubung online ke hotspot. Tempelkan kartu e-KTP Anda ke alat sekarang…' 
+                : 'Perhatian: Scanner ESP32 sedang Offline (Belum terhubung ke hotspot "BIAN").',
         ]);
     }
 

@@ -42,8 +42,10 @@ Route::prefix('v1')->group(function () {
     // Perangkat IoT Scanner ESP32 Meja Registrasi Warga Baru (Desk RFID Reader)
     Route::prefix('registration-device')->group(function () {
         Route::match(['get', 'post'], '/ping', [RegistrationDeviceController::class, 'ping'])->name('api.registration.ping');
+        Route::get('/status', [RegistrationDeviceController::class, 'status'])->name('api.registration.status');
         Route::post('/scan', [RegistrationDeviceController::class, 'scan'])->name('api.registration.scan');
     });
+    Route::get('/esp32/status', [RegistrationDeviceController::class, 'status'])->name('api.esp32.status');
     Route::post('/registration/scan-rfid', [RegistrationDeviceController::class, 'scan'])->name('api.registration.scan-rfid');
 
     // --- C. AI ASSISTANT (BANG WARGA AI INTERACTIVE ENGINE) ---

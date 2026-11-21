@@ -385,4 +385,45 @@ class WargaRegistrationTest extends TestCase
                 'lcd_line2' => 'KARTU SUDAH ADA',
             ]);
     }
+
+    public function test_esp32_device_status_shows_offline_and_then_online_upon_ping(): void
+    {
+        // 1. Awalnya ESP32 belum terhubung / ping -> status offline
+        $statusResp = $this->getJson(route('api.register.esp32-status', ['tenant_id' => $this->tenant->id]));
+        $statusResp->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'online' => false,
+                'status' => 'offline',
+            ]);
+
+        // 2. Modul ESP32 terhubung ke hotspot dan mengirim ping heartbeat
+        $pingResp = $this->getJson("/api/v1/registration-device/ping?device_uid=ESP32-REGIS-DESK-01&tenant_id={$this->tenant->id}");
+        $pingResp->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'data' => [
+                    'status' => 'online',
+                ],
+            ]);
+
+        // 3. Status di web langsung terdeteksi ONLINE (Terhubung ke Hotspot)
+        $statusOnlineResp = $this->getJson(route('api.register.esp32-status', ['tenant_id' => $this->tenant->id]));
+        $statusOnlineResp->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'online' => true,
+                'status' => 'online',
+                'hotspot_ssid' => 'BIAN',
+            ]);
+
+        // 4. Endpoint public API v1 juga mengonfirmasi status online
+        $apiV1Resp = $this->getJson("/api/v1/esp32/status?tenant_id={$this->tenant->id}");
+        $apiV1Resp->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'online' => true,
+                'status' => 'online',
+            ]);
+    }
 }

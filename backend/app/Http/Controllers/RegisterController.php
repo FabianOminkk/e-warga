@@ -232,6 +232,49 @@ class RegisterController extends Controller
     }
 
     /**
+     * Cek status konektivitas perangkat ESP32 (Online / Offline).
+     * Terhubung ke hotspot ("BIAN") jika heartbeat diterima dalam 25 detik terakhir.
+     */
+    public function checkEsp32DeviceStatus(Request $request)
+    {
+        $tenantId = (int) ($request->input('tenant_id') ?? 1);
+        $cachedHeartbeat = \Illuminate\Support\Facades\Cache::get("esp32_heartbeat_tenant_{$tenantId}");
+        $isOnline = false;
+        $secondsAgo = null;
+
+        if ($cachedHeartbeat) {
+            $secondsAgo = now()->timestamp - $cachedHeartbeat;
+            if ($secondsAgo <= 25) {
+                $isOnline = true;
+            }
+        }
+
+        if (!$isOnline) {
+            $latestGate = \App\Models\SmartGate::where('tenant_id', $tenantId)
+                ->whereNotNull('last_ping_at')
+                ->latest('last_ping_at')
+                ->first();
+
+            if ($latestGate && $latestGate->last_ping_at && $latestGate->last_ping_at->diffInSeconds(now()) <= 25) {
+                $isOnline = true;
+                $secondsAgo = $latestGate->last_ping_at->diffInSeconds(now());
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'online' => $isOnline,
+            'status' => $isOnline ? 'online' : 'offline',
+            'status_label' => $isOnline ? 'ESP32 Online (Terhubung ke Hotspot)' : 'ESP32 Offline (Belum Terhubung)',
+            'hotspot_ssid' => 'BIAN',
+            'last_seen_seconds_ago' => $secondsAgo,
+            'message' => $isOnline 
+                ? 'Alat ESP32 sudah terhubung ke hotspot Anda ("BIAN"). Sensor siap menerima tap kartu e-KTP.' 
+                : 'Alat ESP32 belum terhubung ke hotspot. Pastikan hotspot HP aktif dan ESP32 menyala.',
+        ]);
+    }
+
+    /**
      * Polling hasil tap kartu dari alat ESP32 untuk formulir registrasi.
      */
     public function checkEsp32PairingStatus(Request $request)
@@ -240,11 +283,22 @@ class RegisterController extends Controller
         $pairedTag = \Illuminate\Support\Facades\Cache::pull("reg_pairing_result_{$tenantId}")
             ?? \Illuminate\Support\Facades\Cache::pull("reg_latest_tap_tenant_{$tenantId}");
 
+        $cachedHeartbeat = \Illuminate\Support\Facades\Cache::get("esp32_heartbeat_tenant_{$tenantId}");
+        $isOnline = $cachedHeartbeat && (now()->timestamp - $cachedHeartbeat <= 25);
+
+        if (!$isOnline) {
+            $gate = \App\Models\SmartGate::where('tenant_id', $tenantId)->whereNotNull('last_ping_at')->latest('last_ping_at')->first();
+            if ($gate && $gate->last_ping_at && $gate->last_ping_at->diffInSeconds(now()) <= 25) {
+                $isOnline = true;
+            }
+        }
+
         if ($pairedTag) {
             return response()->json([
                 'success' => true,
                 'status' => 'paired',
                 'paired' => true,
+                'is_online' => true,
                 'rfid_tag' => $pairedTag,
                 'message' => "Fisik e-KTP berhasil dideteksi di alat scanner ESP32! UID: {$pairedTag}",
             ]);
@@ -256,7 +310,11 @@ class RegisterController extends Controller
             'success' => true,
             'status' => $isWaiting ? 'waiting' : 'expired',
             'paired' => false,
+            'is_online' => $isOnline,
             'waiting' => $isWaiting,
+            'message' => $isOnline 
+                ? 'Sensor siap. Tempelkan e-KTP fisik Anda ke alat scanner RFID ESP32 sekarang…'
+                : 'Peringatan: Scanner ESP32 sedang Offline (Belum terhubung ke hotspot "BIAN").',
         ]);
     }
 }

@@ -272,6 +272,40 @@
                             </div>
 
                             <!-- Pilihan Tap Sensor: Web NFC vs Alat ESP32 -->
+                            <!-- Real-time Status Scanner ESP32 (Hotspot Wi-Fi Status) -->
+                            <div class="p-3 rounded-2xl border transition-colors space-y-1.5"
+                                 :class="esp32Online 
+                                     ? 'bg-emerald-50/80 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200' 
+                                     : 'bg-rose-50/80 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 text-rose-900 dark:text-rose-200'"
+                            >
+                                <div class="flex items-center justify-between gap-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="relative flex h-2.5 w-2.5 shrink-0">
+                                            <span x-show="esp32Online" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                            <span class="relative inline-flex rounded-full h-2.5 w-2.5" :class="esp32Online ? 'bg-emerald-500' : 'bg-rose-500'"></span>
+                                        </span>
+                                        <span class="text-xs font-black uppercase tracking-wider" x-text="esp32Online ? 'Scanner ESP32: ONLINE' : 'Scanner ESP32: OFFLINE'"></span>
+                                        <span class="text-[10px] px-2 py-0.5 rounded-full font-mono font-bold"
+                                              :class="esp32Online ? 'bg-emerald-200 text-emerald-900 dark:bg-emerald-900 dark:text-emerald-100' : 'bg-rose-200 text-rose-900 dark:bg-rose-900 dark:text-rose-100'"
+                                              x-text="esp32Online ? 'Hotspot BIAN Terhubung' : 'Hotspot BIAN Belum Terhubung'"
+                                        ></span>
+                                    </div>
+                                    <button 
+                                        type="button" 
+                                        @click="checkEsp32DeviceStatus(true)" 
+                                        class="shrink-0 text-[11px] font-bold px-2 py-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer flex items-center gap-1"
+                                        title="Perbarui status koneksi ESP32"
+                                    >
+                                        <span :class="isCheckingStatus ? 'animate-spin inline-block' : ''">🔄</span>
+                                        <span class="hidden sm:inline">Cek Status</span>
+                                    </button>
+                                </div>
+                                <p class="text-[11px] opacity-90 leading-relaxed" x-text="esp32Online 
+                                    ? 'Alat ESP32 sudah terhubung ke hotspot Anda (&quot;BIAN&quot;). Sensor siap menerima tap kartu e-KTP fisik.' 
+                                    : 'Alat scanner belum terhubung ke hotspot. Pastikan hotspot HP (&quot;BIAN&quot;) aktif dan modul ESP32 sudah menyala.'">
+                                </p>
+                            </div>
+
                             <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
                                 <button 
                                     type="button" 
@@ -285,9 +319,12 @@
                                 <button 
                                     type="button" 
                                     @click="startEsp32Pairing()" 
-                                    class="py-2.5 px-3 rounded-xl border border-cyan-300 dark:border-cyan-700 bg-white dark:bg-slate-900 text-cyan-700 dark:text-cyan-300 hover:bg-cyan-50 dark:hover:bg-slate-800 font-bold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer touch-press"
+                                    class="py-2.5 px-3 rounded-xl border bg-white dark:bg-slate-900 font-bold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer touch-press"
+                                    :class="esp32Online 
+                                        ? 'border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-slate-800' 
+                                        : 'border-rose-300 dark:border-rose-700 text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-slate-800'"
                                 >
-                                    <span>📡</span>
+                                    <span class="w-2 h-2 rounded-full shrink-0" :class="esp32Online ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'"></span>
                                     <span>Tap di Scanner ESP32</span>
                                 </button>
 
@@ -659,7 +696,10 @@ function registerForm() {
             showManualRfidInput: false,
             manualRfidVal: '',
 
-            // ESP32 Hardware Pairing State
+            // ESP32 Hardware Pairing & Online State
+            esp32Online: false,
+            isCheckingStatus: false,
+            esp32StatusHeartbeatInterval: null,
             esp32PairingActive: false,
             esp32Countdown: 60,
             esp32TimerInterval: null,
@@ -675,6 +715,10 @@ function registerForm() {
                 if (this.selectedTenantId) {
                     this.fetchHouses(this.selectedTenantId);
                 }
+                this.checkEsp32DeviceStatus();
+                this.esp32StatusHeartbeatInterval = setInterval(() => {
+                    this.checkEsp32DeviceStatus();
+                }, 4000);
             },
 
             async fetchHouses(tenantId) {
@@ -858,12 +902,35 @@ function registerForm() {
                 }
             },
 
+            // Cek Status Koneksi Online / Offline ESP32 ke Hotspot BIAN
+            async checkEsp32DeviceStatus(manual = false) {
+                if (manual) this.isCheckingStatus = true;
+                try {
+                    const tid = this.selectedTenantId || 1;
+                    const res = await fetch(`{{ route('api.register.esp32-status') }}?tenant_id=${tid}`);
+                    const data = await res.json();
+                    this.esp32Online = !!data.online;
+                    if (this.esp32PairingActive && !this.esp32Success) {
+                        if (this.esp32Online) {
+                            this.esp32Message = 'Sensor siap! Tempelkan fisik e-KTP Anda ke scanner RFID sekarang…';
+                        } else {
+                            this.esp32Message = 'Scanner Offline: Alat ESP32 belum terhubung ke hotspot "BIAN".';
+                        }
+                    }
+                } catch (e) {
+                    this.esp32Online = false;
+                } finally {
+                    if (manual) setTimeout(() => { this.isCheckingStatus = false; }, 400);
+                }
+            },
+
             // Mode Sesi Pairing ESP32 di Gerbang / Pos Satpam
             async startEsp32Pairing() {
                 this.esp32PairingActive = true;
                 this.esp32Countdown = 60;
                 this.esp32Message = 'Menghubungkan ke alat sensor ESP32…';
                 this.esp32Success = false;
+                await this.checkEsp32DeviceStatus();
 
                 try {
                     const res = await fetch("{{ route('api.register.esp32-pair.start') }}", {
@@ -881,7 +948,9 @@ function registerForm() {
                         return;
                     }
 
-                    this.esp32Message = 'Sensor siap! Tempelkan fisik e-KTP Anda ke scanner RFID di pos satpam / gerbang sekarang…';
+                    this.esp32Message = this.esp32Online
+                        ? 'Sensor siap! Tempelkan fisik e-KTP Anda ke scanner RFID di pos satpam / gerbang sekarang…'
+                        : 'Scanner Offline: Pastikan hotspot HP ("BIAN") aktif dan ESP32 sudah menyala…';
 
                     if (this.esp32TimerInterval) clearInterval(this.esp32TimerInterval);
                     this.esp32TimerInterval = setInterval(() => {
@@ -906,6 +975,10 @@ function registerForm() {
                 try {
                     const res = await fetch(`{{ route('api.register.esp32-pair.status') }}?tenant_id=${this.selectedTenantId}`);
                     const data = await res.json();
+
+                    if (data.is_online !== undefined) {
+                        this.esp32Online = !!data.is_online;
+                    }
 
                     if (data.paired) {
                         this.stopEsp32Pairing();

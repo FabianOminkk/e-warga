@@ -27,6 +27,7 @@ Route::post('/register', [RegisterController::class, 'register'])->name('registe
 Route::get('/api/tenants/{tenant}/houses', [RegisterController::class, 'getHousesByTenant'])->name('api.tenant.houses');
 Route::post('/api/register/esp32-pair/start', [RegisterController::class, 'startEsp32Pairing'])->name('api.register.esp32-pair.start');
 Route::get('/api/register/esp32-pair/status', [RegisterController::class, 'checkEsp32PairingStatus'])->name('api.register.esp32-pair.status');
+Route::get('/api/register/esp32-status', [RegisterController::class, 'checkEsp32DeviceStatus'])->name('api.register.esp32-status');
 Route::post('/register-tenant', [HomeController::class, 'registerTenant'])->name('tenant.register')->middleware('throttle:5,1');
 Route::post('/logout', [HomeController::class, 'logout'])->name('logout');
 
@@ -82,6 +83,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/warga/pair-rfid', [WargaController::class, 'pairRfid'])->name('warga.pair-rfid');
     Route::post('/warga/esp32-pair/start', [WargaController::class, 'startEsp32Pairing'])->name('warga.esp32-pair.start');
     Route::get('/warga/esp32-pair/status', [WargaController::class, 'checkEsp32PairingStatus'])->name('warga.esp32-pair.status');
+    Route::get('/warga/esp32-status', [WargaController::class, 'checkEsp32DeviceStatus'])->name('warga.esp32-status');
     Route::post('/warga/esp32-pair/cancel', [WargaController::class, 'cancelEsp32Pairing'])->name('warga.esp32-pair.cancel');
 
     // 5. Modul Jadwal Keamanan (Satpam & Ronda Warga Bulan Ini)

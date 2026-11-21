@@ -62,6 +62,14 @@
 
 ---
 
+## 📡 Status Koneksi Real-Time (Online / Offline Hotspot)
+
+Alat ESP32 ini dilengkapi fitur **Heartbeat Otomatis** setiap 8 detik ke server E-WARGA:
+* **Status ONLINE (🟢):** Begitu modul ESP32 menyala dan berhasil terkoneksi ke hotspot Anda (SSID: `BIAN`), alat akan otomatis mengirim sinyal detak jantung (*heartbeat*) ke server. Di layar web pendaftaran maupun dashboard warga, indikator akan langsung berubah hijau bertuliskan **"Scanner ESP32: ONLINE (Terhubung Hotspot BIAN)"**, menandakan alat siap menerima tap kartu.
+* **Status OFFLINE (🔴):** Jika hotspot dimatikan atau ESP32 belum terhubung, web secara otomatis menampilkan status **"Scanner ESP32: OFFLINE (Belum Terhubung Hotspot)"** untuk mengingatkan Anda mengaktifkan hotspot atau memeriksa koneksi alat.
+
+---
+
 ## 💻 Langkah Upload via Arduino IDE
 
 1. **Buka Arduino IDE** di laptop Anda.
@@ -71,10 +79,10 @@
    * **`LiquidCrystal I2C`** by *Frank de Brabander*
    * **`ArduinoJson`** by *Benoit Blanchon* (Versi 6 atau 7)
 4. Buka file [esp32_registrasi_warga.ino](file:///c:/Users/fabia/OneDrive/Documents/E-WARGA/firmware/esp32_registrasi_warga/esp32_registrasi_warga.ino).
-5. Sesuaikan baris konfigurasi Wi-Fi & URL server:
+5. Pengaturan Wi-Fi / Hotspot default pada firmware:
    ```cpp
-   const char* WIFI_SSID     = "Nama_WiFi_Anda";
-   const char* WIFI_PASSWORD = "Password_WiFi_Anda";
+   const char* WIFI_SSID     = "BIAN";         // Hotspot Anda
+   const char* WIFI_PASSWORD = "00000000";     // Password Hotspot
    const char* SERVER_BASE_URL = "https://e-warga.unique-monsters.my.id";
    ```
    *(Jika Anda menjalankan Laravel di localhost laptop, gunakan IP lokal laptop Anda, contoh: `http://192.168.1.10:8000`).*

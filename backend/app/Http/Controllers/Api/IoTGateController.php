@@ -66,6 +66,7 @@ class IoTGateController extends Controller
                 'ip_address' => $request->ip(),
                 'last_ping_at' => now(),
             ]);
+            Cache::put("esp32_heartbeat_tenant_{$gate->tenant_id}", now()->timestamp, 35);
         }
 
         return $gate;

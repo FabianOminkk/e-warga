@@ -36,8 +36,8 @@
 // ------------------------------------------------------------------------------
 // 1. PENGATURAN WI-FI & URL SERVER E-WARGA
 // ------------------------------------------------------------------------------
-const char* WIFI_SSID     = "NAMA_WIFI_ANDA";         // Ganti dengan SSID Wi-Fi Anda
-const char* WIFI_PASSWORD = "PASSWORD_WIFI_ANDA";     // Ganti dengan Password Wi-Fi Anda
+const char* WIFI_SSID     = "BIAN";         // Ganti dengan SSID Wi-Fi Anda
+const char* WIFI_PASSWORD = "00000000";     // Ganti dengan Password Wi-Fi Anda
 
 // Masukkan IP laptop/server lokal (contoh: "http://192.168.1.10:8000")
 // atau URL domain produksi (contoh: "https://e-warga.unique-monsters.my.id")
@@ -69,6 +69,10 @@ MFRC522 rfid(PIN_RC522_SS, PIN_RC522_RST);
 // Debounce timer agar kartu tidak terbaca berkali-kali dalam 1 detik
 unsigned long lastScanMillis = 0;
 const unsigned long SCAN_COOLDOWN = 1500; // 1.5 detik cooldown
+
+// Timer Heartbeat Ping ke Server (Setiap 8 detik)
+unsigned long lastPingMillis = 0;
+const unsigned long PING_INTERVAL = 8000; // 8 detik interval ping status online
 
 // ------------------------------------------------------------------------------
 // FEEDBACK SUARA BUZZER & LED
@@ -183,6 +187,27 @@ void sendRfidToRegistrationServer(String rfidUid) {
 }
 
 // ------------------------------------------------------------------------------
+// HEARTBEAT PING (Kirim status ONLINE ke Server secara berkala)
+// ------------------------------------------------------------------------------
+void sendHeartbeatPing() {
+    if (WiFi.status() != WL_CONNECTED) return;
+
+    HTTPClient http;
+    String endpoint = String(SERVER_BASE_URL) + "/api/v1/registration-device/ping?device_uid=" + String(DEVICE_UID) + "&tenant_id=" + String(TENANT_ID);
+    http.begin(endpoint);
+    http.addHeader("X-Device-UID", DEVICE_UID);
+    http.setTimeout(3000);
+
+    int httpResponseCode = http.GET();
+    if (httpResponseCode == 200) {
+        Serial.printf("[HEARTBEAT] Ping server sukses. Status: ONLINE di Hotspot %s\n", WIFI_SSID);
+    } else {
+        Serial.printf("[HEARTBEAT] Ping respon: %d\n", httpResponseCode);
+    }
+    http.end();
+}
+
+// ------------------------------------------------------------------------------
 // SETUP PROGRAM
 // ------------------------------------------------------------------------------
 void setup() {
@@ -243,6 +268,7 @@ void setup() {
         beepSuccess();
         updateLcd("WI-FI ONLINE", WiFi.localIP().toString().c_str());
         delay(2000);
+        sendHeartbeatPing();
     } else {
         Serial.println("\n[WIFI TIMEOUT] Wi-Fi gagal terhubung. Masuk mode offline.");
         beepError();
@@ -258,6 +284,12 @@ void setup() {
 // LOOP UTAMA
 // ------------------------------------------------------------------------------
 void loop() {
+    // 0. Heartbeat Ping berkala ke Server setiap 8 detik agar terdeteksi ONLINE di Web
+    if (millis() - lastPingMillis >= PING_INTERVAL) {
+        lastPingMillis = millis();
+        sendHeartbeatPing();
+    }
+
     // 1. Cek apakah ada kartu e-KTP / RFID di depan sensor
     if (!rfid.PICC_IsNewCardPresent()) {
         delay(50);
