@@ -67,6 +67,19 @@ html {
     touch-action: manipulation;
 }
 
+/* Desktop/Laptop proportional viewport scaling so 100% zoom feels wide & roomy without altering mobile */
+@media (min-width: 1024px) {
+    html {
+        font-size: 13.5px;
+    }
+}
+
+@media (min-width: 1536px) {
+    html {
+        font-size: 14px;
+    }
+}
+
 .pb-safe {
     padding-bottom: max(1rem, env(safe-area-inset-bottom));
 }

@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-3 sm:py-8 space-y-5 sm:space-y-8" x-data="residentManager()">
+<div class="max-w-[1440px] mx-auto px-2 sm:px-6 lg:px-8 py-3 sm:py-6 space-y-5 sm:space-y-6" x-data="residentManager()">
 
     <x-mobile-android-header :tenant="$tenant" />
 

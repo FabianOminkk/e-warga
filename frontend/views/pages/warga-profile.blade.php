@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8" x-data="wargaProfileApp()">
+<div class="py-6 sm:py-8 px-4 sm:px-6 lg:px-8 max-w-[1440px] mx-auto space-y-6 sm:space-y-8" x-data="wargaProfileApp()">
 
     <!-- ======================================================== -->
     <!-- 1. HEADER HALAMAN PENGATURAN AKUN & DATA DIRI            -->

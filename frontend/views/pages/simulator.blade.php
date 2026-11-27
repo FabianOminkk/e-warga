@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-6 sm:space-y-8" x-data="gateSimulator()">
+<div class="max-w-[1440px] mx-auto px-2 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6" x-data="gateSimulator()">
 
     <!-- Header Simulator -->
     <div class="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-slate-200 dark:border-slate-800 gap-4">

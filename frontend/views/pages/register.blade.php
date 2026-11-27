@@ -4,10 +4,10 @@
 <!-- Tesseract.js Library untuk Pemindaian OCR e-KTP Sisi Klien -->
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js" defer></script>
 
-<div class="min-h-screen flex flex-col justify-between bg-slate-50 dark:bg-slate-950 px-4 sm:px-6 lg:px-8 py-6">
+<div class="min-h-screen flex flex-col justify-between bg-slate-50 dark:bg-slate-950 px-4 sm:px-6 lg:px-8 py-4 lg:py-5">
 
     <!-- Top Navigation Bar Header Halaman Registrasi -->
-    <header class="max-w-5xl w-full mx-auto flex items-center justify-between pb-6">
+    <header class="max-w-[1340px] w-full mx-auto flex items-center justify-between pb-4">
         <x-logo size="md" href="{{ route('home') }}" />
         
         <div class="flex items-center gap-3">
@@ -46,11 +46,11 @@
     <!-- Main Register Container -->
     <div 
         x-data="registerForm()"
-        class="max-w-5xl w-full mx-auto my-auto grid grid-cols-1 lg:grid-cols-12 bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden"
+        class="max-w-[1340px] w-full mx-auto my-auto grid grid-cols-1 lg:grid-cols-12 bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden"
     >
         
         <!-- SISI KIRI: BENEFIT & JAMINAN KEAMANAN PDP (5 COLS) -->
-        <div class="order-2 lg:order-1 lg:col-span-5 bg-gradient-to-br from-[#0F172A] via-[#1B365D] to-emerald-950 p-6 sm:p-10 text-white flex flex-col justify-between relative overflow-hidden">
+        <div class="order-2 lg:order-1 lg:col-span-5 bg-gradient-to-br from-[#0F172A] via-[#1B365D] to-emerald-950 p-6 sm:p-8 lg:p-8 text-white flex flex-col justify-between relative overflow-hidden">
             <!-- Background Ambient Glow -->
             <div class="absolute -top-24 -left-24 w-64 h-64 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none"></div>
             <div class="absolute -bottom-24 -right-24 w-64 h-64 bg-cyan-500/15 rounded-full blur-3xl pointer-events-none"></div>
@@ -111,7 +111,7 @@
         </div>
 
         <!-- SISI KANAN: FORMULIR MULTI-TAB REGISTER (7 COLS) -->
-        <div class="order-1 lg:order-2 lg:col-span-7 p-6 sm:p-10 flex flex-col justify-between space-y-6">
+        <div class="order-1 lg:order-2 lg:col-span-7 p-6 sm:p-8 lg:p-7 flex flex-col justify-between space-y-5">
             <div>
                 <!-- Header Formulir -->
                 <div class="pb-4 border-b border-slate-100 dark:border-slate-800 space-y-1">
@@ -593,7 +593,7 @@
     </div>
 
     <!-- Footer Halaman Register -->
-    <footer class="max-w-5xl w-full mx-auto text-center text-xs text-slate-400 pt-6 pb-8">
+    <footer class="max-w-[1340px] w-full mx-auto text-center text-xs text-slate-400 pt-4 pb-6">
         &copy; {{ date('Y') }} E-WARGA by Fabian Ganteng. Seluruh hak cipta dilindungi undang-undang.
     </footer>
 </div>

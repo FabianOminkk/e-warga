@@ -5,6 +5,9 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+if ($PSVersionTable.PSVersion.Major -ge 7) {
+    $PSNativeCommandUseErrorActionPreference = $false
+}
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 Set-Location $RepoRoot
 
@@ -20,6 +23,9 @@ if (Test-Path $LockFile) {
 
 try {
     New-Item -ItemType File -Path $LockFile -Force | Out-Null
+
+    # Izinkan warning stderr dari git/npm (mis. CRLF warning), tetap tangkap kegagalan lewat $LASTEXITCODE
+    $ErrorActionPreference = "Continue"
 
     # 1. Kumpulkan file berubah & file baru tanpa masalah parsing porcelain
     $trackedChanged = @(git diff --name-only HEAD 2>$null)
@@ -41,11 +47,11 @@ try {
         if ($hasFrontendChange) {
             Push-Location (Join-Path $RepoRoot "frontend")
             npm run build
-            if ($LASTEXITCODE -ne 0) {
-                Pop-Location
+            $buildExit = $LASTEXITCODE
+            Pop-Location
+            if ($buildExit -ne 0) {
                 throw "Vite build gagal. Perbaiki error frontend terlebih dahulu."
             }
-            Pop-Location
         }
     }
 
@@ -54,6 +60,9 @@ try {
         git add -A -- . ':!scratch' ':!*.log'
     } else {
         git add -A -- . ':!scratch' ':!firmware' ':!*.log'
+    }
+    if ($LASTEXITCODE -ne 0) {
+        throw "git add gagal."
     }
 
     git diff --cached --quiet
@@ -64,7 +73,13 @@ try {
 
     # 5. Sinkron aman dengan origin/main sebelum push agar anti-bentrok
     git fetch origin main
+    if ($LASTEXITCODE -ne 0) {
+        throw "git fetch origin main gagal."
+    }
     git commit -m $Message
+    if ($LASTEXITCODE -ne 0) {
+        throw "git commit gagal."
+    }
     git pull --rebase --autostash origin main
     if ($LASTEXITCODE -ne 0) {
         throw "Rebase dengan origin/main gagal. Selesaikan konflik secara manual."

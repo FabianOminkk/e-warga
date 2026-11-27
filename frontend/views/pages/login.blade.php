@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-screen flex flex-col justify-between bg-slate-50 dark:bg-slate-950 px-4 sm:px-6 lg:px-8 py-6">
+<div class="min-h-screen flex flex-col justify-between bg-slate-50 dark:bg-slate-950 px-4 sm:px-6 lg:px-8 py-4 lg:py-5">
 
     <!-- Top Navigation Bar Header Halaman Login -->
-    <header class="max-w-5xl w-full mx-auto flex items-center justify-between pb-6">
+    <header class="max-w-[1340px] w-full mx-auto flex items-center justify-between pb-4 lg:pb-3">
         <x-logo size="md" href="{{ route('home') }}" />
         
         <div class="flex items-center gap-3">
@@ -41,10 +41,10 @@
     </header>
 
     <!-- Main Login Card (Desktop 2-Column Split View, Mobile Form First) -->
-    <div class="max-w-5xl w-full mx-auto my-auto grid grid-cols-1 lg:grid-cols-12 bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+    <div class="max-w-[1340px] w-full mx-auto my-auto grid grid-cols-1 lg:grid-cols-12 bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
         
         <!-- SISI KIRI: BRANDING & BENEFIT SAAS (5 COLS, ORDER-2 PADA MOBILE) -->
-        <div class="order-2 lg:order-1 lg:col-span-5 bg-gradient-to-br from-[#0F172A] via-[#1B365D] to-emerald-950 p-6 sm:p-10 text-white flex flex-col justify-between relative overflow-hidden">
+        <div class="order-2 lg:order-1 lg:col-span-5 bg-gradient-to-br from-[#0F172A] via-[#1B365D] to-emerald-950 p-6 sm:p-8 lg:p-8 text-white flex flex-col justify-between relative overflow-hidden">
             <!-- Background Ambient Glow -->
             <div class="absolute -top-24 -left-24 w-64 h-64 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none"></div>
             <div class="absolute -bottom-24 -right-24 w-64 h-64 bg-cyan-500/15 rounded-full blur-3xl pointer-events-none"></div>
@@ -106,78 +106,80 @@
         </div>
 
         <!-- SISI KANAN: FORM LOGIN & 1-CLICK DEMO AKUN (7 COLS, ORDER-1 PADA MOBILE) -->
-        <div class="order-1 lg:order-2 lg:col-span-7 p-6 sm:p-10 flex flex-col justify-between space-y-6">
+        <div class="order-1 lg:order-2 lg:col-span-7 p-6 sm:p-8 lg:p-7 flex flex-col justify-between space-y-5 lg:space-y-4">
             <div>
                 <!-- Header Form -->
-                <div class="pb-4 border-b border-slate-100 dark:border-slate-800 space-y-1">
-                    <h1 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Masuk ke Sistem</h1>
+                <div class="pb-3 lg:pb-3 border-b border-slate-100 dark:border-slate-800 space-y-1">
+                    <h1 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight text-balance">Masuk ke Sistem</h1>
                     <p class="text-xs text-slate-500 dark:text-slate-400">Gunakan akun percontohan 1-klik di bawah atau masukkan email login Anda.</p>
                 </div>
 
                 <!-- Notifikasi Error / Sukses / Info -->
                 @if(session('success'))
-                    <div class="mt-4 p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-medium leading-relaxed">
+                    <div class="mt-3 p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-medium leading-relaxed">
                         {{ session('success') }}
                     </div>
                 @endif
                 @if(session('warning'))
-                    <div class="mt-4 p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 text-xs font-medium leading-relaxed">
+                    <div class="mt-3 p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 text-xs font-medium leading-relaxed">
                         {{ session('warning') }}
                     </div>
                 @endif
                 @if(session('info'))
-                    <div class="mt-4 p-3.5 rounded-2xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300 text-xs font-medium leading-relaxed">
+                    <div class="mt-3 p-3 rounded-2xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300 text-xs font-medium leading-relaxed">
                         {{ session('info') }}
                     </div>
                 @endif
                 @if(session('error'))
-                    <div class="mt-4 p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300 text-xs font-medium leading-relaxed">
+                    <div class="mt-3 p-3 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300 text-xs font-medium leading-relaxed">
                         {{ session('error') }}
                     </div>
                 @endif
 
                 <!-- Form Login Kredensial -->
-                <form action="{{ route('login.post') }}" method="POST" class="mt-5 space-y-4" x-data="{ isLoggingIn: false }" @submit="isLoggingIn = true">
+                <form action="{{ route('login.post') }}" method="POST" class="mt-4 lg:mt-3.5 space-y-3.5" x-data="{ isLoggingIn: false }" @submit="isLoggingIn = true">
                     @csrf
-                    <div>
-                        <label for="login" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-                            Email atau Nomor WhatsApp
-                        </label>
-                        <input 
-                            type="text" 
-                            name="login" 
-                            id="login" 
-                            inputmode="email"
-                            autocomplete="username"
-                            spellcheck="false"
-                            value="{{ old('login', session('registered_phone', 'superadmin@ewarga.id')) }}" 
-                            required 
-                            placeholder="Contoh: superadmin@ewarga.id atau 08xxxxxxxxxx…"
-                            class="w-full px-4 py-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white text-base focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden transition"
-                        >
-                    </div>
-
-                    <div>
-                        <div class="flex items-center justify-between mb-1.5">
-                            <label for="password" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                                Password
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                        <div>
+                            <label for="login" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                                Email atau Nomor WhatsApp
                             </label>
-                            <span class="text-[11px] text-slate-400">Password default: <code class="font-bold text-emerald-600 dark:text-emerald-400 font-mono">admin123</code></span>
+                            <input 
+                                type="text" 
+                                name="login" 
+                                id="login" 
+                                inputmode="email"
+                                autocomplete="username"
+                                spellcheck="false"
+                                value="{{ old('login', session('registered_phone', 'superadmin@ewarga.id')) }}" 
+                                required 
+                                placeholder="Contoh: superadmin@ewarga.id atau 08xxxxxxxxxx…"
+                                class="w-full px-3.5 py-3 lg:py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white text-base lg:text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden transition-colors"
+                            >
                         </div>
-                        <input 
-                            type="password" 
-                            name="password" 
-                            id="password" 
-                            autocomplete="current-password"
-                            value="admin123"
-                            required 
-                            class="w-full px-4 py-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white text-base focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden transition"
-                        >
+
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5 gap-2">
+                                <label for="password" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                                    Password
+                                </label>
+                                <span class="text-[11px] text-slate-400">Default: <code class="font-bold text-emerald-600 dark:text-emerald-400 font-mono">admin123</code></span>
+                            </div>
+                            <input 
+                                type="password" 
+                                name="password" 
+                                id="password" 
+                                autocomplete="current-password"
+                                value="admin123"
+                                required 
+                                class="w-full px-3.5 py-3 lg:py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white text-base lg:text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden transition-colors"
+                            >
+                        </div>
                     </div>
 
-                    <div class="flex items-center justify-between pt-1">
-                        <label class="flex items-center gap-2 cursor-pointer min-h-[44px]">
-                            <input type="checkbox" name="remember" value="1" checked class="w-5 h-5 rounded-md text-emerald-600 border-slate-300 dark:border-slate-700 focus:ring-emerald-500">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pt-0.5">
+                        <label class="flex items-center gap-2 cursor-pointer min-h-[44px] lg:min-h-[36px]">
+                            <input type="checkbox" name="remember" value="1" checked class="w-5 h-5 lg:w-4 lg:h-4 rounded-md text-emerald-600 border-slate-300 dark:border-slate-700 focus:ring-emerald-500">
                             <span class="text-xs text-slate-600 dark:text-slate-400">Ingat sesi saya di perangkat ini</span>
                         </label>
                     </div>
@@ -185,14 +187,14 @@
                     <button 
                         type="submit" 
                         :disabled="isLoggingIn"
-                        class="w-full min-h-[48px] py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-95 text-white font-extrabold text-sm shadow-lg shadow-emerald-600/30 transition-transform flex items-center justify-center gap-2 cursor-pointer touch-press"
+                        class="w-full min-h-[48px] lg:min-h-[44px] py-3 px-6 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-95 text-white font-extrabold text-sm shadow-lg shadow-emerald-600/30 transition-transform flex items-center justify-center gap-2 cursor-pointer touch-press focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
                     >
                         <span x-show="isLoggingIn" class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                         <span x-text="isLoggingIn ? 'Memproses Masuk…' : 'Masuk ke Dashboard E-WARGA ➔'"></span>
                     </button>
 
                     <!-- Tautan Pendaftaran Warga Baru -->
-                    <div class="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+                    <div class="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
                         <div>
                             <div class="text-xs font-black text-slate-900 dark:text-white">Warga Baru di Lingkungan RT/RW?</div>
                             <div class="text-[11px] text-slate-600 dark:text-slate-400">Daftar mandiri via akun Gmail atau berkas e-KTP.</div>
@@ -206,88 +208,88 @@
             </div>
 
             <!-- SEKSI 1-KLIK AKUN DEMO KHUSUS PENGUJIAN -->
-            <div class="pt-5 border-t border-slate-100 dark:border-slate-800 space-y-3">
+            <div class="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2.5">
                 <div class="text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center justify-between">
                     <span>Akses Cepat 1-Klik Akun Percontohan:</span>
                     <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">Tanpa Ketik Password</span>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2">
                     <!-- Super Admin Platform (Utama) -->
-                    <a href="{{ route('quick.login', 'super_admin') }}" class="sm:col-span-2 flex items-center justify-between p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/80 hover:bg-amber-100/60 transition group">
-                        <div class="flex items-center gap-3">
-                            <span class="w-8 h-8 rounded-lg bg-amber-500 text-slate-950 flex items-center justify-center font-black text-sm shadow-xs">⚡</span>
-                            <div>
-                                <div class="text-xs font-black text-slate-900 dark:text-white group-hover:text-amber-600">Fabian (Super Admin Platform)</div>
-                                <div class="text-[10px] text-slate-500 dark:text-slate-400">Pusat Kendali Seluruh Lingkungan & Multi-Tenant</div>
+                    <a href="{{ route('quick.login', 'super_admin') }}" class="sm:col-span-2 lg:col-span-3 flex items-center justify-between p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/80 hover:bg-amber-100/60 transition-colors group">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <span class="w-8 h-8 rounded-lg bg-amber-500 text-slate-950 flex items-center justify-center font-black text-sm shadow-xs shrink-0">⚡</span>
+                            <div class="min-w-0">
+                                <div class="text-xs font-black text-slate-900 dark:text-white group-hover:text-amber-600 truncate">Fabian (Super Admin Platform)</div>
+                                <div class="text-[10px] text-slate-500 dark:text-slate-400 truncate">Pusat Kendali & Multi-Tenant</div>
                             </div>
                         </div>
-                        <span class="text-xs font-black text-amber-600 dark:text-amber-400">Masuk Hub ➔</span>
+                        <span class="text-xs font-black text-amber-600 dark:text-amber-400 shrink-0 ml-2">Masuk Hub ➔</span>
                     </a>
 
                     <!-- Ketua RW (Rukun Warga - Jabatan Lebih Tinggi dari RT) -->
-                    <a href="{{ route('quick.login', 'ketua_rw') }}" class="sm:col-span-2 flex items-center justify-between p-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-300 dark:border-indigo-700/80 hover:bg-indigo-100/60 transition group">
-                        <div class="flex items-center gap-3">
-                            <span class="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-black text-sm shadow-xs">🏛️</span>
-                            <div>
-                                <div class="text-xs font-black text-slate-900 dark:text-white group-hover:text-indigo-600">Bpk. H. Rahmat Hidayat (Ketua RW 02)</div>
-                                <div class="text-[10px] text-slate-500 dark:text-slate-400">Pembina Wilayah, Supervisi Seluruh RT, & Rekomendasi RW</div>
+                    <a href="{{ route('quick.login', 'ketua_rw') }}" class="sm:col-span-2 lg:col-span-3 flex items-center justify-between p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-300 dark:border-indigo-700/80 hover:bg-indigo-100/60 transition-colors group">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <span class="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-black text-sm shadow-xs shrink-0">🏛️</span>
+                            <div class="min-w-0">
+                                <div class="text-xs font-black text-slate-900 dark:text-white group-hover:text-indigo-600 truncate">Bpk. H. Rahmat Hidayat (Ketua RW 02)</div>
+                                <div class="text-[10px] text-slate-500 dark:text-slate-400 truncate">Supervisi Seluruh RT & Wilayah</div>
                             </div>
                         </div>
-                        <span class="text-xs font-black text-indigo-600 dark:text-indigo-400">Masuk RW ➔</span>
+                        <span class="text-xs font-black text-indigo-600 dark:text-indigo-400 shrink-0 ml-2">Masuk RW ➔</span>
                     </a>
 
                     <!-- Ketua RT -->
-                    <a href="{{ route('quick.login', 'ketua_rt') }}" class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-blue-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition">
-                        <span class="text-base">👔</span>
-                        <div>
-                            <div class="text-xs font-bold text-slate-800 dark:text-slate-200">Ketua RT</div>
-                            <div class="text-[10px] text-slate-400">Bpk. H. Sutrisno</div>
+                    <a href="{{ route('quick.login', 'ketua_rt') }}" class="lg:col-span-2 flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-blue-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                        <span class="text-base shrink-0">👔</span>
+                        <div class="min-w-0">
+                            <div class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">Ketua RT</div>
+                            <div class="text-[10px] text-slate-400 truncate">Bpk. H. Sutrisno</div>
                         </div>
                     </a>
 
                     <!-- Sekretaris RT -->
-                    <a href="{{ route('quick.login', 'sekretaris') }}" class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition">
-                        <span class="text-base">🗂️</span>
-                        <div>
-                            <div class="text-xs font-bold text-slate-800 dark:text-slate-200">Sekretaris RT</div>
-                            <div class="text-[10px] text-slate-400">Ibu Farida</div>
+                    <a href="{{ route('quick.login', 'sekretaris') }}" class="lg:col-span-2 flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                        <span class="text-base shrink-0">🗂️</span>
+                        <div class="min-w-0">
+                            <div class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">Sekretaris RT</div>
+                            <div class="text-[10px] text-slate-400 truncate">Ibu Farida</div>
                         </div>
                     </a>
 
                     <!-- Bendahara RT -->
-                    <a href="{{ route('quick.login', 'bendahara') }}" class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition">
-                        <span class="text-base">💰</span>
-                        <div>
-                            <div class="text-xs font-bold text-slate-800 dark:text-slate-200">Bendahara RT</div>
-                            <div class="text-[10px] text-slate-400">Bpk. Joko Wardoyo</div>
+                    <a href="{{ route('quick.login', 'bendahara') }}" class="lg:col-span-2 flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                        <span class="text-base shrink-0">💰</span>
+                        <div class="min-w-0">
+                            <div class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">Bendahara RT</div>
+                            <div class="text-[10px] text-slate-400 truncate">Bpk. Joko Wardoyo</div>
                         </div>
                     </a>
 
                     <!-- Satpam Pos Jaga -->
-                    <a href="{{ route('quick.login', 'satpam') }}" class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-cyan-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition">
-                        <span class="text-base">🛡️</span>
-                        <div>
-                            <div class="text-xs font-bold text-slate-800 dark:text-slate-200">Satpam Pos Jaga</div>
-                            <div class="text-[10px] text-slate-400">Pak Slamet</div>
+                    <a href="{{ route('quick.login', 'satpam') }}" class="lg:col-span-2 flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-cyan-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                        <span class="text-base shrink-0">🛡️</span>
+                        <div class="min-w-0">
+                            <div class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">Satpam Pos Jaga</div>
+                            <div class="text-[10px] text-slate-400 truncate">Pak Slamet</div>
                         </div>
                     </a>
 
                     <!-- Warga Terverifikasi RW (Akses Gerbang Aktif) -->
-                    <a href="{{ route('quick.login', 'warga') }}" class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition">
-                        <span class="text-base">🏡</span>
-                        <div>
-                            <div class="text-xs font-bold text-slate-800 dark:text-slate-200">Warga Terverifikasi</div>
-                            <div class="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">Bpk. Bambang (Aktif)</div>
+                    <a href="{{ route('quick.login', 'warga') }}" class="lg:col-span-2 flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                        <span class="text-base shrink-0">🏡</span>
+                        <div class="min-w-0">
+                            <div class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">Warga Terverifikasi</div>
+                            <div class="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold truncate">Bpk. Bambang (Aktif)</div>
                         </div>
                     </a>
 
                     <!-- Warga Baru (Akses Terkunci Total) -->
-                    <a href="{{ route('quick.login', 'warga-baru') }}" class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-rose-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition">
-                        <span class="text-base">🔒</span>
-                        <div>
-                            <div class="text-xs font-bold text-slate-800 dark:text-slate-200">Warga Baru (Terkunci)</div>
-                            <div class="text-[10px] text-rose-600 dark:text-rose-400 font-semibold">Bpk. Hendra (Belum KTP)</div>
+                    <a href="{{ route('quick.login', 'warga-baru') }}" class="lg:col-span-2 flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-rose-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                        <span class="text-base shrink-0">🔒</span>
+                        <div class="min-w-0">
+                            <div class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">Warga Baru (Terkunci)</div>
+                            <div class="text-[10px] text-rose-600 dark:text-rose-400 font-semibold truncate">Bpk. Hendra (Belum KTP)</div>
                         </div>
                     </a>
                 </div>
@@ -297,7 +299,7 @@
     </div>
 
     <!-- Footer Tipis Halaman Login -->
-    <footer class="max-w-5xl w-full mx-auto text-center text-xs text-slate-400 pt-6 pb-8">
+    <footer class="max-w-[1340px] w-full mx-auto text-center text-xs text-slate-400 pt-4 pb-4">
         &copy; {{ date('Y') }} E-WARGA by Fabian Ganteng. Seluruh hak cipta dilindungi.
     </footer>
 

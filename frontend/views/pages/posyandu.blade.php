@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="space-y-6 sm:space-y-8" x-data="{ showAddMemberModal: false, showRecordModal: false, selectedMemberId: '', selectedMemberName: '' }">
+<div class="max-w-[1440px] mx-auto space-y-6 sm:space-y-8" x-data="{ showAddMemberModal: false, showRecordModal: false, selectedMemberId: '', selectedMemberName: '' }">
     <!-- Komponen Android Mobile Weather & Fast Status Bar (Tampil di Layar HP) -->
     <x-mobile-android-header />
 

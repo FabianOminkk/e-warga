@@ -150,7 +150,7 @@
         class="sticky top-0 z-50 transition-colors duration-300 px-2 sm:px-4 xl:px-6 w-full"
         :class="isScrolled ? 'pt-2 sm:pt-3' : 'pt-3 sm:pt-4'"
     >
-        <div class="max-w-[1400px] mx-auto relative">
+        <div class="max-w-[1440px] mx-auto relative">
             <header 
                 class="relative w-full max-w-full rounded-2xl sm:rounded-full transition-colors transition-shadow duration-300 px-3 sm:px-4 xl:px-5 border flex items-center justify-between gap-2 xl:gap-3 backdrop-blur-xl"
                 :class="isScrolled 
@@ -406,7 +406,7 @@
     </div>
 
     <!-- Area Flash Message -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+    <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-4">
         @if(session('success'))
             <div class="bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 px-4 py-3 rounded-2xl flex items-center gap-3 text-sm font-medium shadow-xs mb-4">
                 <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
@@ -429,7 +429,7 @@
 
     <!-- FOOTER RESMI BRANDING E-WARGA -->
     <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 pt-16 pb-32 sm:pb-36 lg:pb-28 text-xs text-slate-500 dark:text-slate-400">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
                 <div class="space-y-4">
                     <x-logo size="md" href="{{ route('home') }}" />
@@ -1178,7 +1178,7 @@
         </header>
 
         <!-- Area Notifikasi Flash Message Operasional -->
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 w-full">
+        <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 mt-4 w-full">
             @if(session('success'))
                 <div class="bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 px-4 py-3 rounded-2xl flex items-center gap-3 text-sm font-medium shadow-xs mb-4">
                     <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
@@ -1205,7 +1205,7 @@
         </div>
 
         <!-- Area Konten Halaman Aktif -->
-        <main class="flex-1 p-3.5 sm:p-6 lg:p-8 pb-28 lg:pb-8">
+        <main class="flex-1 p-3.5 sm:p-5 lg:p-6 pb-28 lg:pb-8">
             @yield('content')
         </main>
 

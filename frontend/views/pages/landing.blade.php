@@ -1,18 +1,18 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="space-y-24 sm:space-y-32 py-8 sm:py-16 overflow-x-hidden">
+<div class="space-y-20 lg:space-y-24 py-6 sm:py-10 overflow-x-hidden">
 
     <!-- ======================================================== -->
     <!-- 1. HERO SECTION (HIGH-CONVERSION ENTERPRISE BRANDING)     -->
     <!-- Menjawab Solusi dalam 5 Detik Pertama Sesuai Konsep UI/UX-->
     <!-- ======================================================== -->
-    <section id="hero" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+    <section id="hero" class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 relative">
         
         <!-- Ambient Background Glow Orb (Apple / Linear Aesthetic) -->
         <div class="absolute -top-16 left-1/2 -translate-x-1/2 w-[650px] h-[320px] bg-gradient-to-tr from-emerald-500/15 via-teal-400/10 to-indigo-500/10 blur-3xl pointer-events-none rounded-full animate-float-ambient -z-10"></div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
             
             <!-- Left Hero Content: Hierarki Visual & Value Proposition -->
             <div class="lg:col-span-7 space-y-6 sm:space-y-8">
@@ -276,8 +276,8 @@
     <!-- 2. SOCIAL PROOF & ADAPTASI DUAL MODE (CLUSTER & KAMPUNG) -->
     <!-- Konsistensi Ruang Kosong (Whitespace) & Keterbacaan        -->
     <!-- ======================================================== -->
-    <section class="border-y border-slate-200 dark:border-slate-800 py-12 sm:py-16 bg-slate-100/50 dark:bg-slate-900/40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
+    <section class="border-y border-slate-200 dark:border-slate-800 py-10 sm:py-12 bg-slate-100/50 dark:bg-slate-900/40">
+        <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
             <p class="text-xs sm:text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
                 Solusi Cerdas Teruji untuk Berbagai Karakter Lingkungan di Indonesia
             </p>
@@ -310,7 +310,7 @@
     <!-- 3. SEBELUM VS SESUDAH (PERBANDINGAN NYATA CARA LAMA VS BARU)-->
     <!-- Membangun Kepercayaan (Trust) & Menghilangkan Ragu       -->
     <!-- ======================================================== -->
-    <section id="komparasi" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+    <section id="komparasi" class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
         <div class="text-center max-w-3xl mx-auto space-y-3">
             <span class="text-xs sm:text-sm font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">KOMPARASI EFISIENSI LINGKUNGAN</span>
             <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
@@ -388,7 +388,7 @@
     <!-- 4. ENAM PILAR FITUR UTAMA SISTEM                          -->
     <!-- Keterbacaan & Ukuran Teks Standar 16px                    -->
     <!-- ======================================================== -->
-    <section id="fitur" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+    <section id="fitur" class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
         <div class="text-center max-w-3xl mx-auto space-y-3">
             <span class="text-xs sm:text-sm font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">MODUL UTAMA PLATFORM</span>
             <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
@@ -508,7 +508,7 @@
     <!-- 5. KATALOG PERANGKAT KERAS & HARDWARE IOT                 -->
     <!-- Bukti Integrasi Hardware Fisik & R&D Masa Depan          -->
     <!-- ======================================================== -->
-    <section id="hardware" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+    <section id="hardware" class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
         <div class="text-center max-w-3xl mx-auto space-y-3">
             <span class="text-xs sm:text-sm font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">KATALOG SISTEM IOT & SMART GATE</span>
             <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
@@ -603,13 +603,13 @@
                 <!-- CS 1: CCTV ANPR -->
                 <div 
                     @click="triggerComingSoon('Inovasi Hardware: CCTV ANPR (Auto Number Plate)', 'Fitur integrasi kamera AI pemindai plat nomor polisi kendaraan warga sedang dalam tahap pengujian integrasi firmware Edge-AI dan sinkronisasi basis data kendaraan (Coming Soon).')" 
-                    class="p-6 rounded-3xl bg-slate-100/70 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-3 relative overflow-hidden group cursor-pointer hover:border-blue-500 hover:shadow-lg transition transform hover:-translate-y-1"
+                    class="p-6 rounded-3xl bg-slate-100/70 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-3 relative overflow-hidden group cursor-pointer hover:border-blue-500 hover:shadow-lg transition-[transform,border-color,box-shadow] transform hover:-translate-y-1"
                 >
                     <div class="flex items-center justify-between">
                         <span class="text-2xl">📹</span>
                         <span class="px-2.5 py-1 rounded-md text-[9px] font-black uppercase bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300">Coming Soon ➔</span>
                     </div>
-                    <h4 class="font-black text-sm text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition">CCTV ANPR (Auto Number Plate Recognition)</h4>
+                    <h4 class="font-black text-sm text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">CCTV ANPR (Auto Number Plate Recognition)</h4>
                     <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                         Kamera AI resolusi tinggi yang otomatis memindai plat nomor polisi kendaraan warga saat mendekati gerbang. Palang terbuka tanpa perlu tap kartu.
                     </p>
@@ -652,7 +652,7 @@
     <!-- 6. TESTIMONI PENGURUS RT, SATPAM, & POSYANDU              -->
     <!-- Social Proof Autentik yang Membangun Rasa Aman            -->
     <!-- ======================================================== -->
-    <section id="testimoni" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+    <section id="testimoni" class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
         <div class="text-center max-w-3xl mx-auto space-y-3">
             <span class="text-xs sm:text-sm font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">TESTIMONI NYATA</span>
             <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
@@ -703,7 +703,7 @@
     <!-- 7. SEKSI KEMITRAAN, KONSULTASI & FORM PENDAFTARAN LINGKUNGAN-->
     <!-- Call to Action (CTA) Utama Tanpa Distraksi                -->
     <!-- ======================================================== -->
-    <section id="kerjasama" class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+    <section id="kerjasama" class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         
         <!-- Kartu Kontak Resmi & Email Kerjasama -->
         <div class="bg-gradient-to-r from-slate-900 via-[#1B365D] to-slate-950 rounded-3xl p-8 sm:p-12 text-white shadow-2xl border border-slate-800 space-y-8">

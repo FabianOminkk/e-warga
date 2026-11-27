@@ -3,7 +3,7 @@
 @section('title', 'Smart Gate Perumahan & Izin Akses Warga')
 
 @section('content')
-<div class="space-y-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6" x-data="{
+<div class="space-y-6 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6" x-data="{
     isGateOnline: {{ $isGateOnline ? 'true' : 'false' }},
     openGateModal: false,
     gateLoading: false,
