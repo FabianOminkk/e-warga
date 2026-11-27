@@ -189,8 +189,8 @@
                         :disabled="isLoggingIn"
                         class="w-full min-h-[48px] lg:min-h-[44px] py-3 px-6 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-95 text-white font-extrabold text-sm shadow-lg shadow-emerald-600/30 transition-transform flex items-center justify-center gap-2 cursor-pointer touch-press focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
                     >
-                        <span x-show="isLoggingIn" class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                        <span x-text="isLoggingIn ? 'Memproses Masuk…' : 'Masuk ke Dashboard E-WARGA ➔'"></span>
+                        <span x-show="isLoggingIn" x-cloak class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                        <span x-text="isLoggingIn ? 'Memproses Masuk…' : 'Masuk ke Dashboard E-WARGA ➔'">Masuk ke Dashboard E-WARGA ➔</span>
                     </button>
 
                     <!-- Tautan Pendaftaran Warga Baru -->

@@ -309,8 +309,8 @@
                 <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-3">
                     <button type="button" @click="showRequestModal = false" :disabled="isSubmitting" class="min-h-[48px] px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer touch-press">Batal</button>
                     <button type="submit" :disabled="isSubmitting" class="min-h-[48px] px-6 py-2.5 rounded-xl text-xs font-black bg-blue-600 hover:bg-blue-700 active:scale-95 text-white shadow-md shadow-blue-600/25 transition-transform flex items-center justify-center gap-2 cursor-pointer touch-press">
-                        <span x-show="isSubmitting" class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                        <span x-text="isSubmitting ? 'Mengirimkan…' : 'Kirim Pengajuan ke RT'"></span>
+                        <span x-show="isSubmitting" x-cloak class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                        <span x-text="isSubmitting ? 'Mengirimkan…' : 'Kirim Pengajuan ke RT'">Kirim Pengajuan ke RT</span>
                     </button>
                 </div>
             </form>

@@ -247,8 +247,8 @@
                             :disabled="isSaving"
                             class="min-h-[48px] px-6 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-sm shadow-lg shadow-emerald-600/30 transition-transform active:scale-95 flex items-center justify-center gap-2 cursor-pointer touch-press"
                         >
-                            <span x-show="isSaving" class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                            <span x-text="isSaving ? 'Menyimpan Berkas…' : 'Simpan & Ajukan Pengesahan ke Ketua RW'"></span>
+                            <span x-show="isSaving" x-cloak class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                            <span x-text="isSaving ? 'Menyimpan Berkas…' : 'Simpan & Ajukan Pengesahan ke Ketua RW'">Simpan &amp; Ajukan Pengesahan ke Ketua RW</span>
                             <span x-show="!isSaving">➔</span>
                         </button>
                     </div>
@@ -413,8 +413,8 @@
                         <input type="password" name="new_password_confirmation" required minlength="6" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-base focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden">
                     </div>
                     <button type="submit" :disabled="isChanging" class="w-full min-h-[48px] py-3.5 bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white rounded-2xl font-extrabold text-sm shadow-xs transition-transform active:scale-95 flex items-center justify-center gap-2 cursor-pointer touch-press">
-                        <span x-show="isChanging" class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                        <span x-text="isChanging ? 'Memperbarui…' : 'Perbarui Password'"></span>
+                        <span x-show="isChanging" x-cloak class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                        <span x-text="isChanging ? 'Memperbarui…' : 'Perbarui Password'">Perbarui Password</span>
                     </button>
                 </form>
             </div>

@@ -574,8 +574,8 @@
                         :disabled="isSubmitting"
                         class="w-full min-h-[50px] py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 active:scale-95 text-white font-extrabold text-sm shadow-xl shadow-emerald-600/25 transition-transform flex items-center justify-center gap-2 cursor-pointer touch-press"
                     >
-                        <span x-show="isSubmitting" class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                        <span x-text="isSubmitting ? 'Memproses Pendaftaran…' : (method === 'ktp' ? '⚡ Selesaikan Registrasi Kilat e-KTP ➔' : 'Selesaikan Pendaftaran Cepat Gmail ➔')"></span>
+                        <span x-show="isSubmitting" x-cloak class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                        <span x-text="isSubmitting ? 'Memproses Pendaftaran…' : (method === 'ktp' ? '⚡ Selesaikan Registrasi Kilat e-KTP ➔' : 'Selesaikan Pendaftaran Cepat Gmail ➔')">⚡ Selesaikan Registrasi Kilat e-KTP ➔</span>
                     </button>
                 </form>
             </div>

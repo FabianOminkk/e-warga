@@ -13,21 +13,27 @@
     <!-- Favicon Resmi SVG -->
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
     
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- Compiled Assets (Vite Engine) -->
+    <!-- Compiled Assets (Vite Engine) - Prioritas sebelum Google Fonts agar CSS lokal langsung render -->
     @vite(['css/app.css', 'js/app.js'])
 
-    <!-- Dark / Light Mode Early Bootstrapper (Mencegah FOUC) -->
+    <!-- Fonts (Non-Blocking CSS agar tidak menahan render awal saat refresh) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
+
+    <!-- Dark / Light Mode & Pre-Alpine Drawer State Early Bootstrapper (Mencegah FOUC & geser dari kiri saat refresh) -->
     <script>
-        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
+        (function () {
+            var root = document.documentElement;
+            if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                root.classList.add('dark');
+            } else {
+                root.classList.remove('dark');
+            }
+            var drawerOpen = window.innerWidth >= 1024 ? (localStorage.getItem('ewarga_drawer_open') !== 'false') : false;
+            root.classList.toggle('ewarga-drawer-open', drawerOpen);
+        })();
     </script>
 
     <style>
@@ -43,6 +49,25 @@
             font-family: 'Plus Jakarta Sans', sans-serif;
         }
         [x-cloak] { display: none !important; }
+
+        /* Pre-Alpine Drawer Lock: pastikan posisi laci & konten utama langsung final sebelum Alpine.js aktif */
+        :where(html:not(.ewarga-alpine-ready)) #ewarga-sidebar,
+        :where(html:not(.ewarga-alpine-ready)) #ewarga-main-shell {
+            transition: none !important;
+        }
+        @media (min-width: 1024px) {
+            :where(html.ewarga-drawer-open) #ewarga-main-shell {
+                padding-left: 18rem;
+            }
+            :where(html:not(.ewarga-drawer-open)) #ewarga-sidebar {
+                transform: translateX(-100%);
+            }
+        }
+        @media (max-width: 1023.98px) {
+            :where(html:not(.ewarga-drawer-open)) #ewarga-sidebar {
+                transform: translateX(-100%);
+            }
+        }
 
         /* Vercel Web Interface Standards: Respect prefers-reduced-motion across all animations */
         @media (prefers-reduced-motion: reduce) {
@@ -78,20 +103,29 @@
         comingSoonTitle: '',
         comingSoonDesc: '',
         showUserAccountModal: false,
+        init() {
+            document.documentElement.classList.toggle('ewarga-drawer-open', this.sidebarOpen);
+            requestAnimationFrame(() => {
+                document.documentElement.classList.add('ewarga-alpine-ready');
+            });
+        },
         toggleDrawer() {
             this.sidebarOpen = !this.sidebarOpen;
+            document.documentElement.classList.toggle('ewarga-drawer-open', this.sidebarOpen);
             if (window.innerWidth >= 1024) {
                 localStorage.setItem('ewarga_drawer_open', this.sidebarOpen);
             }
         },
         closeDrawer() {
             this.sidebarOpen = false;
+            document.documentElement.classList.remove('ewarga-drawer-open');
             if (window.innerWidth >= 1024) {
                 localStorage.setItem('ewarga_drawer_open', 'false');
             }
         },
         openDrawer() {
             this.sidebarOpen = true;
+            document.documentElement.classList.add('ewarga-drawer-open');
             if (window.innerWidth >= 1024) {
                 localStorage.setItem('ewarga_drawer_open', 'true');
             }
@@ -603,8 +637,9 @@
     <!-- LACI NAVIGASI DESKTOP (COLLAPSIBLE DRAWER SIDEBAR)       -->
     <!-- ======================================================== -->
     <aside 
+        id="ewarga-sidebar"
         :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-        class="fixed top-0 left-0 z-50 h-screen w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between shadow-2xl transition-transform duration-300 ease-in-out shrink-0"
+        class="fixed top-0 left-0 z-50 h-screen w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between shadow-2xl transition-transform duration-200 ease-out shrink-0"
     >
         <!-- 1. HEADER LACI (LOGO + COLLAPSE + TENANT SWITCHER) -->
         <div class="p-5 pb-4 border-b border-slate-100 dark:border-slate-800 shrink-0 space-y-4">
@@ -1095,8 +1130,9 @@
     <!-- KONTEN UTAMA OPERASIONAL (BERGESER ERGONOMIS DENGAN LACI)-->
     <!-- ======================================================== -->
     <div 
+        id="ewarga-main-shell"
         :class="sidebarOpen ? 'lg:pl-72' : 'pl-0'" 
-        class="flex-1 flex flex-col min-w-0 min-h-screen transition-all duration-300 ease-in-out"
+        class="flex-1 flex flex-col min-w-0 min-h-screen transition-[padding] duration-200 ease-out"
     >
         <!-- TOPBAR TOOLBAR TIPIS OPERASIONAL -->
         <header class="h-16 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 px-3.5 sm:px-6 flex items-center justify-between gap-3 sm:gap-4 transition-colors duration-200">
@@ -1105,11 +1141,11 @@
                 <button 
                     @click="toggleDrawer()" 
                     type="button"
-                    class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer flex items-center gap-1.5 text-xs font-bold"
+                    class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-bold"
                     :title="sidebarOpen ? 'Tutup Laci Menu' : 'Buka Laci Menu'"
                 >
                     <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-                    <span class="hidden sm:inline" x-text="sidebarOpen ? 'Tutup Laci' : 'Buka Laci'"></span>
+                    <span class="hidden sm:inline" x-text="sidebarOpen ? 'Tutup Laci' : 'Buka Laci'">Tutup Laci</span>
                 </button>
                 
                 <div class="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">

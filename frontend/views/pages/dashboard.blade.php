@@ -493,8 +493,8 @@
                 </div>
 
                 <button type="submit" :disabled="isSubmitting" class="w-full min-h-[48px] py-3.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-extrabold text-sm rounded-2xl shadow-md shadow-emerald-600/25 transition-transform flex items-center justify-center gap-2 cursor-pointer touch-press">
-                    <span x-show="isSubmitting" class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                    <span x-text="isSubmitting ? 'Menyimpan Transaksi…' : 'Simpan Catatan Kas'"></span>
+                    <span x-show="isSubmitting" x-cloak class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                    <span x-text="isSubmitting ? 'Menyimpan Transaksi…' : 'Simpan Catatan Kas'">Simpan Catatan Kas</span>
                 </button>
             </form>
         </div>
