@@ -38,3 +38,11 @@ Strictly enforce these principles across all UI development, styling, and copywr
 - **Auto-Sync to Live Web:** Whenever a coding task or bugfix in this workspace is completed AND passes verification (`php -l`, `npm run build`, and regression/checklist checks), automatically sync changes to production via `scripts/auto-sync-web.ps1` (or `git fetch origin main` -> `git commit` -> `git pull --rebase --autostash origin main` -> `git push origin main`), which triggers GitHub Actions `.github/workflows/deploy.yml` to deploy automatically to `e-warga.unique-monsters.my.id`.
 - **Conflict Prevention:** Never force-push (`--force`). Always rebase/sync with `origin/main` before pushing, and never push unverified or half-finished code edits.
 </auto-deploy-workflow>
+
+<mandatory-quality-audit>
+# Mandatory Double-Checking, Zero-Conflict & Bug-Hunter Policy
+- **Mandatory Double-Checking:** For any troubleshooting, feature update, or refactor, double-check all connected layers (Web/API routes, controllers, models/migrations, desktop & mobile Blade views, tests, and CI/CD workflow) before finishing or reporting.
+- **Zero-Conflict Validation:** Check `git fetch origin main`, `git diff`, route names, database columns, and existing test/UI assertions so nothing collides or breaks existing behavior.
+- **Full Codebase Checkup (No Missed Side Effects):** Always verify after the final edit with `php -l`, `php artisan view:cache` / `route:cache`, `npm run build` (when frontend files change), and the verification suites (`verify_all_checklist.php`, `verify_regression_extra.php`, `verify_uiux.php`, `verify_rfid.php`, and CI `php artisan test`).
+- **Proactive Bug Hunting:** Actively hunt and fix potential bugs before pushing or reporting — including RBAC/authorization gaps, `Undefined array key` on optional/nullable validated inputs, database column/enum mismatches, IoT offline/online state integrity, and mobile responsiveness.
+</mandatory-quality-audit>
