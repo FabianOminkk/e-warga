@@ -42,6 +42,7 @@ return [
 
     'rfid' => [
         'device_key' => env('RFID_DEVICE_KEY', 'smartrw-rfid-device'),
+        'gate_token' => env('RFID_GATE_TOKEN', 'SECRET-EW-GATE-2026'),
         'require_key' => env('RFID_REQUIRE_DEVICE_KEY', false),
     ],
 ];

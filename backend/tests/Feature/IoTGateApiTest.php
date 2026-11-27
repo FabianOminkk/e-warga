@@ -42,6 +42,51 @@ class IoTGateApiTest extends TestCase
         ]);
     }
 
+    public function test_default_esp32_gate_01_authenticates_and_marks_gate_online_even_in_production(): void
+    {
+        $prevEnv = $this->app['env'];
+        $this->app['env'] = 'production';
+
+        try {
+            // Unregistered UID without token must remain rejected in production
+            $this->postJson('/api/v1/gate/ping', [
+                'device_uid' => 'ESP32-UNKNOWN-PROD-99',
+            ])->assertStatus(401);
+
+            // Firmware ESP32-GATE-01 + SECRET-EW-GATE-2026 must connect cleanly in production
+            $resp = $this->withHeaders([
+                'X-Device-UID' => 'ESP32-GATE-01',
+                'X-Device-Token' => 'SECRET-EW-GATE-2026',
+            ])->postJson('/api/v1/gate/ping', [
+                'device_uid' => 'ESP32-GATE-01',
+            ]);
+
+            $resp->assertStatus(200)->assertJson([
+                'success' => true,
+                'status' => 'online',
+                'device_uid' => 'ESP32-GATE-01',
+            ]);
+
+            // Any new gate unit with valid shared gate token can also register in production
+            $resp2 = $this->withHeaders([
+                'X-Device-UID' => 'ESP32-GATE-02',
+                'X-Device-Token' => 'SECRET-EW-GATE-2026',
+            ])->postJson('/api/v1/gate/ping', [
+                'device_uid' => 'ESP32-GATE-02',
+            ]);
+
+            $resp2->assertStatus(200)->assertJson([
+                'success' => true,
+                'status' => 'online',
+                'device_uid' => 'ESP32-GATE-02',
+            ]);
+        } finally {
+            $this->app['env'] = $prevEnv;
+        }
+
+        $this->assertTrue(\App\Services\RfidService::getGateOnlineStatus()['online']);
+    }
+
     public function test_esp32_receives_remote_open_command_when_mobile_button_clicked(): void
     {
         Cache::put('gate_remote_open_global', [

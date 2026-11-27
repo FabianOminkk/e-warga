@@ -16,16 +16,38 @@ use Illuminate\Support\Facades\Cache;
 class IoTGateController extends Controller
 {
     /**
+     * Check whether the provided device credential matches configured shared gate or RFID keys.
+     */
+    private function isAuthorizedSharedToken(?string $token): bool
+    {
+        if ($token === null || $token === '') {
+            return false;
+        }
+
+        $gateToken = (string) config('services.rfid.gate_token', 'SECRET-EW-GATE-2026');
+        $deviceKey = (string) config('services.rfid.device_key', 'smartrw-rfid-device');
+
+        return ($gateToken !== '' && hash_equals($gateToken, $token))
+            || ($deviceKey !== '' && hash_equals($deviceKey, $token));
+    }
+
+    /**
      * Resolves and authenticates the SmartGate device from request headers or body.
      */
     private function resolveDevice(Request $request): SmartGate
     {
-        $deviceUid = $request->header('X-Device-UID') 
-            ?? $request->input('device_uid');
-        $deviceToken = $request->header('X-Device-Token') 
+        $deviceUid = trim((string) (
+            $request->header('X-Device-UID')
+            ?? $request->input('device_uid')
+            ?? $request->input('device_id')
+            ?? ''
+        ));
+        $deviceToken = $request->header('X-Device-Token')
+            ?? $request->header('X-Device-Key')
+            ?? $request->bearerToken()
             ?? $request->input('device_token');
 
-        if (!$deviceUid) {
+        if ($deviceUid === '') {
             abort(response()->json([
                 'success' => false,
                 'message' => 'Missing device UID (X-Device-UID header or device_uid parameter required).',
@@ -35,14 +57,14 @@ class IoTGateController extends Controller
         $gate = SmartGate::where('device_uid', $deviceUid)->first();
 
         if (!$gate) {
-            // Dalam mode pengujian otomatis (testing/local), izinkan auto-create jika belum terdaftar
-            if (app()->environment('testing', 'local')) {
+            // Izinkan auto-create pada testing/local, atau di produksi bila token perangkat valid
+            if (app()->environment('testing', 'local') || $this->isAuthorizedSharedToken($deviceToken ? (string) $deviceToken : null)) {
                 $tenant = Tenant::getActiveTenant() ?? Tenant::first();
                 $gate = SmartGate::create([
                     'tenant_id' => $tenant?->id ?? 1,
                     'name' => 'Gerbang Otomatis (' . $deviceUid . ')',
                     'device_uid' => $deviceUid,
-                    'secret_token' => $deviceToken ?? 'TEST-TOKEN',
+                    'secret_token' => $deviceToken ?: (string) config('services.rfid.gate_token', 'SECRET-EW-GATE-2026'),
                     'status' => 'online',
                     'ip_address' => $request->ip(),
                     'last_ping_at' => now(),
@@ -54,8 +76,13 @@ class IoTGateController extends Controller
                 ], 401));
             }
         } else {
-            // Verifikasi secret token jika disetel di database
-            if ($gate->secret_token && $deviceToken && !hash_equals($gate->secret_token, (string) $deviceToken)) {
+            // Verifikasi secret token perangkat atau token bersama bila disetel
+            if (
+                $gate->secret_token
+                && $deviceToken
+                && !hash_equals($gate->secret_token, (string) $deviceToken)
+                && !$this->isAuthorizedSharedToken((string) $deviceToken)
+            ) {
                 abort(response()->json([
                     'success' => false,
                     'message' => 'Invalid device token authentication.',

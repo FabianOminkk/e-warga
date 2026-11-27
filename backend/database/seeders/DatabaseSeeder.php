@@ -278,7 +278,17 @@ class DatabaseSeeder extends Seeder
             'tenant_id' => $tenant->id,
             'name' => 'Gerbang Utama Pos Timur',
             'device_uid' => 'ESP32-GATE-MELATI-01',
-            'secret_token' => Str::random(32),
+            'secret_token' => 'SECRET-EW-GATE-2026',
+            'ip_address' => null,
+            'status' => 'offline',
+            'last_ping_at' => null,
+        ]);
+
+        SmartGate::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Gerbang Utama Smart Gate (ESP32-GATE-01)',
+            'device_uid' => 'ESP32-GATE-01',
+            'secret_token' => 'SECRET-EW-GATE-2026',
             'ip_address' => null,
             'status' => 'offline',
             'last_ping_at' => null,

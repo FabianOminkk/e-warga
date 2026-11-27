@@ -85,12 +85,16 @@
             @php
                 $mobileGateOnline = \App\Services\RfidService::getGateOnlineStatus($tenant?->id)['online'];
             @endphp
-            <div class="pt-3 border-t border-white/10 grid grid-cols-2 gap-2 text-[11px]">
+            <div
+                x-data="{ gateOnline: {{ $mobileGateOnline ? 'true' : 'false' }} }"
+                @ewarga-gate-status.window="gateOnline = !!$event.detail.gateOnline"
+                class="pt-3 border-t border-white/10 grid grid-cols-2 gap-2 text-[11px]"
+            >
                 <div class="flex items-center gap-2 bg-white/5 backdrop-blur-xs rounded-xl px-2.5 py-1.5 border border-white/5">
-                    <span class="w-2 h-2 rounded-full {{ $mobileGateOnline ? 'bg-emerald-400 live-beacon' : 'bg-rose-500' }}"></span>
+                    <span class="w-2 h-2 rounded-full" :class="gateOnline ? 'bg-emerald-400 live-beacon' : 'bg-rose-500'"></span>
                     <div class="truncate">
                         <span class="text-slate-400 text-[10px] block">Palang Gerbang:</span>
-                        <span class="font-bold text-[11px] {{ $mobileGateOnline ? 'text-white' : 'text-rose-300' }}">
+                        <span class="font-bold text-[11px]" :class="gateOnline ? 'text-white' : 'text-rose-300'" x-text="gateOnline ? 'Online • Aktif' : 'Offline (ESP32 Putus)'">
                             {{ $mobileGateOnline ? 'Online • Aktif' : 'Offline (ESP32 Putus)' }}
                         </span>
                     </div>

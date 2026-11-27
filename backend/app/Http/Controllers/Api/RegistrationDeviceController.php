@@ -52,6 +52,7 @@ class RegistrationDeviceController extends BaseApiController
         $isOnline = $deviceStatus['online'];
         $secondsAgo = $deviceStatus['seconds_ago'];
         $readerInfo = $deviceStatus['reader_info'];
+        $deskPing = Cache::get("esp32_device_{$deviceUid}_last_ping");
 
         $rfidVer = Cache::get("esp32_rfid_ver_tenant_{$tenantId}") ?? Cache::get("esp32_rfid_ver_global");
         $rfidHealthy = $rfidVer && !in_array(strtolower($rfidVer), ['0x00', '0xff', '0x0', '0xf']);
@@ -75,7 +76,7 @@ class RegistrationDeviceController extends BaseApiController
             'hotspot_ssid' => 'BIAN',
             'last_seen_seconds_ago' => $secondsAgo,
             'device_uid' => $readerInfo['device_id'] ?? $deviceUid,
-            'ip_address' => $readerInfo['ip'] ?? null,
+            'ip_address' => $readerInfo['ip'] ?? ($deskPing['ip'] ?? null),
             'rfid_ver' => $rfidVer,
             'rfid_healthy' => $rfidHealthy,
             'message' => $message,

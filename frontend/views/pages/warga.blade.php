@@ -1455,6 +1455,7 @@ function wargaApp() {
                     const data = await res.json();
                     this.esp32Online = !!data.online;
                     this.gateOnline = data.gate_online !== undefined ? !!data.gate_online : !!data.online;
+                    window.dispatchEvent(new CustomEvent('ewarga-gate-status', { detail: { gateOnline: this.gateOnline, esp32Online: this.esp32Online } }));
                     if (this.esp32PairingActive && !this.esp32Success) {
                         if (this.esp32Online) {
                             this.esp32Message = 'Sensor siap! Tempelkan fisik e-KTP Anda ke scanner RFID di pos satpam / gerbang sekarang…';
@@ -1468,6 +1469,7 @@ function wargaApp() {
                         const dataPub = await resPub.json();
                         this.gateOnline = !!dataPub.online;
                         this.esp32Online = !!(dataPub.device_online ?? dataPub.online);
+                        window.dispatchEvent(new CustomEvent('ewarga-gate-status', { detail: { gateOnline: this.gateOnline, esp32Online: this.esp32Online } }));
                     }
                 }
             } catch (e) {
@@ -1477,10 +1479,12 @@ function wargaApp() {
                         const dataPub = await resPub.json();
                         this.gateOnline = !!dataPub.online;
                         this.esp32Online = !!(dataPub.device_online ?? dataPub.online);
+                        window.dispatchEvent(new CustomEvent('ewarga-gate-status', { detail: { gateOnline: this.gateOnline, esp32Online: this.esp32Online } }));
                     }
                 } catch (err) {
                     this.esp32Online = false;
                     this.gateOnline = false;
+                    window.dispatchEvent(new CustomEvent('ewarga-gate-status', { detail: { gateOnline: false, esp32Online: false } }));
                 }
             } finally {
                 if (manual) setTimeout(() => { this.isCheckingStatus = false; }, 400);

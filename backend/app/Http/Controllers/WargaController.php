@@ -573,12 +573,20 @@ class WargaController extends Controller
      */
     public function checkEsp32DeviceStatus(Request $request)
     {
-        $tenantId = (int) (Auth::user()?->tenant_id ?? 1);
+        $tenantId = (int) (Auth::user()?->tenant_id ?? Tenant::getActiveTenant()?->id ?? 1);
         $deviceStatus = RfidService::getDeviceOnlineStatus($tenantId, RfidService::ONLINE_TTL_SECONDS);
-        $isGateOnline = RfidService::getGateOnlineStatus($tenantId, RfidService::ONLINE_TTL_SECONDS)['online'];
+        $gateStatus = RfidService::getGateOnlineStatus($tenantId, RfidService::ONLINE_TTL_SECONDS);
+        $isGateOnline = $gateStatus['online'];
         $isOnline = $deviceStatus['online'];
         $secondsAgo = $deviceStatus['seconds_ago'];
-        $readerInfo = $deviceStatus['reader_info'];
+        $readerInfo = $deviceStatus['reader_info'] ?? $gateStatus['reader_info'];
+        $deskPing = Cache::get('esp32_device_' . RfidService::DESK_DEVICE_UID . '_last_ping');
+        $resolvedDeviceId = is_array($readerInfo) && !empty($readerInfo['device_id'])
+            ? $readerInfo['device_id']
+            : ($isOnline && is_array($deskPing) ? RfidService::DESK_DEVICE_UID : null);
+        $resolvedIp = is_array($readerInfo) && !empty($readerInfo['ip'])
+            ? $readerInfo['ip']
+            : (is_array($deskPing) ? ($deskPing['ip'] ?? null) : null);
 
         $rfidVer = Cache::get("esp32_rfid_ver_tenant_{$tenantId}")
             ?? Cache::get('esp32_rfid_ver_global');
@@ -603,8 +611,8 @@ class WargaController extends Controller
             'status_label' => $isOnline ? 'ESP32 Online (Terhubung ke Hotspot)' : 'ESP32 Offline (Belum Terhubung)',
             'hotspot_ssid' => 'BIAN',
             'last_seen_seconds_ago' => $secondsAgo,
-            'device_id' => $readerInfo['device_id'] ?? null,
-            'ip_address' => $readerInfo['ip'] ?? null,
+            'device_id' => $resolvedDeviceId,
+            'ip_address' => $resolvedIp,
             'rfid_ver' => $rfidVer,
             'rfid_healthy' => $rfidHealthy,
             'message' => $message,

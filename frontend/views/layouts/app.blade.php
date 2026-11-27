@@ -861,7 +861,13 @@
                                 <span class="text-base">🚧</span>
                                 <span>Akses Smart Gate</span>
                             </div>
-                            <span class="text-[9px] px-1.5 py-0.5 rounded-md font-bold {{ $sidebarGateOnline ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300' }}">
+                            <span
+                                x-data="{ gateOnline: {{ $sidebarGateOnline ? 'true' : 'false' }} }"
+                                @ewarga-gate-status.window="gateOnline = !!$event.detail.gateOnline"
+                                class="text-[9px] px-1.5 py-0.5 rounded-md font-bold transition-colors"
+                                :class="gateOnline ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300'"
+                                x-text="gateOnline ? 'ONLINE' : 'OFFLINE'"
+                            >
                                 {{ $sidebarGateOnline ? 'ONLINE' : 'OFFLINE' }}
                             </span>
                         </a>
@@ -922,7 +928,13 @@
                             @if($pendingVisitorCount > 0)
                                 <span class="text-[9px] px-2 py-0.5 rounded-full bg-amber-500 text-slate-950 font-black animate-pulse">{{ $pendingVisitorCount }} Tamu</span>
                             @elseif($currentUser?->canAccessGate())
-                                <span class="text-[9px] px-1.5 py-0.5 rounded-md font-bold {{ ($sidebarGateOnline ?? false) ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300' }}">
+                                <span
+                                    x-data="{ gateOnline: {{ ($sidebarGateOnline ?? false) ? 'true' : 'false' }} }"
+                                    @ewarga-gate-status.window="gateOnline = !!$event.detail.gateOnline"
+                                    class="text-[9px] px-1.5 py-0.5 rounded-md font-bold transition-colors"
+                                    :class="gateOnline ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300'"
+                                    x-text="gateOnline ? 'ONLINE' : 'OFFLINE'"
+                                >
                                     {{ ($sidebarGateOnline ?? false) ? 'ONLINE' : 'OFFLINE' }}
                                 </span>
                             @else

@@ -280,7 +280,13 @@ class RfidService
             return [
                 'online' => true,
                 'seconds_ago' => max(0, (int) $latestGate->last_ping_at->diffInSeconds(now())),
-                'reader_info' => $readerInfo,
+                'reader_info' => $readerInfo ?? [
+                    'device_id' => $latestGate->device_uid,
+                    'ip' => $latestGate->ip_address,
+                    'tenant_id' => $latestGate->tenant_id,
+                    'timestamp' => $latestGate->last_ping_at->timestamp,
+                    'last_seen_at' => $latestGate->last_ping_at->toIso8601String(),
+                ],
             ];
         }
 

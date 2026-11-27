@@ -60,6 +60,7 @@ class RfidController extends Controller
         $validated = $request->validate([
             'uid' => 'required|string|max:100',
             'device_id' => 'nullable|string|max:100',
+            'device_uid' => 'nullable|string|max:100',
             'tenant_id' => 'nullable|integer',
         ]);
 
@@ -68,7 +69,11 @@ class RfidController extends Controller
         $cleanUid = $normalized['clean'];
         $formattedTag = $normalized['formatted'];
 
-        $deviceId = trim((string) ($validated['device_id'] ?? $request->header('X-Device-UID', 'esp32-scanner-01')));
+        $deviceId = trim((string) (
+            $validated['device_id']
+            ?? $validated['device_uid']
+            ?? $request->header('X-Device-UID', 'esp32-scanner-01')
+        ));
         $requestedTenantId = isset($validated['tenant_id']) ? (int) $validated['tenant_id'] : null;
 
         $gate = RfidService::recordHeartbeat(
@@ -109,18 +114,23 @@ class RfidController extends Controller
      */
     public function heartbeat(Request $request): JsonResponse
     {
-        if ($authError = $this->rejectInvalidDeviceKey($request)) {
+        if ($authError = $this->rejectInvalidDeviceKey($request, true)) {
             return $authError;
         }
 
         $validated = $request->validate([
             'device_id' => 'nullable|string|max:100',
+            'device_uid' => 'nullable|string|max:100',
             'ip' => 'nullable|string|max:45',
             'tenant_id' => 'nullable|integer',
             'rfid_ver' => 'nullable|string|max:20',
         ]);
 
-        $deviceId = trim((string) ($validated['device_id'] ?? $request->header('X-Device-UID', 'esp32-scanner-01')));
+        $deviceId = trim((string) (
+            $validated['device_id']
+            ?? $validated['device_uid']
+            ?? $request->header('X-Device-UID', 'esp32-scanner-01')
+        ));
         $ip = $validated['ip'] ?? $request->ip();
         $tenantId = isset($validated['tenant_id']) ? (int) $validated['tenant_id'] : null;
 

@@ -20,6 +20,7 @@
                 if (r.ok) {
                     const d = await r.json();
                     this.isGateOnline = !!d.online;
+                    window.dispatchEvent(new CustomEvent('ewarga-gate-status', { detail: { gateOnline: this.isGateOnline, esp32Online: !!(d.device_online ?? d.online) } }));
                 }
             } catch (e) {}
         }, 4000);

@@ -83,6 +83,19 @@ class RfidSharedDeviceTest extends TestCase
                 'device_id' => 'esp32-scanner-01',
                 'ip_address' => '192.168.43.50',
             ]);
+
+        // Also accept Bearer-only auth and device_uid payload on /api/rfid/heartbeat
+        $this->withHeaders([
+            'Authorization' => 'Bearer smartrw-rfid-device',
+        ])->postJson('/api/rfid/heartbeat', [
+            'device_uid' => 'esp32-scanner-02',
+            'ip' => '192.168.43.51',
+        ])->assertStatus(200)
+            ->assertJson([
+                'status' => 'online',
+                'device_id' => 'esp32-scanner-02',
+                'ip' => '192.168.43.51',
+            ]);
     }
 
     public function test_invalid_device_key_or_bearer_token_is_rejected_with_401(): void

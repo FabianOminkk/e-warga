@@ -80,9 +80,27 @@ try {
     if ($LASTEXITCODE -ne 0) {
         throw "git commit gagal."
     }
-    git pull --rebase --autostash origin main
-    if ($LASTEXITCODE -ne 0) {
-        throw "Rebase dengan origin/main gagal. Selesaikan konflik secara manual."
+
+    $behindCount = [int]((git rev-list --count "HEAD..origin/main" 2>$null) -join '')
+    if ($behindCount -gt 0) {
+        $hasUnstaged = -not [string]::IsNullOrWhiteSpace((git diff --name-only 2>$null | Out-String))
+        $stashed = $false
+        if ($hasUnstaged) {
+            git stash push -m "auto-sync-pre-rebase" | Out-Null
+            if ($LASTEXITCODE -eq 0) {
+                $stashed = $true
+            }
+        }
+        try {
+            git pull --rebase origin main
+            if ($LASTEXITCODE -ne 0) {
+                throw "Rebase dengan origin/main gagal. Selesaikan konflik secara manual."
+            }
+        } finally {
+            if ($stashed) {
+                git stash pop | Out-Null
+            }
+        }
     }
 
     git push origin main
