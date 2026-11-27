@@ -3,10 +3,12 @@
 namespace Tests\Feature;
 
 use App\Models\Billing;
+use App\Models\CashBook;
 use App\Models\House;
 use App\Models\Payment;
 use App\Models\PosyanduMember;
 use App\Models\PosyanduRecord;
+use App\Models\SecuritySchedule;
 use App\Models\SmartGate;
 use App\Models\Tenant;
 use App\Models\User;
@@ -248,5 +250,178 @@ class ComprehensiveBugfixAuditTest extends TestCase
             'blood_pressure' => '145/95',
             'nutrition_status' => 'hipertensi',
         ]);
+    }
+
+    public function test_api_schedule_toggle_mode_requires_super_admin_and_uses_kampung_enum(): void
+    {
+        $tenant = Tenant::create([
+            'name' => 'Cluster Harmoni',
+            'slug' => 'cluster-harmoni-mode',
+            'environment_type' => 'cluster',
+            'rt_rw' => 'RT 01 / RW 02',
+        ]);
+
+        $ketuaRt = User::factory()->create([
+            'tenant_id' => $tenant->id,
+            'role' => 'ketua_rt',
+        ]);
+        $superAdmin = User::factory()->create([
+            'tenant_id' => $tenant->id,
+            'role' => 'super_admin',
+        ]);
+
+        $rtToken = $this->createBearerToken($ketuaRt);
+        $this->withHeader('Authorization', "Bearer {$rtToken}")
+            ->postJson('/api/v1/schedules/toggle-mode')
+            ->assertStatus(403);
+
+        $adminToken = $this->createBearerToken($superAdmin);
+        $this->withHeader('Authorization', "Bearer {$adminToken}")
+            ->postJson('/api/v1/schedules/toggle-mode')
+            ->assertOk()
+            ->assertJsonPath('data.environment_type', 'kampung');
+
+        $this->assertSame('kampung', $tenant->fresh()->environment_type);
+
+        $this->withHeader('Authorization', "Bearer {$adminToken}")
+            ->postJson('/api/v1/schedules/toggle-mode')
+            ->assertOk()
+            ->assertJsonPath('data.environment_type', 'cluster');
+    }
+
+    public function test_schedules_and_cashbook_handle_invalid_month_and_omitted_notes_safely(): void
+    {
+        $tenant = Tenant::create([
+            'name' => 'Cluster Aman',
+            'slug' => 'cluster-aman',
+            'environment_type' => 'cluster',
+            'rt_rw' => 'RT 04 / RW 01',
+        ]);
+
+        $ketuaRt = User::factory()->create([
+            'tenant_id' => $tenant->id,
+            'role' => 'ketua_rt',
+        ]);
+        $bendahara = User::factory()->create([
+            'tenant_id' => $tenant->id,
+            'role' => 'bendahara',
+        ]);
+        $satpam = User::factory()->create([
+            'tenant_id' => $tenant->id,
+            'role' => 'satpam',
+        ]);
+
+        // Malformed month parameter must fall back cleanly instead of throwing 500
+        $this->actingAs($ketuaRt)
+            ->get('/jadwal-keamanan?month=invalid-month')
+            ->assertOk();
+
+        $rtToken = $this->createBearerToken($ketuaRt);
+        $this->withHeader('Authorization', "Bearer {$rtToken}")
+            ->getJson('/api/v1/schedules?month=not-a-date')
+            ->assertOk()
+            ->assertJsonPath('data.month', now()->format('Y-m'));
+
+        // Creating schedule without optional 'notes' field must not fail with Undefined array key
+        $this->actingAs($ketuaRt)->post('/jadwal-keamanan', [
+            'user_id' => $satpam->id,
+            'schedule_type' => 'satpam_shift',
+            'duty_date' => now()->toDateString(),
+            'shift_name' => 'Shift Malam Pos 1',
+            'start_time' => '19:00',
+            'end_time' => '07:00',
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('security_schedules', [
+            'tenant_id' => $tenant->id,
+            'shift_name' => 'Shift Malam Pos 1',
+        ]);
+
+        // Creating CashBook entry without 'notes' field must succeed cleanly
+        $this->actingAs($bendahara)->post(route('dashboard.store-cashbook'), [
+            'type' => 'expense',
+            'category' => 'Operasional',
+            'title' => 'Pembelian Token Listrik Pos',
+            'amount' => 100000,
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('cash_books', [
+            'tenant_id' => $tenant->id,
+            'title' => 'Pembelian Token Listrik Pos',
+        ]);
+    }
+
+    public function test_rbac_guards_ktp_verification_dashboard_api_posyandu_and_nutrition_enum(): void
+    {
+        $tenant = Tenant::create([
+            'name' => 'Cluster Tertib',
+            'slug' => 'cluster-tertib',
+            'environment_type' => 'cluster',
+            'rt_rw' => 'RT 03 / RW 02',
+        ]);
+
+        $warga = User::factory()->create([
+            'tenant_id' => $tenant->id,
+            'role' => 'warga',
+            'verification_status' => 'pending_rw',
+            'gate_access_enabled' => false,
+        ]);
+
+        $ketuaRw = User::factory()->create([
+            'tenant_id' => $tenant->id,
+            'role' => 'ketua_rw',
+        ]);
+
+        // Citizen cannot self-approve KTP via web or API
+        $this->actingAs($warga)
+            ->post(route('rw.verifications.approve', $warga->id))
+            ->assertRedirect();
+        $this->assertSame('pending_rw', $warga->fresh()->verification_status);
+
+        $wargaToken = $this->createBearerToken($warga);
+        $this->withHeader('Authorization', "Bearer {$wargaToken}")
+            ->postJson("/api/v1/dashboard/verifications/{$warga->id}/approve")
+            ->assertStatus(403);
+        $this->withHeader('Authorization', "Bearer {$wargaToken}")
+            ->getJson('/api/v1/dashboard/verifications')
+            ->assertStatus(403);
+        $this->withHeader('Authorization', "Bearer {$wargaToken}")
+            ->postJson('/api/v1/dashboard/cashbook', [
+                'type' => 'income',
+                'category' => 'Iuran',
+                'title' => 'Fake Entry',
+                'amount' => 50000,
+            ])->assertStatus(403);
+
+        // Citizen cannot create web Posyandu members
+        $this->actingAs($warga)->post(route('posyandu.members.store'), [
+            'name' => 'Balita Unauthorized',
+            'category' => 'balita',
+            'gender' => 'L',
+            'birth_date' => '2025-01-01',
+        ])->assertRedirect();
+        $this->assertDatabaseMissing('posyandu_members', ['name' => 'Balita Unauthorized']);
+
+        // Posyandu API uses canonical 'gizi_kurang' enum matching status badge
+        $member = PosyanduMember::create([
+            'tenant_id' => $tenant->id,
+            'category' => 'balita',
+            'name' => 'Bayi Timbangan',
+            'gender' => 'P',
+            'birth_date' => now()->subMonths(12)->toDateString(),
+        ]);
+
+        $rwToken = $this->createBearerToken($ketuaRw);
+        $this->withHeader('Authorization', "Bearer {$rwToken}")
+            ->postJson('/api/v1/posyandu/records', [
+                'posyandu_member_id' => $member->id,
+                'checkup_date' => now()->toDateString(),
+                'weight_kg' => 5.2,
+                'height_cm' => 75.0,
+            ])->assertStatus(201);
+
+        $record = PosyanduRecord::where('posyandu_member_id', $member->id)->firstOrFail();
+        $this->assertSame('gizi_kurang', $record->nutrition_status);
+        $this->assertSame('Gizi Kurang', $record->status_badge['label']);
     }
 }

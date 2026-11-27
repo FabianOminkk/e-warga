@@ -374,7 +374,8 @@ class WargaController extends Controller
         $targetUser = User::findOrFail($id);
 
         $isOwner = $currentUser->id === $targetUser->id;
-        $isOfficial = in_array($currentUser->role, ['super_admin', 'ketua_rw', 'ketua_rt', 'bendahara', 'satpam']);
+        $sameTenant = $currentUser->isSuperAdmin() || (int) $currentUser->tenant_id === (int) $targetUser->tenant_id;
+        $isOfficial = $sameTenant && in_array($currentUser->role, ['super_admin', 'ketua_rw', 'ketua_rt', 'bendahara', 'satpam', 'sekretaris', 'pengurus_rt']);
 
         if (!$isOwner && !$isOfficial) {
             abort(403, 'Akses ditolak: Anda tidak memiliki wewenang untuk melihat berkas KTP warga ini.');
@@ -771,7 +772,8 @@ class WargaController extends Controller
         // Pastikan hanya warga pemilik rumah tujuan, pembuat undangan, atau pengurus yang bisa menyetujui
         $ownsHouse = $user->house_id !== null && (int) $visitor->host_house_id === (int) $user->house_id;
         $invitedByMe = (int) $visitor->invited_by_user_id === (int) $user->id;
-        if (!$ownsHouse && !$invitedByMe && !$user->isPengurus()) {
+        $isTenantManager = $user->isPengurus() && ($user->isSuperAdmin() || (int) $user->tenant_id === (int) $visitor->tenant_id);
+        if (!$ownsHouse && !$invitedByMe && !$isTenantManager) {
             return redirect()->back()->with('error', 'Anda tidak berwenang menyetujui kunjungan untuk rumah lain.');
         }
 
@@ -858,7 +860,8 @@ class WargaController extends Controller
 
         $ownsHouse = $user->house_id !== null && (int) $visitor->host_house_id === (int) $user->house_id;
         $invitedByMe = (int) $visitor->invited_by_user_id === (int) $user->id;
-        if (!$ownsHouse && !$invitedByMe && !$user->isPengurus()) {
+        $isTenantManager = $user->isPengurus() && ($user->isSuperAdmin() || (int) $user->tenant_id === (int) $visitor->tenant_id);
+        if (!$ownsHouse && !$invitedByMe && !$isTenantManager) {
             return redirect()->back()->with('error', 'Anda tidak berwenang menolak kunjungan ini.');
         }
 
@@ -1001,7 +1004,8 @@ class WargaController extends Controller
 
         $billing = Billing::with(['house', 'tenant', 'payments.payer', 'payments.verifier'])->findOrFail($billingId);
         $isOwner = $user->house_id && (int) $user->house_id === (int) $billing->house_id;
-        if (!$isOwner && !$user->isPengurus()) {
+        $isTenantManager = $user->isPengurus() && ($user->isSuperAdmin() || (int) $user->tenant_id === (int) $billing->tenant_id);
+        if (!$isOwner && !$isTenantManager) {
             abort(403, 'Anda tidak berwenang mengakses kwitansi unit rumah lain.');
         }
 
@@ -1029,7 +1033,8 @@ class WargaController extends Controller
         $payment = Payment::with('billing')->findOrFail($id);
         $isPayer = (int) $payment->payer_user_id === (int) $currentUser->id;
         $isSameHouse = $currentUser->house_id && $payment->billing && (int) $payment->billing->house_id === (int) $currentUser->house_id;
-        $isFinanceOfficer = in_array($currentUser->role, ['super_admin', 'ketua_rw', 'ketua_rt', 'bendahara', 'sekretaris', 'pengurus_rt']);
+        $sameTenant = $currentUser->isSuperAdmin() || ($payment->billing && (int) $currentUser->tenant_id === (int) $payment->billing->tenant_id);
+        $isFinanceOfficer = $sameTenant && in_array($currentUser->role, ['super_admin', 'ketua_rw', 'ketua_rt', 'bendahara', 'sekretaris', 'pengurus_rt']);
 
         if (!$isPayer && !$isSameHouse && !$isFinanceOfficer) {
             abort(403, 'Akses ditolak: Anda tidak berwenang melihat bukti pembayaran ini.');

@@ -91,6 +91,9 @@ class LetterController extends Controller
 
         $tenant = Tenant::getActiveTenant() ?? Tenant::first();
         $letter = LetterRequest::findOrFail($id);
+        if ($signer && !$signer->isSuperAdmin() && (int) $letter->tenant_id !== (int) $signer->tenant_id) {
+            return back()->with('error', 'Akses ditolak: Surat bukan milik wilayah Anda.');
+        }
         $rtUser = User::where('role', 'ketua_rt')->first() ?? User::first();
 
         $romans = [1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI', 7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII'];
@@ -131,6 +134,9 @@ class LetterController extends Controller
         }
 
         $letter = LetterRequest::findOrFail($id);
+        if ($signer && !$signer->isSuperAdmin() && (int) $letter->tenant_id !== (int) $signer->tenant_id) {
+            return back()->with('error', 'Akses ditolak: Surat bukan milik wilayah Anda.');
+        }
 
         $validated = $request->validate([
             'rejection_reason' => 'required|string|max:255',

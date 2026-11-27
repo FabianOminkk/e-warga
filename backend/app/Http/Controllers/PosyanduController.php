@@ -92,6 +92,11 @@ class PosyanduController extends Controller
 
     public function storeMember(Request $request)
     {
+        $actor = \Illuminate\Support\Facades\Auth::user();
+        if ($actor && !in_array($actor->role, ['super_admin', 'ketua_rw', 'ketua_rt', 'sekretaris', 'bendahara', 'pengurus_rt'])) {
+            return back()->with('error', 'Akses ditolak: Hanya pengurus atau kader Posyandu berwenang yang dapat mendaftarkan warga Posyandu.');
+        }
+
         $tenant = Tenant::getActiveTenant() ?? Tenant::first();
 
         $validated = $request->validate([
@@ -116,6 +121,11 @@ class PosyanduController extends Controller
 
     public function storeRecord(Request $request)
     {
+        $actor = \Illuminate\Support\Facades\Auth::user();
+        if ($actor && !in_array($actor->role, ['super_admin', 'ketua_rw', 'ketua_rt', 'sekretaris', 'bendahara', 'pengurus_rt'])) {
+            return back()->with('error', 'Akses ditolak: Hanya pengurus atau kader Posyandu berwenang yang dapat mencatat hasil pemeriksaan.');
+        }
+
         $tenant = Tenant::getActiveTenant() ?? Tenant::first();
 
         $validated = $request->validate([
@@ -136,7 +146,7 @@ class PosyanduController extends Controller
             'action_plan' => 'nullable|string',
         ]);
 
-        $member = PosyanduMember::findOrFail($validated['posyandu_member_id']);
+        $member = PosyanduMember::where('tenant_id', $tenant?->id ?? 1)->findOrFail($validated['posyandu_member_id']);
 
         // Auto-detection rules if nutrition_status not explicitly provided or default
         if (empty($validated['nutrition_status'])) {
@@ -188,7 +198,13 @@ class PosyanduController extends Controller
 
     public function destroyMember($id)
     {
-        $member = PosyanduMember::findOrFail($id);
+        $actor = \Illuminate\Support\Facades\Auth::user();
+        if ($actor && !in_array($actor->role, ['super_admin', 'ketua_rw', 'ketua_rt', 'sekretaris', 'bendahara', 'pengurus_rt'])) {
+            return back()->with('error', 'Akses ditolak: Hanya pengurus berwenang yang dapat menghapus data Posyandu.');
+        }
+
+        $tenant = Tenant::getActiveTenant() ?? Tenant::first();
+        $member = PosyanduMember::where('tenant_id', $tenant?->id ?? 1)->findOrFail($id);
         $name = $member->name;
         $member->delete();
 

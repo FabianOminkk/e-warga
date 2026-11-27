@@ -208,7 +208,7 @@
                                 <span>92%</span>
                             </div>
                             <div class="w-full h-2 rounded-full bg-emerald-200 dark:bg-emerald-900/60 overflow-hidden">
-                                <div class="h-full bg-emerald-500 rounded-full transition-all duration-1000 ease-out" :style="'width: ' + progressWidth"></div>
+                                <div class="h-full bg-emerald-500 rounded-full transition-[width] duration-1000 ease-out" :style="'width: ' + progressWidth"></div>
                             </div>
                             <div class="text-[10px] text-slate-500 dark:text-slate-400">Kas transparan anti-curiga</div>
                         </div>

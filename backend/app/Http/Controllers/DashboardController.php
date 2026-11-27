@@ -163,7 +163,14 @@ class DashboardController extends Controller
             return redirect()->back()->with('error', 'Akses ditolak: Hanya pengurus berwenang yang dapat memverifikasi pembayaran iuran.');
         }
         $payment = Payment::with(['billing.house'])->findOrFail($id);
+        if ($actor && !$actor->isSuperAdmin() && $payment->billing && (int) $payment->billing->tenant_id !== (int) $actor->tenant_id) {
+            return redirect()->back()->with('error', 'Akses ditolak: Tagihan pembayaran milik wilayah lain.');
+        }
         $action = $request->input('action'); // 'approve' or 'reject'
+
+        if ($action === 'approve' && ($payment->verified_at !== null || $payment->billing?->status === 'paid')) {
+            return redirect()->back()->with('info', 'Pembayaran ini sudah diverifikasi sebelumnya.');
+        }
 
         $verifierId = Auth::id() ?? User::where('role', 'bendahara')->value('id') ?? User::first()?->id;
 
@@ -263,7 +270,7 @@ class DashboardController extends Controller
             'title' => $validated['title'],
             'amount' => $validated['amount'],
             'transaction_date' => now(),
-            'notes' => $validated['notes'],
+            'notes' => $validated['notes'] ?? null,
         ]);
 
         $author = User::find($userId);
@@ -281,8 +288,15 @@ class DashboardController extends Controller
 
     public function approveWargaVerification($id)
     {
+        $approver = Auth::user();
+        if (!$approver || !in_array($approver->role, ['super_admin', 'ketua_rw', 'ketua_rt', 'sekretaris', 'pengurus_rt'])) {
+            return redirect()->back()->with('error', 'Akses ditolak: Hanya Ketua RW / Pengurus RT berwenang yang dapat menyetujui verifikasi KTP warga.');
+        }
+
         $targetUser = User::where('role', 'warga')->findOrFail($id);
-        $approver = Auth::user() ?? User::where('role', 'ketua_rw')->first();
+        if (!$approver->isSuperAdmin() && (int) $targetUser->tenant_id !== (int) $approver->tenant_id) {
+            return redirect()->back()->with('error', 'Akses ditolak: Data warga berada di wilayah berbeda.');
+        }
 
         // Pastikan NIK dan rfid_tag tersedia
         $rfid = $targetUser->rfid_tag;
@@ -329,8 +343,15 @@ class DashboardController extends Controller
 
     public function rejectWargaVerification(Request $request, $id)
     {
+        $approver = Auth::user();
+        if (!$approver || !in_array($approver->role, ['super_admin', 'ketua_rw', 'ketua_rt', 'sekretaris', 'pengurus_rt'])) {
+            return redirect()->back()->with('error', 'Akses ditolak: Hanya Ketua RW / Pengurus RT berwenang yang dapat menolak verifikasi KTP warga.');
+        }
+
         $targetUser = User::where('role', 'warga')->findOrFail($id);
-        $approver = Auth::user() ?? User::where('role', 'ketua_rw')->first();
+        if (!$approver->isSuperAdmin() && (int) $targetUser->tenant_id !== (int) $approver->tenant_id) {
+            return redirect()->back()->with('error', 'Akses ditolak: Data warga berada di wilayah berbeda.');
+        }
         $reason = $request->input('reason', 'Foto KTP tidak jelas / NIK tidak cocok dengan data kependudukan.');
 
         $targetUser->update([

@@ -645,7 +645,11 @@ function registerForm() {
             if (!file) return;
 
             if (file.size > 5 * 1024 * 1024) {
-                alert('Ukuran berkas KTP maksimal 5 MB.');
+                if (window.ewargaToast) {
+                    window.ewargaToast('warning', 'Ukuran berkas KTP maksimal 5 MB.');
+                } else {
+                    alert('Ukuran berkas KTP maksimal 5 MB.');
+                }
                 event.target.value = '';
                 return;
             }

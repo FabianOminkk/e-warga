@@ -172,7 +172,7 @@
         <button 
             type="button" 
             @click="toggle()" 
-            class="group relative flex items-center gap-2.5 px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-full bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 text-white font-black text-xs shadow-xl shadow-emerald-600/30 hover:shadow-emerald-600/50 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer border border-white/20 touch-press card-interactive btn-shimmer"
+            class="group relative flex items-center gap-2.5 px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-full bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 text-white font-black text-xs shadow-xl shadow-emerald-600/30 hover:shadow-emerald-600/50 hover:scale-105 active:scale-95 transition-[transform,box-shadow] duration-200 cursor-pointer border border-white/20 touch-press card-interactive btn-shimmer"
             aria-label="Tanya Asisten AI Bang Warga"
             :title="isOpen ? 'Tutup Asisten Bang Warga AI' : 'Buka Asisten Bang Warga AI'"
         >
@@ -197,7 +197,7 @@
     <div 
         x-show="isOpen" 
         x-cloak 
-        class="fixed inset-0 z-50 flex items-end sm:items-center justify-end sm:justify-end p-0 sm:p-6 transition-all duration-300"
+        class="fixed inset-0 z-50 flex items-end sm:items-center justify-end sm:justify-end p-0 sm:p-6 transition-opacity duration-300"
     >
         <!-- Backdrop Blur (Tap outside to close) -->
         <div 

@@ -27,7 +27,12 @@
     },
     async triggerOpenGate() {
         if (!this.isGateOnline) {
-            alert('Smart Gate sedang OFFLINE! Hubungkan perangkat ESP32 ke hotspot/WiFi terlebih dahulu.');
+            const offlineMsg = 'Smart Gate sedang OFFLINE! Hubungkan perangkat ESP32 ke hotspot/WiFi terlebih dahulu.';
+            if (window.ewargaToast) {
+                window.ewargaToast('warning', offlineMsg);
+            } else {
+                alert(offlineMsg);
+            }
             return;
         }
         this.openGateModal = true;
@@ -56,11 +61,21 @@
                     }
                 }, 1000);
             } else {
-                alert(data.message || 'Gagal membuka palang gerbang.');
+                const errMsg = data.message || 'Gagal membuka palang gerbang.';
+                if (window.ewargaToast) {
+                    window.ewargaToast('warning', errMsg);
+                } else {
+                    alert(errMsg);
+                }
                 this.openGateModal = false;
             }
         } catch (err) {
-            alert('Terjadi kendala jaringan saat menghubungi perangkat gerbang.');
+            const netMsg = 'Terjadi kendala jaringan saat menghubungi perangkat gerbang.';
+            if (window.ewargaToast) {
+                window.ewargaToast('error', netMsg);
+            } else {
+                alert(netMsg);
+            }
             this.openGateModal = false;
         } finally {
             this.gateLoading = false;

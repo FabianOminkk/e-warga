@@ -145,7 +145,7 @@ class PosyanduApiController extends BaseApiController
                 $nutritionStatus = 'risiko_stunting';
                 $stuntingAnalysis = "Tinggi badan ({$height} cm) berada di bawah ambang batas kurva WHO untuk usia {$ageMonths} bulan. Perlu pemantauan gizi intensif.";
             } elseif ($weight < ($ageMonths * 0.4 + 3.0)) {
-                $nutritionStatus = 'kurang_gizi';
+                $nutritionStatus = 'gizi_kurang';
                 $stuntingAnalysis = "Berat badan relatif rendah untuk usia {$ageMonths} bulan. Disarankan suplementasi protein & PMT.";
             }
         } elseif ($member->category === 'lansia' && !empty($validated['systolic'])) {

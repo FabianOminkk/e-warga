@@ -34,8 +34,8 @@
             <div class="flex items-center gap-4">
                 <!-- Traffic Light Simulation -->
                 <div class="bg-slate-950 px-3 py-2 rounded-2xl border border-slate-700 flex items-center gap-3">
-                    <div class="w-6 h-6 rounded-full transition-all duration-300" :class="!isOpen ? 'bg-red-500 shadow-lg shadow-red-500/80 ring-2 ring-red-300' : 'bg-red-950'"></div>
-                    <div class="w-6 h-6 rounded-full transition-all duration-300" :class="isOpen ? 'bg-emerald-400 shadow-lg shadow-emerald-400/80 ring-2 ring-emerald-300' : 'bg-emerald-950'"></div>
+                    <div class="w-6 h-6 rounded-full transition-[background-color,box-shadow] duration-300" :class="!isOpen ? 'bg-red-500 shadow-lg shadow-red-500/80 ring-2 ring-red-300' : 'bg-red-950'"></div>
+                    <div class="w-6 h-6 rounded-full transition-[background-color,box-shadow] duration-300" :class="isOpen ? 'bg-emerald-400 shadow-lg shadow-emerald-400/80 ring-2 ring-emerald-300' : 'bg-emerald-950'"></div>
                 </div>
                 <div>
                     <div class="text-xs font-mono text-slate-400">STATUS PALANG PINTU:</div>
@@ -199,17 +199,13 @@ function gateSimulator() {
         isOpen: false,
         countdown: 5,
         timer: null,
-        selectedUserId: '{{ $wargaUsers->first()?->id ?? '' }}',
-        logs: [
-            @foreach($recentLogs as $log)
-            {
-                id: {{ $log->id }},
-                time: '{{ $log->triggered_at->format('H:i:s') }}',
-                method: '{{ $log->access_method }}',
-                reason: '{{ $log->reason }}'
-            },
-            @endforeach
-        ],
+        selectedUserId: @js($wargaUsers->first()?->id ?? ''),
+        logs: @js($recentLogs->map(fn ($log) => [
+            'id' => $log->id,
+            'time' => $log->triggered_at->format('H:i:s'),
+            'method' => $log->access_method,
+            'reason' => $log->reason,
+        ])->values()),
 
         triggerGate(method) {
             if (this.isOpen) return;
@@ -251,7 +247,11 @@ function gateSimulator() {
                     }, 1000);
                 } else {
                     // Akses ditolak (Warga terkunci atau belum di-ACC Ketua RW)
-                    alert('⚠️ ' + data.message);
+                    if (window.ewargaToast) {
+                        window.ewargaToast('warning', data.message);
+                    } else {
+                        alert('⚠️ ' + data.message);
+                    }
                     if (data.log) {
                         this.logs.unshift({
                             id: data.log.id,

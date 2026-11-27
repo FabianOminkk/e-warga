@@ -15,11 +15,18 @@ class ScheduleController extends Controller
     {
         $tenant = Tenant::getActiveTenant() ?? Tenant::first();
         $type = $request->input('type'); // 'satpam_shift' or 'ronda_warga' or all
-        $month = $request->input('month', now()->format('Y-m'));
+        $rawMonth = trim((string) $request->input('month', ''));
+        if (preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $rawMonth) === 1) {
+            $month = $rawMonth;
+            $parsedMonth = Carbon::createFromFormat('Y-m', $month)->startOfMonth();
+        } else {
+            $parsedMonth = now()->startOfMonth();
+            $month = $parsedMonth->format('Y-m');
+        }
 
         $query = SecuritySchedule::where('tenant_id', $tenant?->id ?? 1)
-            ->whereYear('duty_date', Carbon::parse($month)->year)
-            ->whereMonth('duty_date', Carbon::parse($month)->month)
+            ->whereYear('duty_date', $parsedMonth->year)
+            ->whereMonth('duty_date', $parsedMonth->month)
             ->with(['officer.house', 'replacement']);
 
         if ($type) {
@@ -74,7 +81,7 @@ class ScheduleController extends Controller
             'start_time' => $validated['start_time'],
             'end_time' => $validated['end_time'],
             'status' => 'scheduled',
-            'notes' => $validated['notes'],
+            'notes' => $validated['notes'] ?? null,
         ]);
 
         return redirect()->back()->with('success', 'Jadwal petugas/ronda baru berhasil ditambahkan!');
@@ -82,7 +89,17 @@ class ScheduleController extends Controller
 
     public function checkIn($id)
     {
+        $currentUser = Auth::user();
         $schedule = SecuritySchedule::findOrFail($id);
+
+        if ($currentUser && !$currentUser->isSuperAdmin() && (int) $currentUser->tenant_id !== (int) $schedule->tenant_id) {
+            return redirect()->back()->with('error', 'Akses ditolak: Jadwal bukan milik wilayah Anda.');
+        }
+
+        if ($currentUser && !in_array($currentUser->role, ['super_admin', 'ketua_rw', 'ketua_rt', 'sekretaris', 'satpam', 'pengurus_rt']) && (int) $currentUser->id !== (int) $schedule->user_id) {
+            return redirect()->back()->with('error', 'Akses ditolak: Anda hanya dapat melakukan absensi untuk jadwal dinas Anda sendiri.');
+        }
+
         $schedule->update([
             'status' => 'present',
             'checked_in_at' => now(),
@@ -94,12 +111,22 @@ class ScheduleController extends Controller
 
     public function requestSwap(Request $request, $id)
     {
+        $currentUser = Auth::user();
+        $schedule = SecuritySchedule::findOrFail($id);
+
+        if ($currentUser && !$currentUser->isSuperAdmin() && (int) $currentUser->tenant_id !== (int) $schedule->tenant_id) {
+            return redirect()->back()->with('error', 'Akses ditolak: Jadwal bukan milik wilayah Anda.');
+        }
+
+        if ($currentUser && !in_array($currentUser->role, ['super_admin', 'ketua_rw', 'ketua_rt', 'sekretaris', 'satpam', 'pengurus_rt']) && (int) $currentUser->id !== (int) $schedule->user_id) {
+            return redirect()->back()->with('error', 'Akses ditolak: Anda hanya dapat mengajukan tukar jadwal untuk tugas Anda sendiri.');
+        }
+
         $validated = $request->validate([
             'replacement_user_id' => 'required|exists:users,id',
             'notes' => 'nullable|string',
         ]);
 
-        $schedule = SecuritySchedule::findOrFail($id);
         $replacementUser = User::find($validated['replacement_user_id']);
         $replacementName = $replacementUser ? $replacementUser->name : 'Petugas Pengganti';
 

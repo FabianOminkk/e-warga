@@ -126,7 +126,7 @@
                                 </form>
                                 <button 
                                     type="button"
-                                    @click="showRejectModal = true; selectedLetterId = '{{ $item->id }}'; selectedLetterTitle = '{{ $item->letter_type_title }} - {{ $item->applicant_name }}'" 
+                                    @click="showRejectModal = true; selectedLetterId = {{ $item->id }}; selectedLetterTitle = {{ Js::from($item->letter_type_title . ' - ' . $item->applicant_name) }}" 
                                     class="flex-1 min-h-[44px] px-3 py-2.5 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800 transition-transform active:scale-95 flex items-center justify-center gap-1 cursor-pointer touch-press"
                                 >
                                     <span>✕ Tolak</span>
@@ -225,7 +225,7 @@
                                         </form>
                                         <button 
                                             type="button"
-                                            @click="showRejectModal = true; selectedLetterId = '{{ $item->id }}'; selectedLetterTitle = '{{ $item->letter_type_title }} - {{ $item->applicant_name }}'" 
+                                            @click="showRejectModal = true; selectedLetterId = {{ $item->id }}; selectedLetterTitle = {{ Js::from($item->letter_type_title . ' - ' . $item->applicant_name) }}" 
                                             class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-rose-50 text-rose-600 hover:bg-rose-100 dark:bg-rose-950/60 dark:text-rose-300 transition-colors cursor-pointer whitespace-nowrap focus-visible:ring-2 focus-visible:ring-rose-500"
                                         >
                                             Tolak

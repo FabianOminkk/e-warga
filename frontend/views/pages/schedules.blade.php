@@ -168,7 +168,7 @@
                                     @endif
                                 </td>
                                 <td class="py-3.5 text-right space-x-1.5">
-                                    @if($s->status === 'scheduled')
+                                    @if($s->status === 'scheduled' && (in_array(auth()->user()?->role ?? '', ['super_admin', 'ketua_rw', 'ketua_rt', 'sekretaris', 'satpam', 'pengurus_rt']) || (int) auth()->id() === (int) $s->user_id))
                                         <!-- Tombol Absen Hadir -->
                                         <form action="{{ route('schedules.checkin', $s->id) }}" method="POST" class="inline">
                                             @csrf
@@ -178,9 +178,11 @@
                                         </form>
 
                                         <!-- Tombol Ajukan Tukar Jadwal -->
-                                        <button type="button" @click="openSwapModal = true; selectedScheduleId = '{{ $s->id }}'; selectedOfficerName = '{{ $s->officer->name ?? 'Petugas' }}'" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-[11px] rounded-lg transition-colors cursor-pointer whitespace-nowrap" title="Ajukan penggantian/tukar shift dinas">
+                                        <button type="button" @click="openSwapModal = true; selectedScheduleId = {{ $s->id }}; selectedOfficerName = {{ Js::from($s->officer->name ?? 'Petugas') }}" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-[11px] rounded-lg transition-colors cursor-pointer whitespace-nowrap" title="Ajukan penggantian/tukar shift dinas">
                                             🔄 Tukar
                                         </button>
+                                    @elseif($s->status === 'scheduled')
+                                        <span class="text-[11px] text-slate-400 dark:text-slate-500">Menunggu Dinas</span>
                                     @endif
                                 </td>
                             </tr>

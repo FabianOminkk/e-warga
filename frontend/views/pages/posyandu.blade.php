@@ -22,10 +22,12 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-3">
-            <button type="button" @click="showAddMemberModal = true" class="px-4 py-2.5 rounded-xl font-semibold text-sm bg-pink-600 hover:bg-pink-700 text-white shadow-xs transition-colors flex items-center gap-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900">
-                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                <span>Tambah Warga Posyandu</span>
-            </button>
+            @if(in_array(auth()->user()?->role ?? '', ['super_admin', 'ketua_rw', 'ketua_rt', 'sekretaris', 'bendahara', 'pengurus_rt']))
+                <button type="button" @click="showAddMemberModal = true" class="px-4 py-2.5 rounded-xl font-semibold text-sm bg-pink-600 hover:bg-pink-700 text-white shadow-xs transition-colors flex items-center gap-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    <span>Tambah Warga Posyandu</span>
+                </button>
+            @endif
         </div>
     </div>
 
@@ -207,21 +209,25 @@
                                 @endif
                             </td>
                             <td class="py-4 px-6 text-right space-x-2">
-                                <button 
-                                    type="button"
-                                    @click="showRecordModal = true; selectedMemberId = '{{ $m->id }}'; selectedMemberName = '{{ $m->name }} ({{ $m->category_label }})'" 
-                                    class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300 transition-colors cursor-pointer whitespace-nowrap"
-                                    title="Catat Penimbangan & Periksa"
-                                >
-                                    + Catat Periksa
-                                </button>
-                                <form action="{{ route('posyandu.members.destroy', $m->id) }}" method="POST" class="inline" @submit.prevent="window.ewargaConfirmSubmit($el, { title: 'Hapus Warga Posyandu?', message: 'Anda yakin ingin menghapus data warga posyandu ini?', confirmText: 'Ya, Hapus Data', tone: 'danger' })">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" aria-label="Hapus warga posyandu" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 transition-colors cursor-pointer" title="Hapus">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                @if(in_array(auth()->user()?->role ?? '', ['super_admin', 'ketua_rw', 'ketua_rt', 'sekretaris', 'bendahara', 'pengurus_rt']))
+                                    <button 
+                                        type="button"
+                                        @click="showRecordModal = true; selectedMemberId = {{ $m->id }}; selectedMemberName = {{ Js::from($m->name . ' (' . $m->category_label . ')') }}" 
+                                        class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300 transition-colors cursor-pointer whitespace-nowrap"
+                                        title="Catat Penimbangan & Periksa"
+                                    >
+                                        + Catat Periksa
                                     </button>
-                                </form>
+                                    <form action="{{ route('posyandu.members.destroy', $m->id) }}" method="POST" class="inline" @submit.prevent="window.ewargaConfirmSubmit($el, { title: 'Hapus Warga Posyandu?', message: 'Anda yakin ingin menghapus data warga posyandu ini?', confirmText: 'Ya, Hapus Data', tone: 'danger' })">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" aria-label="Hapus warga posyandu" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 transition-colors cursor-pointer" title="Hapus">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                        </button>
+                                    </form>
+                                @else
+                                    <span class="text-xs font-semibold text-slate-400 dark:text-slate-500">Terdata</span>
+                                @endif
                             </td>
                         </tr>
                     @empty

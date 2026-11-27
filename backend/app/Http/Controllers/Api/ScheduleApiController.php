@@ -19,11 +19,18 @@ class ScheduleApiController extends BaseApiController
     {
         $tenant = Tenant::getActiveTenant() ?? Tenant::first();
         $type = $request->input('type'); // 'satpam_shift' or 'ronda_warga'
-        $month = $request->input('month', now()->format('Y-m'));
+        $rawMonth = trim((string) $request->input('month', ''));
+        if (preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $rawMonth) === 1) {
+            $month = $rawMonth;
+            $parsedMonth = Carbon::createFromFormat('Y-m', $month)->startOfMonth();
+        } else {
+            $parsedMonth = now()->startOfMonth();
+            $month = $parsedMonth->format('Y-m');
+        }
 
         $query = SecuritySchedule::where('tenant_id', $tenant?->id ?? 1)
-            ->whereYear('duty_date', Carbon::parse($month)->year)
-            ->whereMonth('duty_date', Carbon::parse($month)->month)
+            ->whereYear('duty_date', $parsedMonth->year)
+            ->whereMonth('duty_date', $parsedMonth->month)
             ->with(['officer.house', 'replacement']);
 
         if ($type) {
@@ -50,6 +57,11 @@ class ScheduleApiController extends BaseApiController
      */
     public function store(Request $request): JsonResponse
     {
+        $actor = $request->user() ?? Auth::user();
+        if (!$actor || !in_array($actor->role, ['super_admin', 'ketua_rw', 'ketua_rt', 'sekretaris', 'satpam', 'pengurus_rt'])) {
+            return $this->error('Akses ditolak: Hanya pengurus RT/RW, Satpam, atau Super Admin yang dapat menambahkan jadwal dinas.', null, 403);
+        }
+
         $validated = $request->validate([
             'user_id'       => 'required|exists:users,id',
             'schedule_type' => 'required|in:satpam_shift,ronda_warga',
@@ -60,7 +72,9 @@ class ScheduleApiController extends BaseApiController
             'notes'         => 'nullable|string',
         ]);
 
-        $tenant = Tenant::getActiveTenant() ?? Tenant::first();
+        $tenant = $actor->isSuperAdmin()
+            ? (Tenant::getActiveTenant() ?? Tenant::first())
+            : (Tenant::find($actor->tenant_id) ?? Tenant::getActiveTenant() ?? Tenant::first());
 
         $schedule = SecuritySchedule::create([
             'tenant_id'     => $tenant?->id ?? 1,
@@ -82,7 +96,19 @@ class ScheduleApiController extends BaseApiController
      */
     public function checkIn(Request $request, int $id): JsonResponse
     {
+        $actor = $request->user() ?? Auth::user();
         $schedule = SecuritySchedule::with('officer')->findOrFail($id);
+
+        if (!$actor || (
+            !$actor->isSuperAdmin()
+            && (int) $actor->tenant_id !== (int) $schedule->tenant_id
+        )) {
+            return $this->error('Akses ditolak: Jadwal bukan milik wilayah Anda.', null, 403);
+        }
+
+        if (!in_array($actor->role, ['super_admin', 'ketua_rw', 'ketua_rt', 'sekretaris', 'satpam', 'pengurus_rt']) && (int) $actor->id !== (int) $schedule->user_id) {
+            return $this->error('Akses ditolak: Anda hanya dapat melakukan check-in untuk jadwal dinas Anda sendiri.', null, 403);
+        }
 
         $schedule->update([
             'status'        => 'present',
@@ -97,12 +123,25 @@ class ScheduleApiController extends BaseApiController
      */
     public function requestSwap(Request $request, int $id): JsonResponse
     {
+        $actor = $request->user() ?? Auth::user();
+        $schedule = SecuritySchedule::with(['officer', 'replacement'])->findOrFail($id);
+
+        if (!$actor || (
+            !$actor->isSuperAdmin()
+            && (int) $actor->tenant_id !== (int) $schedule->tenant_id
+        )) {
+            return $this->error('Akses ditolak: Jadwal bukan milik wilayah Anda.', null, 403);
+        }
+
+        if (!in_array($actor->role, ['super_admin', 'ketua_rw', 'ketua_rt', 'sekretaris', 'satpam', 'pengurus_rt']) && (int) $actor->id !== (int) $schedule->user_id) {
+            return $this->error('Akses ditolak: Anda hanya dapat menukar jadwal dinas Anda sendiri.', null, 403);
+        }
+
         $validated = $request->validate([
             'replacement_user_id' => 'required|exists:users,id',
             'swap_reason'         => 'required|string|max:200',
         ]);
 
-        $schedule = SecuritySchedule::with(['officer', 'replacement'])->findOrFail($id);
         $replacementUser = User::find($validated['replacement_user_id']);
 
         $schedule->update([
@@ -117,17 +156,22 @@ class ScheduleApiController extends BaseApiController
     }
 
     /**
-     * Toggle environment mode between 'cluster' and 'desa'.
+     * Toggle environment mode between 'cluster' and 'kampung'.
      */
     public function toggleMode(Request $request): JsonResponse
     {
+        $actor = $request->user() ?? Auth::user();
+        if (!$actor || !$actor->isSuperAdmin()) {
+            return $this->error('Akses ditolak: Hanya Super Admin Platform yang berwenang mengganti mode lingkungan wilayah.', null, 403);
+        }
+
         $tenant = Tenant::getActiveTenant() ?? Tenant::first();
 
         if (!$tenant) {
             return $this->error('Tenant tidak ditemukan.', null, 404);
         }
 
-        $newMode = ($tenant->environment_type === 'desa') ? 'cluster' : 'desa';
+        $newMode = ($tenant->environment_type === 'cluster') ? 'kampung' : 'cluster';
         $tenant->update(['environment_type' => $newMode]);
 
         return $this->success([

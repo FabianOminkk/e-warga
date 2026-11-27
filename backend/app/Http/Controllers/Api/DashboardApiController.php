@@ -94,6 +94,11 @@ class DashboardApiController extends BaseApiController
      */
     public function storeCashBook(Request $request): JsonResponse
     {
+        $actor = $request->user() ?? Auth::user();
+        if (!$actor || !in_array($actor->role, ['super_admin', 'ketua_rw', 'ketua_rt', 'sekretaris', 'bendahara', 'pengurus_rt'])) {
+            return $this->error('Akses ditolak: Hanya Bendahara atau Pengurus berwenang yang dapat mencatat kas.', null, 403);
+        }
+
         $validated = $request->validate([
             'type'        => 'required|in:income,expense',
             'category'    => 'required|string|max:100',
@@ -127,13 +132,26 @@ class DashboardApiController extends BaseApiController
      */
     public function verifyPayment(Request $request, int $id): JsonResponse
     {
+        $actor = $request->user() ?? Auth::user();
+        if (!$actor || !in_array($actor->role, ['super_admin', 'ketua_rw', 'ketua_rt', 'sekretaris', 'bendahara', 'pengurus_rt'])) {
+            return $this->error('Akses ditolak: Hanya Bendahara atau Pengurus berwenang yang dapat memverifikasi pembayaran.', null, 403);
+        }
+
         $validated = $request->validate([
             'action' => 'required|in:approve,reject',
             'reason' => 'nullable|string',
         ]);
 
         $payment = Payment::with(['billing.house', 'payer'])->findOrFail($id);
-        $verifierId = Auth::id() ?? User::where('role', 'bendahara')->value('id') ?? User::first()?->id;
+        if (!$actor->isSuperAdmin() && $payment->billing && (int) $payment->billing->tenant_id !== (int) $actor->tenant_id) {
+            return $this->error('Akses ditolak: Pembayaran berada di wilayah berbeda.', null, 403);
+        }
+
+        if ($validated['action'] === 'approve' && ($payment->verified_at !== null || $payment->billing?->status === 'paid')) {
+            return $this->error('Pembayaran ini sudah diverifikasi sebelumnya.', null, 422);
+        }
+
+        $verifierId = $actor->id;
 
         if ($validated['action'] === 'approve') {
             $payment->update([
@@ -186,7 +204,14 @@ class DashboardApiController extends BaseApiController
      */
     public function verifications(Request $request): JsonResponse
     {
-        $tenant = Tenant::getActiveTenant() ?? Tenant::first();
+        $actor = $request->user() ?? Auth::user();
+        if (!$actor || !in_array($actor->role, ['super_admin', 'ketua_rw', 'ketua_rt', 'sekretaris', 'bendahara', 'pengurus_rt'])) {
+            return $this->error('Akses ditolak: Hanya pengurus berwenang yang dapat melihat daftar verifikasi KTP warga.', null, 403);
+        }
+
+        $tenant = $actor->isSuperAdmin()
+            ? (Tenant::getActiveTenant() ?? Tenant::first())
+            : (Tenant::find($actor->tenant_id) ?? Tenant::getActiveTenant() ?? Tenant::first());
         if (!$tenant) {
             return $this->error('Tenant komplek belum terdaftar.', null, 404);
         }
@@ -205,8 +230,15 @@ class DashboardApiController extends BaseApiController
      */
     public function approveVerification(Request $request, int $id): JsonResponse
     {
+        $approver = $request->user() ?? Auth::user();
+        if (!$approver || !in_array($approver->role, ['super_admin', 'ketua_rw', 'ketua_rt', 'sekretaris', 'pengurus_rt'])) {
+            return $this->error('Akses ditolak: Hanya Ketua RW / Pengurus RT berwenang yang dapat menyetujui verifikasi KTP warga.', null, 403);
+        }
+
         $targetUser = User::where('role', 'warga')->findOrFail($id);
-        $approver = Auth::user() ?? User::where('role', 'ketua_rw')->first();
+        if (!$approver->isSuperAdmin() && (int) $targetUser->tenant_id !== (int) $approver->tenant_id) {
+            return $this->error('Akses ditolak: Data warga berada di wilayah berbeda.', null, 403);
+        }
 
         $rfid = $targetUser->rfid_tag;
         if (empty($rfid)) {
@@ -245,7 +277,15 @@ class DashboardApiController extends BaseApiController
      */
     public function rejectVerification(Request $request, int $id): JsonResponse
     {
+        $approver = $request->user() ?? Auth::user();
+        if (!$approver || !in_array($approver->role, ['super_admin', 'ketua_rw', 'ketua_rt', 'sekretaris', 'pengurus_rt'])) {
+            return $this->error('Akses ditolak: Hanya Ketua RW / Pengurus RT berwenang yang dapat menolak verifikasi KTP warga.', null, 403);
+        }
+
         $targetUser = User::where('role', 'warga')->findOrFail($id);
+        if (!$approver->isSuperAdmin() && (int) $targetUser->tenant_id !== (int) $approver->tenant_id) {
+            return $this->error('Akses ditolak: Data warga berada di wilayah berbeda.', null, 403);
+        }
         $reason = $request->input('reason', 'Foto KTP tidak jelas atau NIK tidak sesuai.');
 
         $targetUser->update([
