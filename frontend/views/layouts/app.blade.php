@@ -147,12 +147,12 @@
                 handleScroll();
             }
         }"
-        class="sticky top-0 z-50 transition-all duration-300 px-3 sm:px-6 lg:px-8 w-full"
-        :class="isScrolled ? 'pt-2 sm:pt-3' : 'pt-3 sm:pt-5'"
+        class="sticky top-0 z-50 transition-colors duration-300 px-2 sm:px-4 xl:px-6 w-full"
+        :class="isScrolled ? 'pt-2 sm:pt-3' : 'pt-3 sm:pt-4'"
     >
-        <div class="max-w-7xl mx-auto relative">
+        <div class="max-w-[1400px] mx-auto relative">
             <header 
-                class="relative rounded-2xl sm:rounded-full transition-all duration-300 px-3 sm:px-6 border flex items-center justify-between gap-3 sm:gap-6 backdrop-blur-xl"
+                class="relative w-full max-w-full rounded-2xl sm:rounded-full transition-colors transition-shadow duration-300 px-3 sm:px-4 xl:px-5 border flex items-center justify-between gap-2 xl:gap-3 backdrop-blur-xl"
                 :class="isScrolled 
                     ? 'bg-white/90 dark:bg-slate-950/90 border-slate-200/90 dark:border-white/10 shadow-xl shadow-slate-900/5 dark:shadow-emerald-950/30 h-16 sm:h-17 ring-1 ring-slate-900/5 dark:ring-white/5' 
                     : 'bg-white/75 dark:bg-slate-950/75 border-slate-200/60 dark:border-white/10 shadow-md shadow-slate-900/5 h-18 sm:h-20'"
@@ -161,15 +161,15 @@
                 <div class="absolute inset-x-8 -top-px h-px bg-gradient-to-r from-transparent via-emerald-500/30 dark:via-emerald-400/30 to-transparent pointer-events-none"></div>
 
                 <!-- Brand Logo SVG dengan Micro-Hover Lift -->
-                <div class="shrink-0 transform hover:scale-[1.03] transition-all duration-200">
+                <div class="shrink-0 transform hover:scale-[1.02] transition-transform duration-200">
                     <x-logo size="md" href="{{ route('home') }}" />
                 </div>
 
-                <!-- Desktop Nav Items (Interactive Animated Capsule Pills with Active Spy) -->
-                <nav class="hidden lg:flex items-center gap-0.5 xl:gap-1.5 text-xs xl:text-[13px] font-medium text-slate-600 dark:text-slate-300 [&>a]:whitespace-nowrap lg:[&>a]:px-2 xl:[&>a]:px-3 2xl:[&>a]:px-3.5">
+                <!-- Desktop Nav Items (Responsif di layar 1280px+ tanpa overflow kanan) -->
+                <nav class="hidden xl:flex items-center min-w-0 gap-0.5 2xl:gap-1 text-xs 2xl:text-[13px] font-medium text-slate-600 dark:text-slate-300 [&>a]:whitespace-nowrap [&>a]:px-2 2xl:[&>a]:px-3 [&>a]:py-1.5">
                     <a href="#hero" 
                        @click="activeSection = 'hero'"
-                       class="relative px-3.5 py-1.5 rounded-full transition-all duration-200 group flex items-center gap-1"
+                       class="relative rounded-full transition-colors duration-200 group flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                        :class="activeSection === 'hero' 
                            ? 'text-emerald-600 dark:text-emerald-400 font-bold bg-slate-100 dark:bg-white/10 shadow-xs' 
                            : 'hover:text-emerald-600 dark:hover:text-emerald-300 hover:bg-slate-100/70 dark:hover:bg-white/5'">
@@ -178,21 +178,21 @@
 
                     <a href="#fitur" 
                        @click="activeSection = 'fitur'"
-                       class="relative px-3.5 py-1.5 rounded-full transition-all duration-200 group flex items-center gap-1"
+                       class="relative rounded-full transition-colors duration-200 group flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                        :class="activeSection === 'fitur' 
                            ? 'text-emerald-600 dark:text-emerald-400 font-bold bg-slate-100 dark:bg-white/10 shadow-xs' 
                            : 'hover:text-emerald-600 dark:hover:text-emerald-300 hover:bg-slate-100/70 dark:hover:bg-white/5'">
-                        <span>Fitur Solusi</span>
+                        <span>Fitur<span class="hidden 2xl:inline"> Solusi</span></span>
                     </a>
 
                     <a href="#hardware" 
                        @click="activeSection = 'hardware'"
-                       class="relative px-3.5 py-1.5 rounded-full transition-all duration-200 group inline-flex items-center gap-2"
+                       class="relative rounded-full transition-colors duration-200 group inline-flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                        :class="activeSection === 'hardware' 
                            ? 'text-emerald-600 dark:text-emerald-400 font-bold bg-slate-100 dark:bg-white/10 shadow-xs' 
                            : 'hover:text-emerald-600 dark:hover:text-emerald-300 hover:bg-slate-100/70 dark:hover:bg-white/5'">
                         <span>Smart Gate IoT</span>
-                        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-500/10 dark:bg-emerald-400/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 group-hover:border-emerald-500/40 transition-colors">
+                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[8px] 2xl:text-[9px] font-black uppercase tracking-wider bg-emerald-500/10 dark:bg-emerald-400/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 group-hover:border-emerald-500/40 transition-colors">
                             <span class="relative flex h-1.5 w-1.5">
                                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                                 <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
@@ -203,16 +203,16 @@
 
                     <a href="#posyandu" 
                        @click="activeSection = 'posyandu'"
-                       class="relative px-3.5 py-1.5 rounded-full transition-all duration-200 group flex items-center gap-1"
+                       class="relative rounded-full transition-colors duration-200 group flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                        :class="activeSection === 'posyandu' 
                            ? 'text-emerald-600 dark:text-emerald-400 font-bold bg-slate-100 dark:bg-white/10 shadow-xs' 
                            : 'hover:text-emerald-600 dark:hover:text-emerald-300 hover:bg-slate-100/70 dark:hover:bg-white/5'">
-                        <span>Posyandu Digital</span>
+                        <span>Posyandu<span class="hidden 2xl:inline"> Digital</span></span>
                     </a>
 
                     <a href="#komparasi" 
                        @click="activeSection = 'komparasi'"
-                       class="relative px-3.5 py-1.5 rounded-full transition-all duration-200 group flex items-center gap-1"
+                       class="relative rounded-full transition-colors duration-200 group flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                        :class="activeSection === 'komparasi' 
                            ? 'text-emerald-600 dark:text-emerald-400 font-bold bg-slate-100 dark:bg-white/10 shadow-xs' 
                            : 'hover:text-emerald-600 dark:hover:text-emerald-300 hover:bg-slate-100/70 dark:hover:bg-white/5'">
@@ -221,7 +221,7 @@
 
                     <a href="#testimoni" 
                        @click="activeSection = 'testimoni'"
-                       class="relative px-3.5 py-1.5 rounded-full transition-all duration-200 group flex items-center gap-1"
+                       class="relative rounded-full transition-colors duration-200 group flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                        :class="activeSection === 'testimoni' 
                            ? 'text-emerald-600 dark:text-emerald-400 font-bold bg-slate-100 dark:bg-white/10 shadow-xs' 
                            : 'hover:text-emerald-600 dark:hover:text-emerald-300 hover:bg-slate-100/70 dark:hover:bg-white/5'">
@@ -230,7 +230,7 @@
 
                     <a href="#kerjasama" 
                        @click="activeSection = 'kerjasama'"
-                       class="relative px-3.5 py-1.5 rounded-full transition-colors duration-200 group flex items-center gap-1"
+                       class="relative rounded-full transition-colors duration-200 group flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                        :class="activeSection === 'kerjasama' 
                            ? 'text-emerald-600 dark:text-emerald-400 font-bold bg-slate-100 dark:bg-white/10 shadow-xs' 
                            : 'hover:text-emerald-600 dark:hover:text-emerald-300 hover:bg-slate-100/70 dark:hover:bg-white/5'">
@@ -239,7 +239,7 @@
                 </nav>
 
                 <!-- Topbar Right Controls (Theme Toggle, Masuk & Flagship CTA) -->
-                <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
                     <!-- Dark / Light Theme Toggle dengan Smooth Rotation Icon -->
                     <div x-data="{
                         isDark: document.documentElement.classList.contains('dark'),
@@ -257,7 +257,7 @@
                         <button 
                             @click="toggle()" 
                             type="button" 
-                            class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-slate-200/80 dark:border-white/10 bg-slate-100/80 dark:bg-slate-900/80 hover:bg-slate-200/80 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition-all duration-300 shadow-xs cursor-pointer flex items-center justify-center hover:scale-105 active:scale-95 group" 
+                            class="w-9 h-9 rounded-full border border-slate-200/80 dark:border-white/10 bg-slate-100/80 dark:bg-slate-900/80 hover:bg-slate-200/80 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition-colors duration-200 shadow-xs cursor-pointer flex items-center justify-center active:scale-95 group touch-press focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500" 
                             :title="isDark ? 'Ganti ke Mode Terang' : 'Ganti ke Mode Gelap'"
                             aria-label="Toggle Dark / Light Theme"
                         >
@@ -283,40 +283,40 @@
                             };
                         @endphp
                         @if($currentUser?->role === 'super_admin')
-                            <a href="{{ $desktopPortalUrl }}" class="whitespace-nowrap px-4 sm:px-5 py-2 sm:py-2.5 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-md shadow-amber-500/25 transition-transform duration-200 hover:scale-105 active:scale-95 flex items-center gap-1.5 sm:gap-2">
+                            <a href="{{ $desktopPortalUrl }}" class="whitespace-nowrap px-4 py-2 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-md shadow-amber-500/25 transition-transform duration-200 hover:scale-105 active:scale-95 flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400">
                                 <span>{{ $desktopPortalLabel }}</span>
                                 <span>➔</span>
                             </a>
                         @else
-                            <a href="{{ $desktopPortalUrl }}" class="whitespace-nowrap px-4 sm:px-5 py-2 sm:py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shadow-md shadow-emerald-600/25 transition-transform duration-200 hover:scale-105 active:scale-95 flex items-center gap-1.5 sm:gap-2">
+                            <a href="{{ $desktopPortalUrl }}" class="whitespace-nowrap px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shadow-md shadow-emerald-600/25 transition-transform duration-200 hover:scale-105 active:scale-95 flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400">
                                 <span>{{ $desktopPortalLabel }}</span>
                                 <span>➔</span>
                             </a>
                         @endif
                     @else
                         <!-- Tombol Daftar Warga Baru -->
-                        <a href="{{ route('register') }}" class="hidden md:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-extrabold text-xs transition-colors duration-200 active:scale-95 shadow-xs">
+                        <a href="{{ route('register') }}" class="hidden md:inline-flex whitespace-nowrap items-center gap-1.5 px-3 py-1.5 xl:py-2 rounded-full border border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-extrabold text-xs transition-colors duration-200 active:scale-95 shadow-xs touch-press focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
                             <span>Daftar Warga</span>
                         </a>
 
                         <!-- Tombol Masuk Berprofil Frosted Glass -->
-                        <a href="{{ route('login') }}" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-slate-300/80 dark:border-white/15 bg-white/40 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-800 dark:text-slate-100 font-bold text-xs transition-transform duration-200 active:scale-95 shadow-xs group">
+                        <a href="{{ route('login') }}" class="inline-flex whitespace-nowrap items-center gap-1.5 px-3 xl:px-3.5 py-1.5 xl:py-2 rounded-full border border-slate-300/80 dark:border-white/15 bg-white/40 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-800 dark:text-slate-100 font-bold text-xs transition-colors duration-200 active:scale-95 shadow-xs group touch-press focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
                             <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
                             <span>Masuk</span>
                         </a>
 
-                        <!-- Tombol CTA Utama dengan Efek Linear Shimmer & Glide Arrow (Responsif Mobile) -->
-                        <a href="#kerjasama" class="relative group overflow-hidden px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-full bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-400 text-white font-extrabold text-[11px] sm:text-xs shadow-lg shadow-emerald-600/30 transition-transform duration-300 transform hover:-translate-y-0.5 active:scale-95 flex items-center gap-1.5 sm:gap-2 cursor-pointer touch-press btn-shimmer">
+                        <!-- Tombol CTA Utama dengan Efek Linear Shimmer & Glide Arrow -->
+                        <a href="#kerjasama" class="whitespace-nowrap relative group overflow-hidden px-3 xl:px-4 py-1.5 xl:py-2 rounded-full bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-400 text-white font-extrabold text-[11px] xl:text-xs shadow-lg shadow-emerald-600/30 transition-transform duration-300 transform hover:-translate-y-0.5 active:scale-95 flex items-center gap-1.5 cursor-pointer touch-press btn-shimmer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400">
                             <span class="relative z-10">Konsultasi<span class="hidden sm:inline"> & Survei</span></span>
                             <span class="relative z-10 transition-transform duration-300 group-hover:translate-x-1 font-bold">➔</span>
                         </a>
                     @endauth
 
-                    <!-- Mobile Menu Hamburger Button -->
+                    <!-- Mobile / Tablet Menu Hamburger Button (< 1280px) -->
                     <button 
                         @click="landingMobileMenu = !landingMobileMenu" 
                         type="button" 
-                        class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 lg:hidden hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer touch-press flex items-center justify-center"
+                        class="w-9 h-9 rounded-full border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 xl:hidden hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer touch-press flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                         aria-label="Toggle Navigation Menu"
                     >
                         <svg x-show="!landingMobileMenu" class="w-5 h-5 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
@@ -325,7 +325,7 @@
                 </div>
             </header>
 
-            <!-- Mobile Floating Dropdown Sheet (Glassmorphism Modal) -->
+            <!-- Mobile / Tablet Floating Dropdown Sheet (Glassmorphism Modal < 1280px) -->
             <div 
                 x-show="landingMobileMenu" 
                 x-cloak 
@@ -336,26 +336,32 @@
                 x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                 x-transition:leave-end="opacity-0 -translate-y-2 scale-95"
                 @click.away="landingMobileMenu = false"
-                class="lg:hidden mt-2 rounded-3xl bg-white/95 dark:bg-slate-950/95 backdrop-blur-2xl border border-slate-200 dark:border-white/10 shadow-2xl p-4 space-y-3"
+                class="xl:hidden mt-2 rounded-3xl bg-white/95 dark:bg-slate-950/95 backdrop-blur-2xl border border-slate-200 dark:border-white/10 shadow-2xl p-4 space-y-3 overscroll-contain"
             >
                 <div class="grid grid-cols-2 gap-2 text-xs font-bold text-slate-700 dark:text-slate-200">
-                    <a @click="landingMobileMenu = false" href="#hero" class="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 transition flex items-center gap-2">
+                    <a @click="landingMobileMenu = false" href="#hero" class="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 transition-colors flex items-center gap-2">
                         <span>🏠</span> Beranda
                     </a>
-                    <a @click="landingMobileMenu = false" href="#fitur" class="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 transition flex items-center gap-2">
+                    <a @click="landingMobileMenu = false" href="#fitur" class="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 transition-colors flex items-center gap-2">
                         <span>⚡</span> Fitur Solusi
                     </a>
-                    <a @click="landingMobileMenu = false" href="#hardware" class="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 transition flex items-center gap-2">
+                    <a @click="landingMobileMenu = false" href="#hardware" class="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 transition-colors flex items-center gap-2">
                         <span>🚧</span> Smart Gate IoT
                     </a>
-                    <a @click="landingMobileMenu = false" href="#posyandu" class="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 transition flex items-center gap-2">
+                    <a @click="landingMobileMenu = false" href="#posyandu" class="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 transition-colors flex items-center gap-2">
                         <span>👶</span> Posyandu
                     </a>
-                    <a @click="landingMobileMenu = false" href="#komparasi" class="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 transition flex items-center gap-2">
+                    <a @click="landingMobileMenu = false" href="#komparasi" class="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 transition-colors flex items-center gap-2">
                         <span>⚖️</span> Keunggulan
                     </a>
-                    <a @click="landingMobileMenu = false" href="#testimoni" class="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 transition flex items-center gap-2">
+                    <a @click="landingMobileMenu = false" href="#testimoni" class="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 transition-colors flex items-center gap-2">
                         <span>💬</span> Testimoni
+                    </a>
+                    <a @click="landingMobileMenu = false" href="#kerjasama" class="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 transition-colors flex items-center gap-2">
+                        <span>🤝</span> Kemitraan
+                    </a>
+                    <a @click="landingMobileMenu = false" href="{{ route('simulator') }}" class="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 transition-colors flex items-center gap-2">
+                        <span>🧪</span> Simulator IoT
                     </a>
                 </div>
 
