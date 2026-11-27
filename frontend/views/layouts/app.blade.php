@@ -145,6 +145,13 @@
 
     $activeTenant = \App\Models\Tenant::getActiveTenant();
     $pendingLettersCount = \App\Models\LetterRequest::where('status', 'pending')->count();
+    $pendingPaymentsCount = $activeTenant
+        ? \App\Models\Payment::whereNull('verified_at')
+            ->whereNull('rejection_reason')
+            ->whereHas('billing', fn($q) => $q->where('tenant_id', $activeTenant->id))
+            ->count()
+        : 0;
+    $idleTimeoutMinutes = max(1, (int) config('session.idle_timeout', 15));
     $currentUser = \Illuminate\Support\Facades\Auth::user();
 @endphp
 
@@ -454,6 +461,20 @@
                 <span>{{ session('error') }}</span>
             </div>
         @endif
+
+        @if(session('warning'))
+            <div class="bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 px-4 py-3 rounded-2xl flex items-center gap-3 text-sm font-medium shadow-xs mb-4">
+                <span class="text-lg shrink-0">⚠️</span>
+                <span>{{ session('warning') }}</span>
+            </div>
+        @endif
+
+        @if(session('info'))
+            <div class="bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300 px-4 py-3 rounded-2xl flex items-center gap-3 text-sm font-medium shadow-xs mb-4">
+                <span class="text-lg shrink-0">ℹ️</span>
+                <span>{{ session('info') }}</span>
+            </div>
+        @endif
     </div>
 
     <!-- KONTEN MURNI LANDING PAGE (FULL WIDTH DESKTOP) -->
@@ -749,15 +770,31 @@
                         Manajemen Lingkungan
                     </div>
                     <div class="space-y-1">
-                        <a href="{{ route('dashboard') }}" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition {{ request()->routeIs('dashboard') ? 'bg-emerald-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                        <a href="{{ route('dashboard') }}" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors {{ request()->routeIs('dashboard') ? 'bg-emerald-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
                             <div class="flex items-center gap-2.5">
                                 <span class="text-base">📊</span>
-                                <span>{{ ($currentUser?->role ?? '') === 'ketua_rw' ? 'Dashboard Supervisi RW & Kas' : 'Dashboard Utama RT & Kas' }}</span>
+                                <span>{{ ($currentUser?->role ?? '') === 'ketua_rw' ? 'Dashboard Supervisi RW' : 'Dashboard Utama RT' }}</span>
                             </div>
                             @if(request()->routeIs('dashboard'))
                                 <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
                             @endif
                         </a>
+
+                        @if(in_array($currentUser?->role ?? '', ['super_admin', 'ketua_rw', 'ketua_rt', 'sekretaris', 'bendahara', 'pengurus_rt']))
+                            <a href="{{ route('keuangan.index') }}" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors {{ request()->routeIs('keuangan.*') ? 'bg-emerald-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="text-base">💰</span>
+                                    <span>Keuangan &amp; Iuran RT</span>
+                                </div>
+                                @if($pendingPaymentsCount > 0)
+                                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500 text-slate-950 font-black animate-pulse tabular-nums">
+                                        {{ $pendingPaymentsCount }}
+                                    </span>
+                                @elseif(request()->routeIs('keuangan.*'))
+                                    <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                                @endif
+                            </a>
+                        @endif
 
                         @if(in_array($currentUser?->role ?? '', ['super_admin', 'ketua_rw', 'ketua_rt', 'sekretaris', 'bendahara', 'pengurus_rt']))
                             <a href="{{ route('residents.index') }}" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition {{ request()->routeIs('residents.*') ? 'bg-teal-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
@@ -1115,9 +1152,9 @@
                             </div>
                         </div>
                     </button>
-                    <form action="{{ route('logout') }}" method="POST" class="inline shrink-0">
+                    <form action="{{ route('logout') }}" method="POST" class="inline shrink-0" @submit.prevent="window.ewargaConfirmSubmit($el, { title: 'Keluar dari Sistem?', message: 'Anda yakin ingin logout dari akun ini?', confirmText: 'Ya, Keluar', tone: 'danger' })">
                         @csrf
-                        <button type="submit" class="p-1 rounded-lg text-slate-400 hover:text-rose-600 transition cursor-pointer" title="Keluar dari Sistem">
+                        <button type="submit" class="p-1 rounded-lg text-slate-400 hover:text-rose-600 transition-colors cursor-pointer" title="Keluar dari Sistem">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                         </button>
                     </form>
@@ -1226,6 +1263,20 @@
                 <div class="bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300 px-4 py-3 rounded-2xl flex items-center gap-3 text-sm font-medium shadow-xs mb-4">
                     <svg class="w-5 h-5 text-rose-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>
                     <span>{{ session('error') }}</span>
+                </div>
+            @endif
+
+            @if(session('warning'))
+                <div class="bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 px-4 py-3 rounded-2xl flex items-center gap-3 text-sm font-medium shadow-xs mb-4">
+                    <span class="text-lg shrink-0">⚠️</span>
+                    <span>{{ session('warning') }}</span>
+                </div>
+            @endif
+
+            @if(session('info'))
+                <div class="bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300 px-4 py-3 rounded-2xl flex items-center gap-3 text-sm font-medium shadow-xs mb-4">
+                    <span class="text-lg shrink-0">ℹ️</span>
+                    <span>{{ session('info') }}</span>
                 </div>
             @endif
 
@@ -1409,11 +1460,16 @@
 
                     <!-- Tab 2: Kas & Iuran -->
                     <a 
-                        href="{{ route('dashboard') }}#seksi-keuangan" 
-                        class="flex flex-col items-center justify-center flex-1 min-h-[48px] py-1 text-center transition-colors group touch-press text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-semibold"
+                        href="{{ route('keuangan.index') }}" 
+                        class="flex flex-col items-center justify-center flex-1 min-h-[48px] py-1 text-center transition-colors group touch-press relative {{ request()->routeIs('keuangan.*') ? 'text-emerald-700 dark:text-emerald-300 font-extrabold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-semibold' }}"
                     >
-                        <div class="relative px-3 py-1 rounded-full transition-colors">
+                        <div class="relative px-3 py-1 rounded-full {{ request()->routeIs('keuangan.*') ? 'bg-emerald-500/15 dark:bg-emerald-500/25' : '' }} transition-colors">
                             <span class="text-xl">💳</span>
+                            @if($pendingPaymentsCount > 0)
+                                <span class="absolute -top-1 -right-1 px-1.5 py-0.2 bg-amber-500 text-slate-950 font-black text-[9px] rounded-full shadow-xs animate-pulse tabular-nums">
+                                    {{ $pendingPaymentsCount }}
+                                </span>
+                            @endif
                         </div>
                         <span class="text-[11px] tracking-tight mt-0.5">Kas RT</span>
                     </a>
@@ -1651,7 +1707,7 @@
                         <button type="button" @click="showUserAccountModal = false" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 font-bold text-xs transition-colors cursor-pointer touch-press focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
                             Tutup
                         </button>
-                        <form action="{{ route('logout') }}" method="POST" class="inline">
+                        <form action="{{ route('logout') }}" method="POST" class="inline" @submit.prevent="window.ewargaConfirmSubmit($el, { title: 'Keluar dari Sistem?', message: 'Anda yakin ingin logout dari akun ini?', confirmText: 'Ya, Keluar', tone: 'danger' })">
                             @csrf
                             <button type="submit" class="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs transition-colors flex items-center gap-1 cursor-pointer touch-press shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500" title="Keluar dari sesi ini">
                                 <span>Keluar</span>
@@ -1662,12 +1718,276 @@
             </div>
         </div>
     </div>
+
+    <!-- Form Tersembunyi Auto-Logout Idle Session -->
+    <form id="ewarga-idle-logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
+        @csrf
+        <input type="hidden" name="idle" value="1">
+    </form>
+    @endauth
+
+    <!-- ======================================================== -->
+    <!-- FLOATING TOAST NOTIFICATIONS (SUCCESS / ERROR / WARNING / INFO) -->
+    <!-- ======================================================== -->
+    <div
+        x-data="{
+            toasts: [],
+            init() {
+                const initial = @js([
+                    session('success') ? ['type' => 'success', 'text' => session('success')] : null,
+                    session('error') ? ['type' => 'error', 'text' => session('error')] : null,
+                    session('warning') ? ['type' => 'warning', 'text' => session('warning')] : null,
+                    session('info') ? ['type' => 'info', 'text' => session('info')] : null,
+                ]);
+                initial.filter(Boolean).forEach((t, idx) => {
+                    setTimeout(() => this.push(t.type, t.text), idx * 120);
+                });
+                window.addEventListener('ewarga-toast', (e) => {
+                    if (e.detail && e.detail.text) {
+                        this.push(e.detail.type || 'info', e.detail.text, e.detail.duration || 5500);
+                    }
+                });
+            },
+            push(type, text, duration = 5500) {
+                const id = Date.now() + Math.random();
+                this.toasts.push({ id, type, text });
+                if (duration > 0) {
+                    setTimeout(() => this.dismiss(id), duration);
+                }
+            },
+            dismiss(id) {
+                this.toasts = this.toasts.filter(t => t.id !== id);
+            }
+        }"
+        aria-live="polite"
+        class="fixed top-4 right-4 left-4 sm:left-auto z-[70] flex flex-col gap-2.5 sm:max-w-sm w-auto pointer-events-none"
+    >
+        <template x-for="toast in toasts" :key="toast.id">
+            <div
+                x-transition:enter="transition-transform transition-opacity duration-200 ease-out"
+                x-transition:enter-start="opacity-0 translate-y-2"
+                x-transition:enter-end="opacity-100 translate-y-0"
+                x-transition:leave="transition-opacity duration-150 ease-in"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+                class="pointer-events-auto rounded-2xl px-4 py-3.5 shadow-2xl border backdrop-blur-md flex items-start gap-3 text-xs font-semibold leading-relaxed"
+                :class="{
+                    'bg-emerald-950/95 border-emerald-500/60 text-emerald-100': toast.type === 'success',
+                    'bg-rose-950/95 border-rose-500/60 text-rose-100': toast.type === 'error',
+                    'bg-amber-950/95 border-amber-500/60 text-amber-100': toast.type === 'warning',
+                    'bg-slate-900/95 border-cyan-500/50 text-slate-100': toast.type === 'info'
+                }"
+            >
+                <span class="text-base shrink-0 leading-none mt-0.5" x-text="toast.type === 'success' ? '✅' : (toast.type === 'error' ? '❌' : (toast.type === 'warning' ? '⚠️' : 'ℹ️'))"></span>
+                <p class="flex-1 text-pretty" x-text="toast.text"></p>
+                <button
+                    type="button"
+                    @click="dismiss(toast.id)"
+                    class="shrink-0 text-white/70 hover:text-white text-base leading-none font-bold px-1 cursor-pointer focus-visible:ring-2 focus-visible:ring-white rounded"
+                    aria-label="Tutup notifikasi"
+                >&times;</button>
+            </div>
+        </template>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- GLOBAL CUSTOM CONFIRMATION DIALOG (PENGGANTI CONFIRM NATIVE) -->
+    <!-- ======================================================== -->
+    <div
+        x-data="{
+            open: false,
+            title: 'Konfirmasi Tindakan',
+            message: 'Apakah Anda yakin?',
+            confirmText: 'Ya, Lanjutkan',
+            cancelText: 'Batal',
+            tone: 'danger',
+            pendingForm: null,
+            handleOpen(detail) {
+                this.pendingForm = detail.form || null;
+                this.title = detail.title || 'Konfirmasi Tindakan';
+                this.message = detail.message || 'Anda yakin ingin melanjutkan tindakan ini?';
+                this.confirmText = detail.confirmText || 'Ya, Lanjutkan';
+                this.cancelText = detail.cancelText || 'Batal';
+                this.tone = detail.tone || 'danger';
+                this.open = true;
+            },
+            confirmNow() {
+                const form = this.pendingForm;
+                this.open = false;
+                this.pendingForm = null;
+                if (form) {
+                    HTMLFormElement.prototype.submit.call(form);
+                }
+            }
+        }"
+        x-show="open"
+        x-cloak
+        x-on:ewarga-confirm-open.window="handleOpen($event.detail)"
+        x-on:keydown.escape.window="open = false"
+        class="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-xs overscroll-contain transition-opacity"
+    >
+        <div
+            @click.away="open = false"
+            class="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-5"
+        >
+            <div class="flex items-start gap-3.5">
+                <div
+                    class="w-11 h-11 rounded-2xl flex items-center justify-center text-xl shrink-0"
+                    :class="tone === 'danger' ? 'bg-rose-100 dark:bg-rose-950/80 text-rose-600 dark:text-rose-400' : 'bg-amber-100 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400'"
+                >
+                    <span x-text="tone === 'danger' ? '🗑️' : '⚠️'"></span>
+                </div>
+                <div class="space-y-1">
+                    <h3 class="text-base font-black text-slate-900 dark:text-white text-balance" x-text="title"></h3>
+                    <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed text-pretty" x-text="message"></p>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100 dark:border-slate-800">
+                <button
+                    type="button"
+                    @click="open = false"
+                    class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold text-xs transition-colors cursor-pointer touch-press focus-visible:ring-2 focus-visible:ring-slate-400"
+                    x-text="cancelText"
+                ></button>
+                <button
+                    type="button"
+                    @click="confirmNow()"
+                    class="px-5 py-2.5 rounded-xl text-white font-extrabold text-xs shadow-md transition-colors cursor-pointer touch-press focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+                    :class="tone === 'danger' ? 'bg-rose-600 hover:bg-rose-700 focus-visible:ring-rose-500' : 'bg-emerald-600 hover:bg-emerald-700 focus-visible:ring-emerald-500'"
+                    x-text="confirmText"
+                ></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- IDLE SESSION COUNTDOWN WARNING BANNER (PENGGUNA AKTIF)   -->
+    <!-- ======================================================== -->
+    @auth
+    <div
+        id="ewarga-idle-banner"
+        x-data="{
+            warningActive: false,
+            secondsLeft: 60,
+            stayLoggedIn() {
+                window.dispatchEvent(new CustomEvent('ewarga-reset-idle'));
+            }
+        }"
+        x-show="warningActive"
+        x-cloak
+        x-on:ewarga-idle-warning.window="warningActive = true; secondsLeft = $event.detail.secondsLeft"
+        x-on:ewarga-idle-cleared.window="warningActive = false"
+        class="fixed bottom-20 lg:bottom-5 right-4 left-4 sm:left-auto z-[75] sm:max-w-sm bg-amber-950/95 border border-amber-400/70 text-amber-50 rounded-2xl p-4 shadow-2xl space-y-2.5 backdrop-blur-md"
+    >
+        <div class="flex items-start gap-2.5">
+            <span class="text-lg shrink-0">⏱️</span>
+            <div class="text-xs leading-relaxed">
+                <div class="font-black text-amber-200">Tidak Ada Aktivitas Terdeteksi</div>
+                <p class="mt-0.5 tabular-nums">Akun akan keluar otomatis dalam <strong x-text="secondsLeft"></strong> detik demi keamanan sesi Anda.</p>
+            </div>
+        </div>
+        <div class="flex justify-end gap-2">
+            <button
+                type="button"
+                @click="stayLoggedIn()"
+                class="px-3.5 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-amber-300"
+            >
+                Tetap Masuk
+            </button>
+        </div>
+    </div>
     @endauth
 
     <script>
         window.triggerComingSoon = function(title, desc) {
             window.dispatchEvent(new CustomEvent('open-coming-soon', { detail: { title: title, desc: desc } }));
         };
+        window.ewargaToast = function(type, text, duration = 5500) {
+            window.dispatchEvent(new CustomEvent('ewarga-toast', { detail: { type: type, text: text, duration: duration } }));
+        };
+        window.ewargaConfirmSubmit = function(formEl, options = {}) {
+            window.dispatchEvent(new CustomEvent('ewarga-confirm-open', {
+                detail: Object.assign({ form: formEl }, options || {})
+            }));
+        };
     </script>
+
+    @auth
+    <script>
+        (function () {
+            const timeoutMinutes = {{ $idleTimeoutMinutes }};
+            const timeoutMs = timeoutMinutes * 60 * 1000;
+            const warningMs = Math.min(60000, Math.floor(timeoutMs * 0.25));
+            const STORAGE_KEY = 'ewarga_last_activity_at';
+            let lastActivity = Date.now();
+            let lastWriteAt = lastActivity;
+            let warningShown = false;
+            let loggedOut = false;
+
+            try {
+                localStorage.setItem(STORAGE_KEY, String(lastActivity));
+            } catch (e) {}
+
+            function markActive(force) {
+                const now = Date.now();
+                if (!force && (now - lastWriteAt) < 4000 && !warningShown) {
+                    return;
+                }
+                lastActivity = now;
+                lastWriteAt = now;
+                if (warningShown) {
+                    warningShown = false;
+                    window.dispatchEvent(new CustomEvent('ewarga-idle-cleared'));
+                }
+                try {
+                    localStorage.setItem(STORAGE_KEY, String(now));
+                } catch (e) {}
+            }
+
+            ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart', 'click'].forEach(function (evt) {
+                window.addEventListener(evt, function () { markActive(false); }, { passive: true });
+            });
+
+            window.addEventListener('ewarga-reset-idle', function () {
+                markActive(true);
+            });
+
+            window.addEventListener('storage', function (e) {
+                if (e.key === STORAGE_KEY && e.newValue) {
+                    const parsed = parseInt(e.newValue, 10);
+                    if (!isNaN(parsed) && parsed > lastActivity) {
+                        lastActivity = parsed;
+                        if (warningShown) {
+                            warningShown = false;
+                            window.dispatchEvent(new CustomEvent('ewarga-idle-cleared'));
+                        }
+                    }
+                }
+            });
+
+            setInterval(function () {
+                if (loggedOut) return;
+                const elapsed = Date.now() - lastActivity;
+                const remainingMs = timeoutMs - elapsed;
+
+                if (remainingMs <= 0) {
+                    loggedOut = true;
+                    const form = document.getElementById('ewarga-idle-logout-form');
+                    if (form) {
+                        HTMLFormElement.prototype.submit.call(form);
+                    }
+                    return;
+                }
+
+                if (remainingMs <= warningMs) {
+                    warningShown = true;
+                    const secondsLeft = Math.max(1, Math.ceil(remainingMs / 1000));
+                    window.dispatchEvent(new CustomEvent('ewarga-idle-warning', { detail: { secondsLeft: secondsLeft } }));
+                }
+            }, 1000);
+        })();
+    </script>
+    @endauth
 </body>
 </html>

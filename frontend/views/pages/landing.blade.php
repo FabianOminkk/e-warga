@@ -427,7 +427,7 @@
                     Transparansi total keuangan lingkungan dengan visualisasi Pie Chart proporsi pengeluaran dan Bar Chart perbandingan bulanan. Bukti transfer iuran tersimpan rapi.
                 </p>
                 <div class="pt-2">
-                    <a href="{{ route('dashboard') }}" class="text-sm font-extrabold text-blue-600 dark:text-blue-400 inline-flex items-center gap-1.5 group-hover:underline">
+                    <a href="{{ route('keuangan.index') }}" class="text-sm font-extrabold text-blue-600 dark:text-blue-400 inline-flex items-center gap-1.5 group-hover:underline">
                         <span>Lihat Pembukuan Kas</span>
                         <span>&rarr;</span>
                     </a>

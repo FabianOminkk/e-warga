@@ -215,7 +215,7 @@
                                 >
                                     + Catat Periksa
                                 </button>
-                                <form action="{{ route('posyandu.members.destroy', $m->id) }}" method="POST" class="inline" onsubmit="return confirm('Hapus data warga posyandu ini?')">
+                                <form action="{{ route('posyandu.members.destroy', $m->id) }}" method="POST" class="inline" @submit.prevent="window.ewargaConfirmSubmit($el, { title: 'Hapus Warga Posyandu?', message: 'Anda yakin ingin menghapus data warga posyandu ini?', confirmText: 'Ya, Hapus Data', tone: 'danger' })">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" aria-label="Hapus warga posyandu" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 transition-colors cursor-pointer" title="Hapus">

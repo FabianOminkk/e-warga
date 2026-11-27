@@ -60,8 +60,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/super-admin/switch-tenant/{id}', [SuperAdminController::class, 'switchTenant'])->name('superadmin.switch-tenant');
     Route::get('/super-admin/activity-logs/export', [SuperAdminController::class, 'exportLogs'])->name('superadmin.logs.export');
 
-    // 2. Dashboard Pengurus RT, RW, & Bendahara
+    // 2. Dashboard Pengurus RT, RW, & Bendahara + Modul Keuangan Terpisah
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/keuangan', [DashboardController::class, 'finance'])->name('keuangan.index');
     Route::post('/dashboard/verify-payment/{id}', [DashboardController::class, 'verifyPayment'])->name('dashboard.verify-payment');
     Route::post('/dashboard/store-cashbook', [DashboardController::class, 'storeCashBook'])->name('dashboard.store-cashbook');
     Route::post('/dashboard/generate-billings', [DashboardController::class, 'generateBillings'])->name('dashboard.generate-billings');

@@ -80,4 +80,44 @@ class EwargaPagesTest extends TestCase
         $response->assertSee('Fitur Sedang Dalam Pengembangan (Coming Soon)');
         $response->assertSee('Maaf, Halaman Ini Belum Tersedia');
     }
+
+    public function test_keuangan_page_separates_finance_recording_and_idle_timeout_logs_out(): void
+    {
+        $bendahara = \App\Models\User::where('role', 'bendahara')->firstOrFail();
+
+        $dash = $this->actingAs($bendahara)->get('/dashboard');
+        $dash->assertStatus(200);
+        $dash->assertSee('Analisis Akurat Aliran Kas & Kepatuhan Iuran', false);
+        $dash->assertDontSee('id="seksi-keuangan"', false);
+
+        $keuangan = $this->actingAs($bendahara)->get('/keuangan');
+        $keuangan->assertStatus(200);
+        $keuangan->assertSee('Keuangan &amp; Iuran RT', false);
+        $keuangan->assertSee('id="seksi-keuangan"', false);
+        $keuangan->assertSee('Antrian Verifikasi Pembayaran Iuran');
+        $keuangan->assertSee('Catat Transaksi Kas RT');
+        $keuangan->assertSee('Buku Kas Terbuka RT');
+
+        // Login POST & idle timeout enforcement
+        $loginRes = $this->post('/login', [
+            'login' => $bendahara->email,
+            'password' => 'admin123',
+        ]);
+        $loginRes->assertRedirect('/dashboard');
+        $loginRes->assertSessionHas('success');
+        $this->assertStringContainsString('Berhasil login!', (string) session('success'));
+
+        // Simulate expired idle timestamp exceeding configured idle_timeout
+        $timeoutSeconds = max(1, (int) config('session.idle_timeout', 15)) * 60;
+        session(['last_activity_at' => now()->timestamp - $timeoutSeconds - 30]);
+
+        $expiredRes = $this->get('/keuangan');
+        $expiredRes->assertRedirect('/login');
+        $expiredRes->assertSessionHas('warning');
+        $this->assertGuest();
+        $this->assertDatabaseHas('activity_logs', [
+            'action' => 'auth.idle_timeout',
+            'user_id' => $bendahara->id,
+        ]);
+    }
 }

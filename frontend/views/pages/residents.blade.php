@@ -237,7 +237,7 @@
                             </button>
 
                             @if($res->id !== Auth::id() && !$res->isSuperAdmin())
-                                <form action="{{ route('residents.destroy', $res->id) }}" method="POST" onsubmit="return confirm('Hapus data akun warga ini?')">
+                                <form action="{{ route('residents.destroy', $res->id) }}" method="POST" @submit.prevent="window.ewargaConfirmSubmit($el, { title: 'Hapus Data Warga?', message: 'Anda yakin ingin menghapus data akun warga ini? Tindakan ini tidak dapat dibatalkan.', confirmText: 'Ya, Hapus Data', tone: 'danger' })">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="min-h-[42px] px-3 py-2 rounded-xl bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 font-bold text-xs cursor-pointer">
@@ -309,7 +309,7 @@
                                         Edit Role &amp; KK
                                     </button>
                                     @if($res->id !== Auth::id() && !$res->isSuperAdmin())
-                                        <form action="{{ route('residents.destroy', $res->id) }}" method="POST" class="inline" onsubmit="return confirm('Hapus data akun warga ini?')">
+                                        <form action="{{ route('residents.destroy', $res->id) }}" method="POST" class="inline" @submit.prevent="window.ewargaConfirmSubmit($el, { title: 'Hapus Data Warga?', message: 'Anda yakin ingin menghapus data akun warga ini? Tindakan ini tidak dapat dibatalkan.', confirmText: 'Ya, Hapus Data', tone: 'danger' })">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 font-bold text-xs cursor-pointer">

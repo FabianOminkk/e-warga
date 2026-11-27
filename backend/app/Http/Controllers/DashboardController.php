@@ -19,6 +19,30 @@ class DashboardController extends Controller
 {
     public function index()
     {
+        if ($redirect = $this->redirectUnauthorizedRole()) {
+            return $redirect;
+        }
+
+        return view('pages.dashboard', $this->loadOperationalSummary());
+    }
+
+    /**
+     * Halaman khusus Keuangan & Iuran RT yang terpisah dari Dashboard Utama.
+     */
+    public function finance()
+    {
+        if ($redirect = $this->redirectUnauthorizedRole()) {
+            return $redirect;
+        }
+
+        return view('pages.keuangan', $this->loadOperationalSummary());
+    }
+
+    /**
+     * Pastikan peran non-pengurus dialihkan ke portal masing-masing secara konsisten.
+     */
+    private function redirectUnauthorizedRole()
+    {
         $user = Auth::user();
         if ($user && $user->role === 'satpam') {
             return redirect()->route('satpam.console')->with('error', 'Akses dialihkan: Petugas Satpam hanya memiliki akses ke Konsol Pos Jaga.');
@@ -27,6 +51,14 @@ class DashboardController extends Controller
             return redirect()->route('warga.index')->with('error', 'Akses dialihkan: Warga diarahkan ke Portal Warga Mandiri.');
         }
 
+        return null;
+    }
+
+    /**
+     * Kumpulkan metrik keuangan, verifikasi KTP, log gerbang, dan buku kas untuk lingkungan aktif.
+     */
+    private function loadOperationalSummary(): array
+    {
         $tenant = Tenant::getActiveTenant() ?? Tenant::first();
         $totalHouses = House::where('tenant_id', $tenant->id)->count();
         $totalWarga = User::where('tenant_id', $tenant->id)->where('role', 'warga')->count();
@@ -101,7 +133,7 @@ class DashboardController extends Controller
             ->take(12)
             ->get();
 
-        return view('pages.dashboard', compact(
+        return compact(
             'tenant',
             'totalHouses',
             'totalWarga',
@@ -121,11 +153,15 @@ class DashboardController extends Controller
             'houses',
             'recentCashBooks',
             'recentBillings'
-        ));
+        );
     }
 
     public function verifyPayment(Request $request, $id)
     {
+        $actor = Auth::user();
+        if ($actor && !in_array($actor->role, ['super_admin', 'ketua_rw', 'ketua_rt', 'sekretaris', 'bendahara', 'pengurus_rt'])) {
+            return redirect()->back()->with('error', 'Akses ditolak: Hanya pengurus berwenang yang dapat memverifikasi pembayaran iuran.');
+        }
         $payment = Payment::with(['billing.house'])->findOrFail($id);
         $action = $request->input('action'); // 'approve' or 'reject'
 
@@ -199,6 +235,11 @@ class DashboardController extends Controller
 
     public function storeCashBook(Request $request)
     {
+        $actor = Auth::user();
+        if ($actor && !in_array($actor->role, ['super_admin', 'ketua_rw', 'ketua_rt', 'sekretaris', 'bendahara', 'pengurus_rt'])) {
+            return redirect()->back()->with('error', 'Akses ditolak: Hanya pengurus berwenang yang dapat mencatat transaksi kas.');
+        }
+
         $validated = $request->validate([
             'type' => 'required|in:income,expense',
             'category' => 'required|string|max:100',

@@ -180,7 +180,7 @@ PROMPT;
                 'mode' => 'smart_engine',
                 'actions' => [
                     ['label' => 'Lihat Status Tagihan Iuran ➔', 'url' => route('warga.index') . '#iuran', 'color' => 'emerald'],
-                    ['label' => 'Transparansi Kas di Dashboard ➔', 'url' => route('dashboard'), 'color' => 'blue'],
+                    ['label' => 'Buka Menu Keuangan & Kas RT ➔', 'url' => route('keuangan.index'), 'color' => 'blue'],
                 ],
                 'suggestions' => ['Apakah kas bisa dilihat seluruh warga?', 'Bagaimana jika lupa bayar?', 'Cara membuat surat pengantar?'],
             ];
@@ -255,7 +255,7 @@ PROMPT;
                 'mode' => 'smart_engine',
                 'actions' => [
                     ['label' => 'Kirim Laporan Kebersihan ➔', 'url' => route('reports.index'), 'color' => 'emerald'],
-                    ['label' => 'Lihat Transparansi Biaya Kebersihan ➔', 'url' => route('dashboard'), 'color' => 'blue'],
+                    ['label' => 'Lihat Transparansi Biaya Kebersihan ➔', 'url' => route('keuangan.index'), 'color' => 'blue'],
                 ],
                 'suggestions' => ['Berapa iuran sampah bulanan?', 'Cara mengirim laporan atau aspirasi warga?', 'Cara buka gerbang?'],
             ];

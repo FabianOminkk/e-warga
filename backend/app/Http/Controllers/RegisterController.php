@@ -212,6 +212,7 @@ class RegisterController extends Controller
         );
 
         Auth::login($user);
+        $request->session()->put('last_activity_at', now()->timestamp);
 
         if ($verificationStatus === 'pending_rw') {
             $msg = "Pendaftaran berhasil! Akun warga Anda aktif. Berkas identitas KTP Anda telah diteruskan ke Pengurus RT/RW untuk verifikasi resmi. Palang gerbang RFID akan aktif otomatis setelah disetujui.";

@@ -793,7 +793,7 @@
                     Gunakan hanya pada situasi darurat (kebakaran, pencurian, medis). Sinyal akan langsung membunyikan sirine di Pos Satpam.
                 </p>
                 @if($user->canAccessGate() || $user->isPengurus())
-                    <form action="{{ route('warga.panic') }}" method="POST" onsubmit="return confirm('APAKAH ANDA YAKIN? Sinyal bahaya darurat akan langsung dibunyikan ke Pos Satpam dan diteruskan ke Pengurus RT!')">
+                    <form action="{{ route('warga.panic') }}" method="POST" @submit.prevent="window.ewargaConfirmSubmit($el, { title: 'Bunyikan Sirine Darurat?', message: 'APAKAH ANDA YAKIN? Sinyal bahaya darurat akan langsung dibunyikan ke Pos Satpam dan diteruskan ke Pengurus RT!', confirmText: 'Ya, Bunyikan Sirine!', tone: 'danger' })">
                         @csrf
                         <button 
                             type="submit" 

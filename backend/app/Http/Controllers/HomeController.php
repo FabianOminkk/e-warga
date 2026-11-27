@@ -52,6 +52,8 @@ class HomeController extends Controller
 
         if ($user && Hash::check($credentials['password'], $user->password)) {
             Auth::login($user, $request->boolean('remember'));
+            $request->session()->regenerate();
+            $request->session()->put('last_activity_at', now()->timestamp);
 
             ActivityLogger::log(
                 'auth.login',
@@ -62,13 +64,13 @@ class HomeController extends Controller
             );
 
             if ($user->role === 'super_admin') {
-                return redirect()->route('superadmin.index')->with('success', "Selamat datang di Pusat Kendali Super Admin, {$user->name}!");
+                return redirect()->route('superadmin.index')->with('success', "Berhasil login! Selamat datang di Pusat Kendali Super Admin, {$user->name}!");
             } elseif ($user->role === 'satpam') {
-                return redirect()->route('satpam.console')->with('success', "Selamat bertugas, {$user->name}!");
+                return redirect()->route('satpam.console')->with('success', "Berhasil login! Selamat bertugas, {$user->name}!");
             } elseif ($user->role === 'warga') {
-                return redirect()->route('warga.index')->with('success', "Selamat datang, {$user->name}!");
+                return redirect()->route('warga.index')->with('success', "Berhasil login! Selamat datang, {$user->name}!");
             }
-            return redirect()->route('dashboard')->with('success', "Selamat datang di Dashboard E-WARGA, {$user->name}!");
+            return redirect()->route('dashboard')->with('success', "Berhasil login! Selamat datang di Dashboard E-WARGA, {$user->name}!");
         }
 
         ActivityLogger::log(
@@ -171,6 +173,7 @@ class HomeController extends Controller
         if ($user) {
             Auth::login($user, true);
             request()->session()->regenerate();
+            request()->session()->put('last_activity_at', now()->timestamp);
 
             // Rekam jejak audit keamanan
             ActivityLogger::log(
@@ -182,20 +185,20 @@ class HomeController extends Controller
             );
 
             if ($user->role === 'super_admin') {
-                return redirect()->route('superadmin.index')->with('success', "Selamat datang, {$user->name}! Anda masuk sebagai Super Admin Platform E-WARGA.");
+                return redirect()->route('superadmin.index')->with('success', "Berhasil login! Selamat datang, {$user->name}! Anda masuk sebagai Super Admin Platform E-WARGA.");
             } elseif ($user->role === 'ketua_rw') {
-                return redirect()->route('dashboard')->with('success', "Selamat datang, {$user->name}. Anda login sebagai Ketua RW dengan hak supervisi & pembinaan seluruh RT di lingkungan RW.");
+                return redirect()->route('dashboard')->with('success', "Berhasil login! Selamat datang, {$user->name}. Anda login sebagai Ketua RW dengan hak supervisi & pembinaan seluruh RT di lingkungan RW.");
             } elseif ($user->role === 'satpam') {
-                return redirect()->route('satpam.console')->with('success', "Selamat datang, {$user->name}. Anda login ke Pos Satpam & Console Palang IoT.");
+                return redirect()->route('satpam.console')->with('success', "Berhasil login! Selamat datang, {$user->name}. Anda login ke Pos Satpam & Console Palang IoT.");
             } elseif ($user->role === 'warga') {
                 if ($user->verification_status === 'unverified') {
-                    return redirect()->route('warga.index')->with('warning', "Selamat datang, {$user->name}! Status akun Anda: TERKUNCI. Mohon lengkapi data identitas KTP & tanggal lahir untuk verifikasi oleh Ketua RW.");
+                    return redirect()->route('warga.index')->with('warning', "Berhasil login! Selamat datang, {$user->name}! Status akun Anda: TERKUNCI. Mohon lengkapi data identitas KTP & tanggal lahir untuk verifikasi oleh Ketua RW.");
                 } elseif ($user->verification_status === 'pending_rw') {
-                    return redirect()->route('warga.index')->with('info', "Selamat datang, {$user->name}! Berkas KTP Anda sedang dalam proses peninjauan oleh Ketua RW.");
+                    return redirect()->route('warga.index')->with('info', "Berhasil login! Selamat datang, {$user->name}! Berkas KTP Anda sedang dalam proses peninjauan oleh Ketua RW.");
                 }
-                return redirect()->route('warga.index')->with('success', "Selamat datang, {$user->name}! Akun & E-KTP Anda telah terverifikasi resmi oleh Ketua RW.");
+                return redirect()->route('warga.index')->with('success', "Berhasil login! Selamat datang, {$user->name}! Akun & E-KTP Anda telah terverifikasi resmi oleh Ketua RW.");
             }
-            return redirect()->route('dashboard')->with('success', "Selamat datang di Dashboard E-WARGA, {$user->name}!");
+            return redirect()->route('dashboard')->with('success', "Berhasil login! Selamat datang di Dashboard E-WARGA, {$user->name}!");
         }
 
         return redirect()->route('home')->with('error', "Akun percontohan untuk role '{$role}' tidak ditemukan.");
@@ -203,21 +206,38 @@ class HomeController extends Controller
 
     public function logout(Request $request)
     {
+        $isIdle = $request->boolean('idle');
         $user = Auth::user();
         if ($user) {
-            ActivityLogger::log(
-                'auth.logout',
-                "Pengguna {$user->name} ({$user->role}) keluar dari sistem (logout).",
-                'info',
-                [],
-                $user
-            );
+            if ($isIdle) {
+                $timeoutMinutes = max(1, (int) config('session.idle_timeout', 15));
+                ActivityLogger::log(
+                    'auth.idle_timeout',
+                    "Sesi pengguna {$user->name} ({$user->role}) berakhir otomatis karena tidak ada aktivitas selama {$timeoutMinutes} menit.",
+                    'warning',
+                    ['idle_minutes' => $timeoutMinutes],
+                    $user
+                );
+            } else {
+                ActivityLogger::log(
+                    'auth.logout',
+                    "Pengguna {$user->name} ({$user->role}) keluar dari sistem (logout).",
+                    'info',
+                    [],
+                    $user
+                );
+            }
         }
 
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('home')->with('success', 'Anda telah keluar dari sistem.');
+        if ($isIdle) {
+            $timeoutMinutes = max(1, (int) config('session.idle_timeout', 15));
+            return redirect()->route('login')->with('warning', "Sesi Anda berakhir otomatis karena tidak ada aktivitas selama {$timeoutMinutes} menit. Silakan login kembali.");
+        }
+
+        return redirect()->route('home')->with('success', 'Berhasil logout! Anda telah keluar dari sistem.');
     }
 }

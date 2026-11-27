@@ -197,13 +197,12 @@
 
                         <!-- Tombol Aksi Persetujuan Manual -->
                         <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-                            <form action="{{ route('warga.visitors.reject', $pending->id) }}" method="POST">
+                            <form action="{{ route('warga.visitors.reject', $pending->id) }}" method="POST" @submit.prevent="window.ewargaConfirmSubmit($el, { title: 'Tolak Izin Kunjungan?', message: 'Apakah Anda yakin ingin menolak izin masuk kunjungan ini?', confirmText: 'Ya, Tolak Tamu', tone: 'danger' })">
                                 @csrf
                                 <input type="hidden" name="reason" value="Ditolak oleh pemilik rumah via Smart Gate Warga">
                                 <button 
                                     type="submit" 
-                                    onclick="return confirm('Apakah Anda yakin ingin menolak izin masuk kunjungan ini?')"
-                                    class="w-full py-2.5 px-3 rounded-xl border border-rose-300 dark:border-rose-800 hover:bg-rose-50 dark:hover:bg-rose-950/50 text-rose-700 dark:text-rose-300 text-xs font-black transition-colors flex items-center justify-center gap-1.5"
+                                    class="w-full py-2.5 px-3 rounded-xl border border-rose-300 dark:border-rose-800 hover:bg-rose-50 dark:hover:bg-rose-950/50 text-rose-700 dark:text-rose-300 text-xs font-black transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                                 >
                                     <span>✕ Tolak</span>
                                 </button>
