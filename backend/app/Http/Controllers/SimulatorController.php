@@ -6,6 +6,7 @@ use App\Models\GateLog;
 use App\Models\SmartGate;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\RfidService;
 use Illuminate\Http\Request;
 
 class SimulatorController extends Controller
@@ -28,8 +29,8 @@ class SimulatorController extends Controller
                 'tenant_id' => $tenant->id,
                 'name' => 'Gerbang Utama Pos Timur',
                 'device_uid' => 'ESP32-GATE-DEFAULT',
-                'status' => 'online',
-                'last_ping_at' => now(),
+                'status' => 'offline',
+                'last_ping_at' => null,
             ]);
         }
 
@@ -41,8 +42,9 @@ class SimulatorController extends Controller
         [$tenant, $smartGate] = $this->getOrCreateDefaultGate();
         $recentLogs = GateLog::with(['user'])->latest('triggered_at')->take(10)->get();
         $wargaUsers = User::where('role', 'warga')->with('house')->get();
+        $isHardwareOnline = RfidService::getGateOnlineStatus($tenant?->id)['online'];
 
-        return view('pages.simulator', compact('tenant', 'smartGate', 'recentLogs', 'wargaUsers'));
+        return view('pages.simulator', compact('tenant', 'smartGate', 'recentLogs', 'wargaUsers', 'isHardwareOnline'));
     }
 
     public function triggerSimulation(Request $request)

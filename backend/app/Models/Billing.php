@@ -46,5 +46,15 @@ class Billing extends Model
     {
         return 'Rp ' . number_format($this->amount, 0, ',', '.');
     }
+
+    public function getStatusBadgeAttribute(): array
+    {
+        return match ($this->status) {
+            'paid' => ['label' => 'Lunas', 'color' => 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300'],
+            'pending_verification' => ['label' => 'Menunggu Verifikasi Bendahara', 'color' => 'bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300'],
+            'overdue' => ['label' => 'Jatuh Tempo', 'color' => 'bg-rose-100 text-rose-800 dark:bg-rose-950/70 dark:text-rose-300'],
+            default => ['label' => 'Belum Bayar', 'color' => 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'],
+        };
+    }
 }
 

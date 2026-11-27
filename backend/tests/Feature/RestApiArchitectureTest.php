@@ -62,7 +62,10 @@ class RestApiArchitectureTest extends TestCase
             'device_uid'   => 'ESP32-GATE-TEST',
             'secret_token' => 'SECRET-TEST-TOKEN',
             'status'       => 'online',
+            'last_ping_at' => now(),
         ]);
+
+        \App\Services\RfidService::recordHeartbeat('ESP32-GATE-TEST', '127.0.0.1', $this->tenant->id, null, 'Gerbang Utama');
     }
 
     public function test_api_login_returns_token_and_user_profile(): void

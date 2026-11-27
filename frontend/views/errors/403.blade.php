@@ -24,11 +24,21 @@
         </div>
 
         <!-- Action Buttons -->
+        @php
+            $errFallbackUrl = auth()->check()
+                ? match(Auth::user()->role) {
+                    'super_admin' => route('superadmin.index'),
+                    'warga' => route('warga.index'),
+                    'satpam' => route('satpam.console'),
+                    default => route('dashboard'),
+                }
+                : route('home');
+        @endphp
         <div class="pt-4 flex flex-wrap items-center justify-center gap-3">
             <button 
                 type="button" 
-                onclick="window.history.length > 1 ? window.history.back() : window.location.href='{{ route('dashboard') }}'" 
-                class="px-5 py-3 rounded-2xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-extrabold text-xs shadow-xs transition flex items-center gap-2 cursor-pointer"
+                onclick="window.history.length > 1 ? window.history.back() : window.location.href='{{ $errFallbackUrl }}'" 
+                class="px-5 py-3 rounded-2xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-extrabold text-xs shadow-xs transition-colors flex items-center gap-2 cursor-pointer"
             >
                 <span>⬅ Kembali</span>
             </button>
@@ -37,14 +47,28 @@
                 @if(Auth::user()->role === 'warga')
                     <a 
                         href="{{ route('warga.profile') }}" 
-                        class="px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-lg shadow-emerald-600/20 transition flex items-center gap-2 cursor-pointer"
+                        class="px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-lg shadow-emerald-600/20 transition-colors flex items-center gap-2 cursor-pointer"
                     >
                         <span>🪪 Lengkapi Berkas KTP Anda ➔</span>
+                    </a>
+                @elseif(Auth::user()->role === 'super_admin')
+                    <a 
+                        href="{{ route('superadmin.index') }}" 
+                        class="px-5 py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs shadow-lg shadow-amber-500/20 transition-colors flex items-center gap-2 cursor-pointer"
+                    >
+                        <span>⚡ Buka Pusat Super Admin ➔</span>
+                    </a>
+                @elseif(Auth::user()->role === 'satpam')
+                    <a 
+                        href="{{ route('satpam.console') }}" 
+                        class="px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-lg shadow-emerald-600/20 transition-colors flex items-center gap-2 cursor-pointer"
+                    >
+                        <span>🛡️ Buka Pos Satpam ➔</span>
                     </a>
                 @else
                     <a 
                         href="{{ route('dashboard') }}" 
-                        class="px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-lg shadow-emerald-600/20 transition flex items-center gap-2 cursor-pointer"
+                        class="px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-lg shadow-emerald-600/20 transition-colors flex items-center gap-2 cursor-pointer"
                     >
                         <span>📊 Buka Dashboard ➔</span>
                     </a>
@@ -52,7 +76,7 @@
             @else
                 <a 
                     href="{{ route('login') }}" 
-                    class="px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-lg shadow-emerald-600/20 transition flex items-center gap-2 cursor-pointer"
+                    class="px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-lg shadow-emerald-600/20 transition-colors flex items-center gap-2 cursor-pointer"
                 >
                     <span>Masuk ke Akun Anda ➔</span>
                 </a>

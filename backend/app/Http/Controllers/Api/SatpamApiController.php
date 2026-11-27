@@ -7,6 +7,7 @@ use App\Models\SmartGate;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Models\Visitor;
+use App\Services\RfidService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -21,9 +22,8 @@ class SatpamApiController extends BaseApiController
     {
         $tenant = Tenant::getActiveTenant() ?? Tenant::first();
 
-        $smartGate = SmartGate::where('tenant_id', $tenant?->id)->where('status', 'online')->first() 
-            ?? SmartGate::where('tenant_id', $tenant?->id)->first() 
-            ?? SmartGate::first();
+        $smartGate = RfidService::resolvePrimaryGate($tenant?->id);
+        $isGateOnline = RfidService::getGateOnlineStatus($tenant?->id)['online'];
 
         $recentLogs = GateLog::where('tenant_id', $tenant?->id)
             ->with(['user'])
@@ -51,6 +51,7 @@ class SatpamApiController extends BaseApiController
         return $this->success([
             'tenant'              => $tenant,
             'smart_gate'          => $smartGate,
+            'is_gate_online'      => $isGateOnline,
             'panic_alert'         => $panicAlert,
             'recent_logs'         => $recentLogs,
             'active_visitors'     => $activeVisitors,
@@ -68,10 +69,15 @@ class SatpamApiController extends BaseApiController
         ]);
 
         $tenant = Tenant::getActiveTenant() ?? Tenant::first();
-        $gate = SmartGate::where('tenant_id', $tenant?->id)->first() ?? SmartGate::first();
+        $gate = RfidService::resolvePrimaryGate($tenant?->id);
+        $isGateOnline = RfidService::getGateOnlineStatus($tenant?->id)['online'];
 
         if (!$gate) {
             return $this->error('Perangkat palang gerbang tidak ditemukan.', null, 404);
+        }
+
+        if (!$isGateOnline) {
+            return $this->error('Smart Gate sedang OFFLINE! Pastikan perangkat ESP32 gerbang terhubung terlebih dahulu.', ['offline' => true], 422);
         }
 
         $satpamUser = $request->user() ?? Auth::user() ?? User::where('role', 'satpam')->first();
@@ -133,8 +139,17 @@ class SatpamApiController extends BaseApiController
             return $this->error('Tiket tamu ini telah kedaluwarsa.', null, 400);
         }
 
+        if ($visitor->isPending()) {
+            return $this->error("Izin masuk untuk {$visitor->guest_name} masih menunggu persetujuan warga pemilik rumah.", null, 403);
+        }
+
+        if ($visitor->isRejected()) {
+            return $this->error("Izin masuk {$visitor->guest_name} telah DITOLAK oleh warga pemilik rumah.", null, 403);
+        }
+
         $tenant = Tenant::getActiveTenant() ?? Tenant::first();
-        $gate = SmartGate::where('tenant_id', $tenant?->id)->first() ?? SmartGate::first();
+        $gate = RfidService::resolvePrimaryGate($visitor->tenant_id ?? $tenant?->id);
+        $isGateOnline = RfidService::getGateOnlineStatus($visitor->tenant_id ?? $tenant?->id)['online'];
         $satpamUser = $request->user() ?? Auth::user();
 
         $visitor->update([
@@ -144,26 +159,41 @@ class SatpamApiController extends BaseApiController
         ]);
 
         if ($gate) {
-            Cache::put("gate_remote_open_{$gate->id}", [
-                'action'        => 'open',
-                'requested_by'  => "Tamu: {$visitor->guest_name}",
-                'role'          => 'guest',
-                'duration_secs' => 5,
-                'requested_at'  => now()->toISOString(),
-            ], 30);
+            if ($isGateOnline) {
+                Cache::put("gate_remote_open_{$gate->id}", [
+                    'action'        => 'open',
+                    'requested_by'  => "Tamu: {$visitor->guest_name}",
+                    'role'          => 'guest',
+                    'duration_secs' => 5,
+                    'requested_at'  => now()->toISOString(),
+                ], 30);
+                Cache::put('gate_remote_open_global', [
+                    'action'        => 'open',
+                    'requested_by'  => "Tamu: {$visitor->guest_name}",
+                    'role'          => 'guest',
+                    'duration_secs' => 5,
+                    'requested_at'  => now()->toISOString(),
+                ], 30);
+            }
 
             GateLog::create([
-                'tenant_id'     => $tenant?->id ?? $gate->tenant_id,
+                'tenant_id'     => $visitor->tenant_id ?? $tenant?->id ?? $gate->tenant_id,
                 'smart_gate_id' => $gate->id,
                 'user_id'       => $satpamUser?->id,
+                'visitor_id'    => $visitor->id,
                 'access_method' => 'qr_code',
                 'direction'     => 'entry',
                 'status'        => 'granted',
-                'reason'        => "Check-in Tamu: {$visitor->guest_name} ({$visitor->guest_type})",
+                'reason'        => ($isGateOnline ? 'Check-in Tamu: ' : 'Check-in Manual Pos Satpam (ESP32 Offline): ') . "{$visitor->guest_name} ({$visitor->guest_type})",
                 'triggered_at'  => now(),
             ]);
         }
 
-        return $this->success($visitor, "Tamu {$visitor->guest_name} berhasil check-in. Palang gerbang terbuka.");
+        return $this->success([
+            'visitor' => $visitor,
+            'gate_opened' => $isGateOnline,
+        ], $isGateOnline
+            ? "Tamu {$visitor->guest_name} berhasil check-in. Palang gerbang terbuka."
+            : "Tamu {$visitor->guest_name} dicatat masuk (ESP32 sedang OFFLINE — buka palang secara manual).");
     }
 }

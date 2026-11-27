@@ -14,7 +14,11 @@
             <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Uji coba respon palang pintu otomatis secara lokal tanpa perlu menyambungkan hardware fisik.</p>
         </div>
 
-        <div class="flex items-center gap-3">
+        <div class="flex flex-wrap items-center gap-2.5">
+            <span class="px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-2 border {{ ($isHardwareOnline ?? false) ? 'bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950/70 dark:border-emerald-800 dark:text-emerald-300' : 'bg-rose-100 text-rose-800 border-rose-300 dark:bg-rose-950/70 dark:border-rose-800 dark:text-rose-300' }}">
+                <span class="w-2 h-2 rounded-full {{ ($isHardwareOnline ?? false) ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500' }}"></span>
+                <span>Hardware ESP32: {{ ($isHardwareOnline ?? false) ? 'ONLINE' : 'OFFLINE (Virtual Twin)' }}</span>
+            </span>
             <span class="px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-2" :class="isOpen ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300' : 'bg-red-100 text-red-800 dark:bg-rose-950/70 dark:text-rose-300'">
                 <span class="w-2.5 h-2.5 rounded-full" :class="isOpen ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'"></span>
                 <span x-text="isOpen ? 'GERBANG TERBUKA (OPEN)' : 'GERBANG TERTUTUP (CLOSED)'"></span>
@@ -174,7 +178,7 @@
                 <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Console Log Simulator</h3>
                 <p class="text-xs text-slate-500 dark:text-slate-400">Respon data dari database ke simulator gerbang secara real-time.</p>
             </div>
-            <button @click="fetchLogs()" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline">Refresh Log</button>
+            <button type="button" @click="fetchLogs()" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer">Refresh Log</button>
         </div>
 
         <div class="bg-slate-950 text-emerald-400 p-4 rounded-xl font-mono text-xs space-y-2 max-h-60 overflow-y-auto">

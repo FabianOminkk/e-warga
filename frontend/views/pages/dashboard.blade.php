@@ -29,6 +29,9 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+            <a href="{{ route('residents.index') }}" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center gap-2 touch-press">
+                <span>👨‍👩‍👧‍👦 Data Warga &amp; KK</span>
+            </a>
             <a href="{{ route('simulator') }}" class="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center gap-2 border border-transparent dark:border-slate-700 touch-press">
                 <span>🧪 Buka Simulator</span>
             </a>
@@ -170,7 +173,7 @@
     <!-- MEJA VERIFIKASI KTP & OTORISASI RFID WARGA OLEH KETUA RW         -->
     <!-- (SETIAP WARGA BARU WAJIB DI-ACC RW AGAR SINKRON KE SATPAM & GATE) -->
     <!-- ================================================================= -->
-    <div class="bg-white dark:bg-slate-900 rounded-3xl border-2 border-emerald-500/30 p-6 lg:p-8 shadow-sm space-y-6">
+    <div id="seksi-verifikasi" class="bg-white dark:bg-slate-900 rounded-3xl border-2 border-emerald-500/30 p-6 lg:p-8 shadow-sm space-y-6 scroll-mt-20">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
             <div>
                 <div class="flex items-center gap-2">
@@ -360,54 +363,99 @@
     </div>
 
     <!-- Row: Antrian Verifikasi Iuran & Catat Transaksi Baru -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <div id="seksi-keuangan" class="grid grid-cols-1 lg:grid-cols-12 gap-8 scroll-mt-20">
         
-        <!-- Kolom Kiri: Verifikasi Pembayaran Pending (Bendahara Focus) -->
-        <div class="lg:col-span-7 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-4">
-            <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-                <div>
-                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Antrian Verifikasi Pembayaran Iuran</h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Struk transfer yang diunggah warga menunggu persetujuan Bendahara.</p>
+        <!-- Kolom Kiri: Verifikasi Pembayaran Pending & Penerbitan Tagihan (Bendahara Focus) -->
+        <div class="lg:col-span-7 space-y-6">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-4">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                    <div>
+                        <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Antrian Verifikasi Pembayaran Iuran</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Struk transfer yang diunggah warga menunggu persetujuan Bendahara.</p>
+                    </div>
+                    <span class="px-2.5 py-1 bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300 text-xs font-black rounded-full tabular-nums">
+                        {{ $pendingPayments->count() }} Menunggu
+                    </span>
                 </div>
-                <span class="px-2.5 py-1 bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300 text-xs font-black rounded-full">
-                    {{ $pendingPayments->count() }} Menunggu
-                </span>
+
+                @if($pendingPayments->isEmpty())
+                    <div class="text-center py-8 text-slate-400 dark:text-slate-500 text-sm">
+                        <span class="text-3xl block mb-2">🎉</span>
+                        Tidak ada antrian pembayaran tertunda. Semua pembayaran telah terverifikasi!
+                    </div>
+                @else
+                    <div class="divide-y divide-slate-100 dark:divide-slate-800">
+                        @foreach($pendingPayments as $p)
+                            <div class="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                <div>
+                                    <div class="text-sm font-bold text-slate-900 dark:text-white">{{ $p->payer?->name ?? 'Warga' }}</div>
+                                    <div class="text-xs text-slate-500 dark:text-slate-400 tabular-nums">{{ $p->billing?->house?->block_and_number ?? 'Unit Rumah' }} • Tagihan: Rp {{ number_format($p->amount_paid, 0, ',', '.') }}</div>
+                                    <div class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 flex flex-wrap items-center gap-2">
+                                        <span>Metode: {{ strtoupper(str_replace('_', ' ', $p->payment_method)) }} • Diupload: {{ $p->created_at->diffForHumans() }}</span>
+                                        @if($p->proof_url)
+                                            <a href="{{ $p->proof_url }}" target="_blank" class="text-cyan-600 dark:text-cyan-400 font-bold hover:underline">📎 Lihat Bukti</a>
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <form action="{{ route('dashboard.verify-payment', $p->id) }}" method="POST">
+                                        @csrf
+                                        <input type="hidden" name="action" value="approve">
+                                        <button type="submit" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition-colors shadow-xs cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-500">
+                                            ✅ Terima
+                                        </button>
+                                    </form>
+                                    <form action="{{ route('dashboard.verify-payment', $p->id) }}" method="POST">
+                                        @csrf
+                                        <input type="hidden" name="action" value="reject">
+                                        <button type="submit" class="px-3 py-1.5 bg-slate-100 hover:bg-red-50 hover:text-red-600 dark:bg-slate-800 dark:hover:bg-rose-950/60 dark:text-slate-300 dark:hover:text-rose-300 font-bold text-xs rounded-lg transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-rose-500">
+                                            Tolak
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
             </div>
 
-            @if($pendingPayments->isEmpty())
-                <div class="text-center py-8 text-slate-400 dark:text-slate-500 text-sm">
-                    <span class="text-3xl block mb-2">🎉</span>
-                    Tidak ada antrian pembayaran tertunda. Semua pembayaran telah terverifikasi!
+            <!-- Form Terbitkan Tagihan Iuran Bulanan Massal -->
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-4">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                    <div>
+                        <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Terbitkan Tagihan Iuran Bulanan</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Buat tagihan IPL otomatis ke seluruh rumah berpenghuni untuk periode bulan tertentu.</p>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 text-[11px] font-bold">
+                        Otomatis per Unit
+                    </span>
                 </div>
-            @else
-                <div class="divide-y divide-slate-100 dark:divide-slate-800">
-                    @foreach($pendingPayments as $p)
-                        <div class="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <div>
-                                <div class="text-sm font-bold text-slate-900 dark:text-white">{{ $p->payer?->name ?? 'Warga' }}</div>
-                                <div class="text-xs text-slate-500 dark:text-slate-400">{{ $p->billing?->house?->block_and_number ?? 'Unit Rumah' }} • Tagihan: Rp {{ number_format($p->amount_paid, 0, ',', '.') }}</div>
-                                <div class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">Metode: {{ ucfirst($p->payment_method) }} • Diupload: {{ $p->created_at->diffForHumans() }}</div>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <form action="{{ route('dashboard.verify-payment', $p->id) }}" method="POST">
-                                    @csrf
-                                    <input type="hidden" name="action" value="approve">
-                                    <button type="submit" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition shadow-xs">
-                                        ✅ Terima
-                                    </button>
-                                </form>
-                                <form action="{{ route('dashboard.verify-payment', $p->id) }}" method="POST">
-                                    @csrf
-                                    <input type="hidden" name="action" value="reject">
-                                    <button type="submit" class="px-3 py-1.5 bg-slate-100 hover:bg-red-50 hover:text-red-600 dark:bg-slate-800 dark:hover:bg-rose-950/60 dark:text-slate-300 dark:hover:text-rose-300 font-bold text-xs rounded-lg transition">
-                                        Tolak
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            @endif
+
+                <form action="{{ route('dashboard.generate-billings') }}" method="POST" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
+                    @csrf
+                    <div>
+                        <label class="block font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Periode Bulan</label>
+                        <input type="month" name="billing_month" value="{{ now()->format('Y-m') }}" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-semibold">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Nominal Iuran (Rp)</label>
+                        <input type="number" name="amount" value="150000" min="1000" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-mono font-bold tabular-nums">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Jatuh Tempo</label>
+                        <input type="date" name="due_date" value="{{ now()->startOfMonth()->addDays(14)->format('Y-m-d') }}" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-sm">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Keterangan Tagihan</label>
+                        <input type="text" name="description" value="Iuran Kebersihan, Keamanan, &amp; Kas RT" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-sm">
+                    </div>
+                    <div class="sm:col-span-2 flex justify-end pt-1">
+                        <button type="submit" class="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white font-black text-xs cursor-pointer transition-colors">
+                            + Terbitkan Tagihan ke Rumah Warga
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
 
         <!-- Kolom Kanan: Form Catat Kas Baru -->
@@ -418,30 +466,30 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1.5">Jenis Kas</label>
-                        <select name="type" class="w-full px-4 py-3 text-base rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 outline-hidden font-semibold">
+                        <select name="type" class="w-full px-4 py-3 text-base rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden font-semibold">
                             <option value="income">🟢 Pemasukan (+)</option>
                             <option value="expense">🔴 Pengeluaran (-)</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1.5">Kategori</label>
-                        <input type="text" name="category" placeholder="Misal: Gaji Satpam" required class="w-full px-4 py-3 text-base rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 outline-hidden">
+                        <input type="text" name="category" placeholder="Misal: Gaji Satpam…" required class="w-full px-4 py-3 text-base rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden">
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1.5">Judul / Keterangan Transaksi</label>
-                    <input type="text" name="title" placeholder="Misal: Pembayaran Listrik Pos Satpam" required class="w-full px-4 py-3 text-base rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 outline-hidden font-semibold">
+                    <input type="text" name="title" placeholder="Misal: Pembayaran Listrik Pos Satpam…" required class="w-full px-4 py-3 text-base rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden font-semibold">
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1.5">Jumlah Nominal (Rp)</label>
-                    <input type="number" name="amount" inputmode="numeric" placeholder="500000" min="1000" required class="w-full px-4 py-3 text-base rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 outline-hidden font-mono font-bold">
+                    <input type="number" name="amount" inputmode="numeric" placeholder="500000" min="1000" required class="w-full px-4 py-3 text-base rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden font-mono font-bold tabular-nums">
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1.5">Catatan Tambahan (Opsional)</label>
-                    <textarea name="notes" rows="2" placeholder="Nomor kuitansi / nota toko…" class="w-full px-4 py-3 text-base rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 outline-hidden leading-relaxed"></textarea>
+                    <textarea name="notes" rows="2" placeholder="Nomor kuitansi / nota toko…" class="w-full px-4 py-3 text-base rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden leading-relaxed"></textarea>
                 </div>
 
                 <button type="submit" :disabled="isSubmitting" class="w-full min-h-[48px] py-3.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-extrabold text-sm rounded-2xl shadow-md shadow-emerald-600/25 transition-transform flex items-center justify-center gap-2 cursor-pointer touch-press">
@@ -462,14 +510,12 @@
                     <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Buku Kas Terbuka RT</h3>
                     <span class="text-xs text-slate-400 dark:text-slate-500">8 Terakhir</span>
                 </div>
-                <button 
-                    type="button" 
-                    @click="triggerComingSoon('Ekspor Laporan Kas RT (PDF & Excel)', 'Fitur cetak rekap pembukuan kas format PDF berstempel resmi Pengurus & ekspor Excel sedang dalam tahap finalisasi template akuntansi lingkungan (Coming Soon).')" 
-                    class="text-xs font-bold px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                <a 
+                    href="{{ route('dashboard.cashbook.export') }}" 
+                    class="text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white dark:text-slate-200 transition-colors flex items-center gap-1.5 shadow-2xs"
                 >
-                    <span>📥 Ekspor Rekap</span>
-                    <span class="text-[10px] text-amber-500 font-extrabold">(Coming Soon)</span>
-                </button>
+                    <span>📥 Ekspor CSV Kas</span>
+                </a>
             </div>
 
             <!-- TAMPILAN 1: TATA LETAK KARTU VERTIKAL PADA SMARTPHONE (MOBILE-FIRST) -->
@@ -509,10 +555,10 @@
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                         @foreach($recentCashBooks as $cb)
                             <tr>
-                                <td class="py-3 text-slate-500 dark:text-slate-400 font-mono">{{ $cb->transaction_date->format('d/m/Y') }}</td>
+                                <td class="py-3 text-slate-500 dark:text-slate-400 font-mono tabular-nums">{{ $cb->transaction_date->format('d/m/Y') }}</td>
                                 <td class="py-3 font-semibold text-slate-800 dark:text-slate-200">{{ $cb->title }}</td>
                                 <td class="py-3 text-slate-500 dark:text-slate-400">{{ $cb->category }}</td>
-                                <td class="py-3 text-right font-bold {{ $cb->type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-rose-400' }}">
+                                <td class="py-3 text-right font-bold tabular-nums {{ $cb->type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-rose-400' }}">
                                     {{ $cb->formatted_amount }}
                                 </td>
                             </tr>
@@ -539,7 +585,7 @@
                                 <div class="text-[11px] text-slate-500 dark:text-slate-400">{{ $gl->reason }}</div>
                             </div>
                         </div>
-                        <span class="text-[11px] font-mono text-slate-400 dark:text-slate-500">{{ $gl->triggered_at->format('H:i:s') }}</span>
+                        <span class="text-[11px] font-mono text-slate-400 dark:text-slate-500 tabular-nums">{{ $gl->triggered_at->format('H:i:s') }}</span>
                     </div>
                 @endforeach
             </div>

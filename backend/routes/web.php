@@ -1,10 +1,12 @@
 <?php
 
+use App\Http\Controllers\CitizenReportController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LetterController;
 use App\Http\Controllers\PosyanduController;
 use App\Http\Controllers\RegisterController;
+use App\Http\Controllers\ResidentController;
 use App\Http\Controllers\SatpamController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\SimulatorController;
@@ -62,20 +64,38 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/dashboard/verify-payment/{id}', [DashboardController::class, 'verifyPayment'])->name('dashboard.verify-payment');
     Route::post('/dashboard/store-cashbook', [DashboardController::class, 'storeCashBook'])->name('dashboard.store-cashbook');
+    Route::post('/dashboard/generate-billings', [DashboardController::class, 'generateBillings'])->name('dashboard.generate-billings');
+    Route::get('/dashboard/cashbook/export', [DashboardController::class, 'exportCashBook'])->name('dashboard.cashbook.export');
     Route::post('/rw/verifikasi-warga/{id}/approve', [DashboardController::class, 'approveWargaVerification'])->name('rw.verifications.approve');
     Route::post('/rw/verifikasi-warga/{id}/reject', [DashboardController::class, 'rejectWargaVerification'])->name('rw.verifications.reject');
     Route::post('/toggle-mode', [ScheduleController::class, 'toggleEnvironmentMode'])->name('environment.toggle');
+
+    // 2B. Manajemen Data Warga, Unit Rumah, Kartu Keluarga (KK), & Role Akun
+    Route::get('/data-warga', [ResidentController::class, 'index'])->name('residents.index');
+    Route::get('/data-warga/export', [ResidentController::class, 'exportCsv'])->name('residents.export');
+    Route::post('/data-warga/houses', [ResidentController::class, 'storeHouse'])->name('residents.houses.store');
+    Route::put('/data-warga/houses/{id}', [ResidentController::class, 'updateHouse'])->name('residents.houses.update');
+    Route::post('/data-warga/residents', [ResidentController::class, 'storeResident'])->name('residents.store');
+    Route::put('/data-warga/residents/{id}', [ResidentController::class, 'updateResident'])->name('residents.update');
+    Route::delete('/data-warga/residents/{id}', [ResidentController::class, 'destroyResident'])->name('residents.destroy');
 
     // 3. Console Pos Satpam
     Route::get('/satpam', [SatpamController::class, 'console'])->name('satpam.console');
     Route::post('/satpam/trigger-manual', [SatpamController::class, 'triggerManual'])->name('satpam.trigger-manual');
     Route::post('/satpam/checkin-visitor', [SatpamController::class, 'checkInVisitor'])->name('satpam.checkin-visitor');
+    Route::post('/satpam/visitors/register', [SatpamController::class, 'registerVisitor'])->name('satpam.visitors.register');
 
     // 4. Panel Akses Warga Mandiri & Pengaturan Akun
     Route::get('/warga', [WargaController::class, 'index'])->name('warga.index');
+    Route::get('/warga/smart-gate', [WargaController::class, 'smartGate'])->name('warga.smart-gate');
     Route::get('/pengaturan-akun', [WargaController::class, 'profile'])->name('warga.profile');
     Route::post('/warga/open-gate', [WargaController::class, 'triggerOpenGate'])->name('warga.open-gate');
+    Route::post('/warga/pay-billing', [WargaController::class, 'payBilling'])->name('warga.pay-billing');
+    Route::get('/warga/kwitansi/{billingId}', [WargaController::class, 'showReceipt'])->name('warga.receipt');
+    Route::get('/pembayaran/{id}/bukti', [WargaController::class, 'showPaymentProof'])->name('payments.proof.show');
     Route::post('/warga/create-visitor', [WargaController::class, 'createVisitorPass'])->name('warga.create-visitor');
+    Route::post('/warga/visitors/{id}/approve', [WargaController::class, 'approveVisitor'])->name('warga.visitors.approve');
+    Route::post('/warga/visitors/{id}/reject', [WargaController::class, 'rejectVisitor'])->name('warga.visitors.reject');
     Route::post('/warga/panic', [WargaController::class, 'panicAlert'])->name('warga.panic');
     Route::post('/warga/profile', [WargaController::class, 'updateProfile'])->name('warga.profile.update');
     Route::post('/warga/change-password', [WargaController::class, 'changePassword'])->name('warga.change-password');
@@ -103,6 +123,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/surat-pengantar', [LetterController::class, 'store'])->name('letters.store');
     Route::post('/surat-pengantar/{id}/approve', [LetterController::class, 'approve'])->name('letters.approve');
     Route::post('/surat-pengantar/{id}/reject', [LetterController::class, 'reject'])->name('letters.reject');
+
+    // 8. Modul Laporan, Aspirasi & Pengaduan Warga
+    Route::get('/laporan-warga', [CitizenReportController::class, 'index'])->name('reports.index');
+    Route::post('/laporan-warga', [CitizenReportController::class, 'store'])->name('reports.store');
+    Route::post('/laporan-warga/{id}/respond', [CitizenReportController::class, 'respond'])->name('reports.respond');
+    Route::get('/laporan-warga/foto/{id}', [CitizenReportController::class, 'showPhoto'])->name('reports.photo.show');
 });
 
 // Fallback Halaman Tidak Ditemukan Ramah Pengguna

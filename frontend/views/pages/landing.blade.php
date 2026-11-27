@@ -34,20 +34,34 @@
                 </p>
 
                 <!-- Action CTA Buttons (Alur Singkat / Friction Reduction) -->
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
+                <div class="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3.5 sm:gap-4 pt-2 [&>a]:whitespace-nowrap">
                     <a href="#kerjasama" class="px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-2xl shadow-xl shadow-emerald-600/30 text-base transition-transform duration-200 transform hover:-translate-y-0.5 text-center flex items-center justify-center gap-3 cursor-pointer touch-press btn-shimmer">
                         <span>Daftarkan Lingkungan Anda</span>
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                     </a>
                     
                     @auth
+                        @php
+                            $heroPortalUrl = match(Auth::user()->role) {
+                                'super_admin' => route('superadmin.index'),
+                                'warga' => route('warga.index'),
+                                'satpam' => route('satpam.console'),
+                                default => route('dashboard'),
+                            };
+                            $heroPortalLabel = match(Auth::user()->role) {
+                                'super_admin' => '⚡ Buka Pusat Super Admin',
+                                'warga' => 'Buka Portal Warga ➔',
+                                'satpam' => 'Buka Pos Satpam ➔',
+                                default => 'Buka Dashboard Aktif ➔',
+                            };
+                        @endphp
                         @if(Auth::user()->role === 'super_admin')
-                            <a href="{{ route('superadmin.index') }}" class="px-7 py-4 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-2xl shadow-lg shadow-amber-500/20 text-base transition-colors duration-200 flex items-center justify-center gap-2 cursor-pointer touch-press">
-                                <span>⚡ Buka Pusat Super Admin</span>
+                            <a href="{{ $heroPortalUrl }}" class="px-7 py-4 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-2xl shadow-lg shadow-amber-500/20 text-base transition-colors duration-200 flex items-center justify-center gap-2 cursor-pointer touch-press">
+                                <span>{{ $heroPortalLabel }}</span>
                             </a>
                         @else
-                            <a href="{{ route('dashboard') }}" class="px-7 py-4 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-extrabold rounded-2xl border-2 border-slate-200 dark:border-slate-800 text-base transition-colors duration-200 shadow-xs flex items-center justify-center gap-2 cursor-pointer touch-press">
-                                <span>Buka Dashboard Aktif ➔</span>
+                            <a href="{{ $heroPortalUrl }}" class="px-7 py-4 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-extrabold rounded-2xl border-2 border-slate-200 dark:border-slate-800 text-base transition-colors duration-200 shadow-xs flex items-center justify-center gap-2 cursor-pointer touch-press">
+                                <span>{{ $heroPortalLabel }}</span>
                             </a>
                         @endif
                     @else
@@ -88,22 +102,22 @@
             <div class="lg:col-span-5 space-y-6">
                 
                 <!-- KARTU 1: LIVE INTERACTIVE BENTO PREVIEW DENGAN SIMULASI PALANG PINTU -->
-                <div x-data="heroGateDemo" class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-7 space-y-5 relative overflow-hidden transition-all duration-300">
+                <div x-data="heroGateDemo({{ ($isGateOnline ?? false) ? 'true' : 'false' }}, '{{ route('api.rfid.status') }}')" class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-7 space-y-5 relative overflow-hidden transition-colors duration-300">
                     
                     <!-- Top Bar Kartu: Telemetri Gerbang -->
                     <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
                         <div class="flex items-center gap-2.5">
-                            <span class="w-3 h-3 rounded-full" :class="isOpen ? 'bg-amber-400 animate-ping' : 'bg-emerald-500 animate-ping'"></span>
+                            <span class="w-3 h-3 rounded-full" :class="isOnline ? (isOpen ? 'bg-amber-400 animate-ping' : 'bg-emerald-500 animate-ping') : 'bg-rose-500'"></span>
                             <span class="font-mono text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">
                                 SMART GATE ESP32 #01
                             </span>
                         </div>
                         <span 
-                            class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border transition-colors duration-200"
-                            :class="isOpen ? 'bg-amber-50 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800' : 'bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'"
-                            x-text="isOpen ? 'PALANG TERBUKA (' + timer + 's)' : 'ONLINE • AKTIF'"
+                            class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border transition-colors duration-200 whitespace-nowrap"
+                            :class="isOnline ? (isOpen ? 'bg-amber-50 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800' : 'bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800') : 'bg-rose-50 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800'"
+                            x-text="isOnline ? (isOpen ? 'PALANG TERBUKA (' + timer + 's)' : 'ONLINE • TERHUBUNG') : 'OFFLINE • BELUM TERHUBUNG'"
                         >
-                            ONLINE • AKTIF
+                            {{ ($isGateOnline ?? false) ? 'ONLINE • TERHUBUNG' : 'OFFLINE • BELUM TERHUBUNG' }}
                         </span>
                     </div>
 
@@ -114,12 +128,16 @@
                         <div class="flex items-center justify-between pb-2 border-b border-slate-800/80 text-[11px] font-mono">
                             <div class="flex items-center gap-2">
                                 <span class="relative flex h-2 w-2">
-                                    <span class="radar-pulse-ring absolute inline-flex h-full w-full rounded-full bg-cyan-400"></span>
-                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+                                    <span x-show="isOnline" class="radar-pulse-ring absolute inline-flex h-full w-full rounded-full bg-cyan-400"></span>
+                                    <span class="relative inline-flex rounded-full h-2 w-2" :class="isOnline ? 'bg-cyan-500' : 'bg-rose-500'"></span>
                                 </span>
-                                <span class="text-slate-300">Radar Sensor Anti-Bentur</span>
+                                <span class="text-slate-300" x-text="isOnline ? 'Radar Sensor Anti-Bentur' : 'Koneksi ESP32 Belum Terhubung'">
+                                    {{ ($isGateOnline ?? false) ? 'Radar Sensor Anti-Bentur' : 'Koneksi ESP32 Belum Terhubung' }}
+                                </span>
                             </div>
-                            <span class="text-cyan-400 font-bold">Respon: &lt; 0.3 dtk</span>
+                            <span class="font-bold" :class="isOnline ? 'text-cyan-400' : 'text-rose-400'" x-text="isOnline ? 'Respon: < 0.3 dtk' : 'OFFLINE'">
+                                {{ ($isGateOnline ?? false) ? 'Respon: < 0.3 dtk' : 'OFFLINE' }}
+                            </span>
                         </div>
 
                         <!-- Palang Gerbang yang Terangkat saat isOpen = true -->
@@ -128,14 +146,14 @@
                             <div class="flex items-end gap-2">
                                 <div class="w-9 h-14 bg-gradient-to-t from-slate-800 via-amber-500 to-amber-400 rounded-t-lg shadow-md flex flex-col items-center justify-center p-1 text-[8px] font-black text-slate-950">
                                     <span>IOT</span>
-                                    <span class="w-1.5 h-1.5 rounded-full mt-1" :class="isOpen ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'"></span>
+                                    <span class="w-1.5 h-1.5 rounded-full mt-1" :class="isOnline ? (isOpen ? 'bg-emerald-500 animate-pulse' : 'bg-amber-300') : 'bg-rose-600'"></span>
                                 </div>
 
                                 <!-- Palang Bergaris Merah-Putih dengan CSS Rotate Animation (Responsif Mobile) -->
                                 <div class="pb-2">
                                     <div 
                                         class="barrier-arm w-28 sm:w-44 h-3 bg-gradient-to-r from-red-600 via-white to-red-600 rounded-r-md shadow-lg border border-slate-700/60"
-                                        :class="{ 'is-open': isOpen }"
+                                        :class="{ 'is-open': isOpen && isOnline }"
                                     ></div>
                                 </div>
                             </div>
@@ -143,8 +161,8 @@
                             <!-- Indikator Status Suara / Lampu Strobo -->
                             <div class="text-right font-mono text-[11px]">
                                 <span class="block text-[10px] text-slate-400 uppercase">Status Palang:</span>
-                                <span class="font-extrabold" :class="isOpen ? 'text-amber-400' : 'text-emerald-400'" x-text="isOpen ? '▲ TERANGKAT' : '▼ MENUTUP'">
-                                    ▼ MENUTUP
+                                <span class="font-extrabold" :class="isOnline ? (isOpen ? 'text-amber-400' : 'text-emerald-400') : 'text-rose-400'" x-text="isOnline ? (isOpen ? '▲ TERANGKAT' : '▼ MENUTUP') : '⛔ OFFLINE'">
+                                    {{ ($isGateOnline ?? false) ? '▼ MENUTUP' : '⛔ OFFLINE' }}
                                 </span>
                             </div>
                         </div>
@@ -168,11 +186,13 @@
                         <button 
                             type="button" 
                             @click="triggerOpen()" 
-                            :disabled="isOpen"
-                            class="w-full py-2.5 px-4 rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-slate-500 text-white shadow-md transition-colors duration-200 flex items-center justify-center gap-2 cursor-pointer touch-press"
+                            :disabled="!isOnline || isOpen"
+                            class="w-full py-2.5 px-4 rounded-xl font-bold text-xs shadow-md transition-colors duration-200 flex items-center justify-center gap-2 touch-press"
+                            :class="isOnline ? (isOpen ? 'bg-slate-800 text-amber-300 cursor-wait' : 'bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer') : 'bg-slate-800 border border-rose-500/40 text-rose-300 cursor-not-allowed'"
                         >
-                            <span x-show="!isOpen">👆 Tekan untuk Uji Buka Palang (Live Demo)</span>
-                            <span x-show="isOpen" x-cloak>⚡ Palang Terbuka! Menutup otomatis dalam <strong x-text="timer + 's'"></strong></span>
+                            <span x-show="!isOnline">🔌 ESP32 Belum Terhubung (Smart Gate Offline)</span>
+                            <span x-show="isOnline && !isOpen" x-cloak>👆 Tekan untuk Uji Buka Palang (Live Demo)</span>
+                            <span x-show="isOnline && isOpen" x-cloak>⚡ Palang Terbuka! Menutup otomatis dalam <strong x-text="timer + 's'"></strong></span>
                         </button>
                     </div>
 
@@ -490,12 +510,12 @@
     <!-- ======================================================== -->
     <section id="hardware" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         <div class="text-center max-w-3xl mx-auto space-y-3">
-            <span class="text-xs sm:text-sm font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">KATALOG EKOSISTEM IOT</span>
+            <span class="text-xs sm:text-sm font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">KATALOG SISTEM IOT & SMART GATE</span>
             <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
-                Perangkat Keras Cerdas: Siap Pasang & Inovasi R&D
+                Smart Gate & Perangkat Keras Cerdas: Siap Pasang & Inovasi R&D
             </h2>
             <p class="text-base text-slate-600 dark:text-slate-400">
-                E-WARGA bukan hanya software biasa, namun terhubung langsung dengan mesin palang gerbang dan perangkat telemetri pintar.
+                E-WARGA bukan hanya software biasa, namun terhubung langsung dengan sistem palang gerbang pintar (Smart Gate) berbasis e-KTP RFID dan telemetri IoT.
             </p>
         </div>
 
@@ -515,18 +535,18 @@
                 <!-- 1. Smart Barrier Gate -->
                 <div class="bg-white dark:bg-slate-900 p-7 rounded-3xl border-2 border-emerald-500/40 dark:border-emerald-500/30 shadow-lg space-y-4">
                     <div class="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-2xl font-bold">
-                        🚪
+                        🚧
                     </div>
                     <div>
                         <div class="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">HARDWARE UTAMA</div>
                         <h4 class="text-base font-black text-slate-900 dark:text-white">Smart Barrier Gate Otomatis</h4>
                     </div>
                     <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                        Mesin palang gerbang kecepatan tinggi (1.5 - 3 detik) bertenaga brushless DC. Terhubung ke controller microchip E-WARGA via API aman, respons buka 1-klik dari HP atau kartu RFID.
+                        Mesin palang gerbang kecepatan tinggi (1.5 - 3 detik) bertenaga brushless DC. Terhubung ke controller microchip E-WARGA via API aman, respons buka otomatis tap e-KTP warga terverifikasi dan verifikasi izin QR tamu/kurir.
                     </p>
                     <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
-                        <span class="text-slate-400 font-semibold">Sensor Anti-Bentur:</span>
-                        <span class="font-bold text-slate-800 dark:text-white">Loop Detector + Radar</span>
+                        <span class="text-slate-400 font-semibold">Metode Akses:</span>
+                        <span class="font-bold text-slate-800 dark:text-white">e-KTP RFID + QR Tamu</span>
                     </div>
                 </div>
 
@@ -598,13 +618,13 @@
                 <!-- CS 2: Tiang Tombol Panik Publik -->
                 <div 
                     @click="triggerComingSoon('Inovasi Hardware: Tiang Tombol Panik Darurat (Public Pole)', 'Perangkat tiang tombol panik fisik dengan sirine piezoelektrik & interkom 2 arah sedang dalam prototipe perakitan modul telemetri LoRa/GSM (Coming Soon).')" 
-                    class="p-6 rounded-3xl bg-slate-100/70 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-3 relative overflow-hidden group cursor-pointer hover:border-rose-500 hover:shadow-lg transition transform hover:-translate-y-1"
+                    class="p-6 rounded-3xl bg-slate-100/70 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-3 relative overflow-hidden group cursor-pointer hover:border-rose-500 hover:shadow-lg transition-[transform,border-color,box-shadow] transform hover:-translate-y-1"
                 >
                     <div class="flex items-center justify-between">
                         <span class="text-2xl">🚨</span>
                         <span class="px-2.5 py-1 rounded-md text-[9px] font-black uppercase bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300">Coming Soon ➔</span>
                     </div>
-                    <h4 class="font-black text-sm text-slate-900 dark:text-white group-hover:text-rose-600 dark:group-hover:text-rose-400 transition">Tiang Tombol Panik Darurat (Public Pole)</h4>
+                    <h4 class="font-black text-sm text-slate-900 dark:text-white group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">Tiang Tombol Panik Darurat (Public Pole)</h4>
                     <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                         Tiang panik fisik yang dipasang di taman/gang lingkungan. Dilengkapi sirine piezoelektrik, strobo merah 360°, dan interkom suara langsung terhubung ke pos satpam.
                     </p>
@@ -613,13 +633,13 @@
                 <!-- CS 3: Sensor Banjir Drainase -->
                 <div 
                     @click="triggerComingSoon('Inovasi Hardware: Sensor Banjir & Saluran Air IoT', 'Modul sensor ultrasonik pemantau debit drainase got dan early warning system banjir sedang dalam uji ketahanan cuaca ekstrim & kalibrasi ambang batas alarm (Coming Soon).')" 
-                    class="p-6 rounded-3xl bg-slate-100/70 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-3 relative overflow-hidden group cursor-pointer hover:border-teal-500 hover:shadow-lg transition transform hover:-translate-y-1"
+                    class="p-6 rounded-3xl bg-slate-100/70 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-3 relative overflow-hidden group cursor-pointer hover:border-teal-500 hover:shadow-lg transition-[transform,border-color,box-shadow] transform hover:-translate-y-1"
                 >
                     <div class="flex items-center justify-between">
                         <span class="text-2xl">🌊</span>
                         <span class="px-2.5 py-1 rounded-md text-[9px] font-black uppercase bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-300">Coming Soon ➔</span>
                     </div>
-                    <h4 class="font-black text-sm text-slate-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 transition">Sensor Banjir & Saluran Air IoT</h4>
+                    <h4 class="font-black text-sm text-slate-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">Sensor Banjir & Saluran Air IoT</h4>
                     <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                         Sensor ultrasonik pengukur ketinggian debit saluran drainase got lingkungan warga. Otomatis membunyikan alarm dan mengirim broadcast notifikasi saat siaga 1.
                     </p>
@@ -794,14 +814,28 @@
                 </p>
             </div>
             <div class="shrink-0">
+                @php
+                    $ctaPortalUrl = match(Auth::user()->role) {
+                        'super_admin' => route('superadmin.index'),
+                        'warga' => route('warga.index'),
+                        'satpam' => route('satpam.console'),
+                        default => route('dashboard'),
+                    };
+                    $ctaPortalLabel = match(Auth::user()->role) {
+                        'super_admin' => 'Buka Dashboard Utama',
+                        'warga' => 'Buka Portal Mandiri Warga',
+                        'satpam' => 'Buka Console Pos Satpam',
+                        default => 'Buka Dashboard Pengurus',
+                    };
+                @endphp
                 @if(Auth::user()->role === 'super_admin')
-                    <a href="{{ route('superadmin.index') }}" class="px-8 py-4 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-2xl shadow-xl transition transform hover:scale-105 active:scale-95 text-base flex items-center gap-2 cursor-pointer">
-                        <span>Buka Dashboard Utama</span>
+                    <a href="{{ $ctaPortalUrl }}" class="px-8 py-4 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-2xl shadow-xl transition-transform transform hover:scale-105 active:scale-95 text-base flex items-center gap-2 cursor-pointer">
+                        <span>{{ $ctaPortalLabel }}</span>
                         <span>➔</span>
                     </a>
                 @else
-                    <a href="{{ route('dashboard') }}" class="px-8 py-4 bg-white text-emerald-950 hover:bg-emerald-50 font-black rounded-2xl shadow-xl transition transform hover:scale-105 active:scale-95 text-base flex items-center gap-2 cursor-pointer">
-                        <span>Buka Dashboard Utama</span>
+                    <a href="{{ $ctaPortalUrl }}" class="px-8 py-4 bg-white text-emerald-950 hover:bg-emerald-50 font-black rounded-2xl shadow-xl transition-transform transform hover:scale-105 active:scale-95 text-base flex items-center gap-2 cursor-pointer">
+                        <span>{{ $ctaPortalLabel }}</span>
                         <span>➔</span>
                     </a>
                 @endif

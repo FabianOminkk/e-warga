@@ -4,11 +4,14 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\Billing;
 use App\Models\GateLog;
+use App\Models\House;
 use App\Models\LetterRequest;
+use App\Models\Payment;
 use App\Models\SmartGate;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Models\Visitor;
+use App\Services\RfidService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -30,8 +33,9 @@ class WargaApiController extends BaseApiController
             return $this->error('Unauthenticated.', null, 401);
         }
 
-        $tenant = Tenant::getActiveTenant() ?? Tenant::first();
-        $smartGate = SmartGate::where('tenant_id', $tenant?->id)->first() ?? SmartGate::first();
+        $tenant = Tenant::find($user->tenant_id) ?? Tenant::getActiveTenant() ?? Tenant::first();
+        $smartGate = RfidService::resolvePrimaryGate($tenant?->id);
+        $isGateOnline = RfidService::getGateOnlineStatus($tenant?->id)['online'];
 
         $billing = null;
         if ($user->house_id) {
@@ -43,13 +47,14 @@ class WargaApiController extends BaseApiController
         $myLetters = LetterRequest::where('user_id', $user->id)->latest()->take(10)->get();
 
         return $this->success([
-            'user'         => $user->load(['house', 'vehicles']),
-            'tenant'       => $tenant,
-            'smart_gate'   => $smartGate,
-            'billing'      => $billing,
-            'visitors'     => $myVisitors,
-            'gate_logs'    => $myGateLogs,
-            'letters'      => $myLetters,
+            'user'           => $user->load(['house', 'vehicles']),
+            'tenant'         => $tenant,
+            'smart_gate'     => $smartGate,
+            'is_gate_online' => $isGateOnline,
+            'billing'        => $billing,
+            'visitors'       => $myVisitors,
+            'gate_logs'      => $myGateLogs,
+            'letters'        => $myLetters,
         ], 'Data portal warga berhasil diambil.');
     }
 
@@ -71,11 +76,16 @@ class WargaApiController extends BaseApiController
             return $this->error($msg, ['verification_status' => $user->verification_status], 403);
         }
 
-        $tenant = Tenant::getActiveTenant() ?? Tenant::first();
-        $smartGate = SmartGate::where('tenant_id', $tenant?->id)->first() ?? SmartGate::first();
+        $tenant = Tenant::find($user->tenant_id) ?? Tenant::getActiveTenant() ?? Tenant::first();
+        $smartGate = RfidService::resolvePrimaryGate($tenant?->id);
+        $isGateOnline = RfidService::getGateOnlineStatus($tenant?->id)['online'];
 
         if (!$smartGate) {
             return $this->error('Gerbang pintar belum terdaftar di sistem.', null, 404);
+        }
+
+        if (!$isGateOnline) {
+            return $this->error('Smart Gate sedang OFFLINE! Perangkat ESP32 belum terhubung ke server/hotspot.', ['offline' => true], 422);
         }
 
         // Simpan perintah buka gerbang di Cache untuk dijemput ESP32
@@ -214,6 +224,76 @@ class WargaApiController extends BaseApiController
             ->get();
 
         return $this->success($billings, 'Riwayat tagihan iuran berhasil diambil.');
+    }
+
+    /**
+     * Submit payment confirmation & proof for resident billing.
+     */
+    public function payBilling(Request $request): JsonResponse
+    {
+        $user = $request->user() ?? Auth::user();
+        if (!$user) {
+            return $this->error('Unauthenticated.', null, 401);
+        }
+
+        $validated = $request->validate([
+            'billing_id' => 'nullable|exists:billings,id',
+            'payment_method' => 'required|in:manual_transfer,qris,cash',
+            'amount_paid' => 'required|numeric|min:1000',
+            'proof_image' => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
+        ]);
+
+        $tenant = Tenant::find($user->tenant_id) ?? Tenant::getActiveTenant() ?? Tenant::first();
+        $houseId = $user->house_id ?? House::where('tenant_id', $tenant?->id)->value('id');
+        if (!$houseId) {
+            return $this->error('Data rumah warga belum terhubung.', null, 422);
+        }
+
+        $billing = !empty($validated['billing_id'])
+            ? Billing::where('house_id', $houseId)->findOrFail($validated['billing_id'])
+            : Billing::firstOrCreate(
+                [
+                    'tenant_id' => $tenant?->id ?? 1,
+                    'house_id' => $houseId,
+                    'billing_period' => now()->startOfMonth()->toDateString(),
+                ],
+                [
+                    'amount' => $validated['amount_paid'],
+                    'description' => 'Iuran Kebersihan, Keamanan, & Kas RT',
+                    'status' => 'unpaid',
+                    'due_date' => now()->startOfMonth()->addDays(15)->toDateString(),
+                ]
+            );
+
+        if ($billing->status === 'paid') {
+            return $this->error('Tagihan iuran periode ini sudah berstatus LUNAS.', null, 422);
+        }
+
+        $hasPending = Payment::where('billing_id', $billing->id)
+            ->whereNull('verified_at')
+            ->whereNull('rejection_reason')
+            ->exists();
+        if ($hasPending) {
+            return $this->error('Bukti pembayaran untuk tagihan ini sudah dikirim dan sedang menunggu verifikasi Bendahara.', null, 422);
+        }
+
+        $proofPath = null;
+        if ($request->hasFile('proof_image')) {
+            $file = $request->file('proof_image');
+            $proofPath = $file->storeAs('payments', 'pay_' . $user->id . '_' . time() . '.' . $file->getClientOriginalExtension(), 'local');
+        }
+
+        $payment = Payment::create([
+            'billing_id' => $billing->id,
+            'payer_user_id' => $user->id,
+            'payment_method' => $validated['payment_method'],
+            'proof_image' => $proofPath,
+            'amount_paid' => $validated['amount_paid'],
+        ]);
+
+        $billing->update(['status' => 'pending_verification']);
+
+        return $this->success($payment, 'Bukti pembayaran berhasil dikirim ke antrian verifikasi Bendahara.', 201);
     }
 
     /**

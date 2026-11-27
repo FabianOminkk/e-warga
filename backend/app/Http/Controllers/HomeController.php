@@ -9,6 +9,7 @@ use App\Models\SmartGate;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\ActivityLogger;
+use App\Services\RfidService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -23,8 +24,9 @@ class HomeController extends Controller
         $totalUsers = User::count();
         $totalGateLogs = GateLog::count();
         $totalCash = CashBook::where('type', 'income')->sum('amount') - CashBook::where('type', 'expense')->sum('amount');
+        $isGateOnline = RfidService::getGateOnlineStatus($tenant?->id)['online'];
 
-        return view('pages.landing', compact('tenant', 'totalHouses', 'totalUsers', 'totalGateLogs', 'totalCash'));
+        return view('pages.landing', compact('tenant', 'totalHouses', 'totalUsers', 'totalGateLogs', 'totalCash', 'isGateOnline'));
     }
 
     public function showLogin()
@@ -113,8 +115,8 @@ class HomeController extends Controller
                 'tenant_id' => $tenant->id,
                 'name' => 'Gerbang Utama - ' . $tenant->name,
                 'device_uid' => 'ESP32-' . strtoupper(Str::random(8)),
-                'status' => 'online',
-                'last_ping_at' => now(),
+                'status' => 'offline',
+                'last_ping_at' => null,
             ]);
         }
 

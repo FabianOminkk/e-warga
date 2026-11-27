@@ -16,6 +16,7 @@ class House extends Model
         'tenant_id',
         'block_name',
         'house_number',
+        'no_kk',
         'full_address',
         'occupancy_status',
     ];
@@ -53,6 +54,17 @@ class House extends Model
     public function getBlockAndNumberAttribute(): string
     {
         return "{$this->block_name} No. {$this->house_number}";
+    }
+
+    public function getMaskedNoKkAttribute(): string
+    {
+        if (!$this->no_kk) {
+            return 'Belum Terdata';
+        }
+        if (strlen($this->no_kk) < 8) {
+            return $this->no_kk;
+        }
+        return substr($this->no_kk, 0, 6) . '******' . substr($this->no_kk, -4);
     }
 }
 

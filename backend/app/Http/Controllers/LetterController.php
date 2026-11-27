@@ -84,6 +84,11 @@ class LetterController extends Controller
 
     public function approve(Request $request, $id)
     {
+        $signer = Auth::user();
+        if ($signer && !in_array($signer->role, ['super_admin', 'ketua_rw', 'ketua_rt', 'sekretaris', 'pengurus_rt'])) {
+            return back()->with('error', 'Akses ditolak: Hanya pengurus RT/RW yang berwenang menyetujui surat pengantar.');
+        }
+
         $tenant = Tenant::getActiveTenant() ?? Tenant::first();
         $letter = LetterRequest::findOrFail($id);
         $rtUser = User::where('role', 'ketua_rt')->first() ?? User::first();
@@ -97,7 +102,7 @@ class LetterController extends Controller
         $letterNumber = "470/{$letterSequence}/{$rtRwPart}/{$currentMonthRoman}/{$currentYear}";
         $qrCode = 'QR-SURAT-' . strtoupper(Str::random(10));
 
-        $signer = Auth::user() ?? $rtUser;
+        $signer = $signer ?? $rtUser;
         $letter->update([
             'status' => 'approved',
             'letter_number' => $letterNumber,
@@ -120,8 +125,12 @@ class LetterController extends Controller
 
     public function reject(Request $request, $id)
     {
-        $letter = LetterRequest::findOrFail($id);
         $signer = Auth::user();
+        if ($signer && !in_array($signer->role, ['super_admin', 'ketua_rw', 'ketua_rt', 'sekretaris', 'pengurus_rt'])) {
+            return back()->with('error', 'Akses ditolak: Hanya pengurus RT/RW yang berwenang menolak pengajuan surat.');
+        }
+
+        $letter = LetterRequest::findOrFail($id);
 
         $validated = $request->validate([
             'rejection_reason' => 'required|string|max:255',
@@ -129,6 +138,7 @@ class LetterController extends Controller
 
         $letter->update([
             'status' => 'rejected',
+            'signed_by' => $signer?->id,
             'rejection_reason' => $validated['rejection_reason'],
         ]);
 

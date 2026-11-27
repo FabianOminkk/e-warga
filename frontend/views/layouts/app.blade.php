@@ -107,7 +107,7 @@
 
 @php
     $isLanding = request()->routeIs('home');
-    $isLogin = request()->routeIs('login');
+    $isLogin = request()->routeIs('login', 'register', 'register.post');
 
     $activeTenant = \App\Models\Tenant::getActiveTenant();
     $pendingLettersCount = \App\Models\LetterRequest::where('status', 'pending')->count();
@@ -166,7 +166,7 @@
                 </div>
 
                 <!-- Desktop Nav Items (Interactive Animated Capsule Pills with Active Spy) -->
-                <nav class="hidden lg:flex items-center gap-1 xl:gap-1.5 text-[13px] font-medium text-slate-600 dark:text-slate-300">
+                <nav class="hidden lg:flex items-center gap-0.5 xl:gap-1.5 text-xs xl:text-[13px] font-medium text-slate-600 dark:text-slate-300 [&>a]:whitespace-nowrap lg:[&>a]:px-2 xl:[&>a]:px-3 2xl:[&>a]:px-3.5">
                     <a href="#hero" 
                        @click="activeSection = 'hero'"
                        class="relative px-3.5 py-1.5 rounded-full transition-all duration-200 group flex items-center gap-1"
@@ -191,7 +191,7 @@
                        :class="activeSection === 'hardware' 
                            ? 'text-emerald-600 dark:text-emerald-400 font-bold bg-slate-100 dark:bg-white/10 shadow-xs' 
                            : 'hover:text-emerald-600 dark:hover:text-emerald-300 hover:bg-slate-100/70 dark:hover:bg-white/5'">
-                        <span>Hardware IoT</span>
+                        <span>Smart Gate IoT</span>
                         <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-500/10 dark:bg-emerald-400/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 group-hover:border-emerald-500/40 transition-colors">
                             <span class="relative flex h-1.5 w-1.5">
                                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -230,7 +230,7 @@
 
                     <a href="#kerjasama" 
                        @click="activeSection = 'kerjasama'"
-                       class="relative px-3.5 py-1.5 rounded-full transition-all duration-200 group flex items-center gap-1"
+                       class="relative px-3.5 py-1.5 rounded-full transition-colors duration-200 group flex items-center gap-1"
                        :class="activeSection === 'kerjasama' 
                            ? 'text-emerald-600 dark:text-emerald-400 font-bold bg-slate-100 dark:bg-white/10 shadow-xs' 
                            : 'hover:text-emerald-600 dark:hover:text-emerald-300 hover:bg-slate-100/70 dark:hover:bg-white/5'">
@@ -268,14 +268,28 @@
 
                     <!-- CTA Masuk Sistem / Dashboard -->
                     @auth
+                        @php
+                            $desktopPortalUrl = match($currentUser?->role) {
+                                'super_admin' => route('superadmin.index'),
+                                'warga' => route('warga.index'),
+                                'satpam' => route('satpam.console'),
+                                default => route('dashboard'),
+                            };
+                            $desktopPortalLabel = match($currentUser?->role) {
+                                'super_admin' => '⚡ Super Admin',
+                                'warga' => 'Portal Warga',
+                                'satpam' => 'Pos Satpam',
+                                default => 'Buka Dashboard',
+                            };
+                        @endphp
                         @if($currentUser?->role === 'super_admin')
-                            <a href="{{ route('superadmin.index') }}" class="px-4 sm:px-5 py-2 sm:py-2.5 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-md shadow-amber-500/25 transition-transform duration-200 hover:scale-105 active:scale-95 flex items-center gap-1.5 sm:gap-2">
-                                <span>⚡ Super Admin</span>
+                            <a href="{{ $desktopPortalUrl }}" class="whitespace-nowrap px-4 sm:px-5 py-2 sm:py-2.5 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-md shadow-amber-500/25 transition-transform duration-200 hover:scale-105 active:scale-95 flex items-center gap-1.5 sm:gap-2">
+                                <span>{{ $desktopPortalLabel }}</span>
                                 <span>➔</span>
                             </a>
                         @else
-                            <a href="{{ route('dashboard') }}" class="px-4 sm:px-5 py-2 sm:py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shadow-md shadow-emerald-600/25 transition-transform duration-200 hover:scale-105 active:scale-95 flex items-center gap-1.5 sm:gap-2">
-                                <span>Buka Dashboard</span>
+                            <a href="{{ $desktopPortalUrl }}" class="whitespace-nowrap px-4 sm:px-5 py-2 sm:py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shadow-md shadow-emerald-600/25 transition-transform duration-200 hover:scale-105 active:scale-95 flex items-center gap-1.5 sm:gap-2">
+                                <span>{{ $desktopPortalLabel }}</span>
                                 <span>➔</span>
                             </a>
                         @endif
@@ -332,7 +346,7 @@
                         <span>⚡</span> Fitur Solusi
                     </a>
                     <a @click="landingMobileMenu = false" href="#hardware" class="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 transition flex items-center gap-2">
-                        <span>📹</span> Hardware IoT
+                        <span>🚧</span> Smart Gate IoT
                     </a>
                     <a @click="landingMobileMenu = false" href="#posyandu" class="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 transition flex items-center gap-2">
                         <span>👶</span> Posyandu
@@ -347,13 +361,27 @@
 
                 <div class="pt-2 border-t border-slate-100 dark:border-white/10 space-y-2">
                     @auth
+                        @php
+                            $mobilePortalUrl = match($currentUser?->role) {
+                                'super_admin' => route('superadmin.index'),
+                                'warga' => route('warga.index'),
+                                'satpam' => route('satpam.console'),
+                                default => route('dashboard'),
+                            };
+                            $mobilePortalLabel = match($currentUser?->role) {
+                                'super_admin' => '⚡ Buka Pusat Super Admin',
+                                'warga' => 'Buka Portal Mandiri Warga',
+                                'satpam' => 'Buka Console Pos Satpam',
+                                default => 'Buka Dashboard Operasional',
+                            };
+                        @endphp
                         @if($currentUser?->role === 'super_admin')
-                            <a href="{{ route('superadmin.index') }}" class="w-full py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs shadow-md transition flex items-center justify-center gap-2 touch-press">
-                                <span>⚡ Buka Pusat Super Admin</span>
+                            <a href="{{ $mobilePortalUrl }}" class="w-full py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs shadow-md transition-colors flex items-center justify-center gap-2 touch-press">
+                                <span>{{ $mobilePortalLabel }}</span>
                             </a>
                         @else
-                            <a href="{{ route('dashboard') }}" class="w-full py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-md transition flex items-center justify-center gap-2 touch-press">
-                                <span>Buka Dashboard Operasional</span>
+                            <a href="{{ $mobilePortalUrl }}" class="w-full py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-md transition-colors flex items-center justify-center gap-2 touch-press">
+                                <span>{{ $mobilePortalLabel }}</span>
                             </a>
                         @endif
                     @else
@@ -545,7 +573,7 @@
 
 @elseif($isLogin)
     <!-- ================================================================= -->
-    <!-- KONDISI 2: HALAMAN LOGIN (STANDALONE FULLSCREEN TANPA SIDEBAR)    -->
+    <!-- KONDISI 2: HALAMAN LOGIN & REGISTRASI (STANDALONE FULLSCREEN)     -->
     <!-- ================================================================= -->
     <main class="min-h-screen w-full flex flex-col justify-between bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
         @yield('content')
@@ -674,7 +702,7 @@
             @endif
 
             <!-- MENU OPERASIONAL RT & RW / LINGKUNGAN -->
-            @if(in_array($currentUser?->role ?? '', ['super_admin', 'ketua_rw', 'ketua_rt', 'bendahara']))
+            @if(in_array($currentUser?->role ?? '', ['super_admin', 'ketua_rw', 'ketua_rt', 'sekretaris', 'bendahara', 'pengurus_rt']))
                 <div>
                     <div class="px-3 pb-2 text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
                         Manajemen Lingkungan
@@ -690,7 +718,16 @@
                             @endif
                         </a>
 
-                        @if(in_array($currentUser?->role ?? '', ['super_admin', 'ketua_rw', 'ketua_rt']))
+                        @if(in_array($currentUser?->role ?? '', ['super_admin', 'ketua_rw', 'ketua_rt', 'sekretaris', 'bendahara', 'pengurus_rt']))
+                            <a href="{{ route('residents.index') }}" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition {{ request()->routeIs('residents.*') ? 'bg-teal-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="text-base">👨‍👩‍👧‍👦</span>
+                                    <span>Data Warga &amp; Kartu Keluarga</span>
+                                </div>
+                            </a>
+                        @endif
+
+                        @if(in_array($currentUser?->role ?? '', ['super_admin', 'ketua_rw', 'ketua_rt', 'sekretaris', 'pengurus_rt']))
                             <a href="{{ route('letters.index') }}" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition {{ request()->routeIs('letters.*') ? 'bg-blue-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
                                 <div class="flex items-center gap-2.5">
                                     <span class="text-base">📜</span>
@@ -711,12 +748,23 @@
                                 <span class="text-[9px] px-1.5 py-0.5 rounded-md bg-pink-100 text-pink-700 dark:bg-pink-950/60 dark:text-pink-300 font-bold">KMS</span>
                             </a>
                         @endif
+
+                        <a href="{{ route('reports.index') }}" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition {{ request()->routeIs('reports.*') ? 'bg-amber-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                            <div class="flex items-center gap-2.5">
+                                <span class="text-base">📣</span>
+                                <span>Laporan &amp; Aspirasi Warga</span>
+                            </div>
+                        </a>
                     </div>
                 </div>
             @endif
 
+            @php
+                $sidebarGateOnline = \App\Services\RfidService::getGateOnlineStatus(($activeTenant ?? null)?->id)['online'];
+            @endphp
+
             <!-- MENU KEAMANAN & HARDWARE (SUPER ADMIN, KETUA RW, KETUA RT, SATPAM) -->
-            @if(in_array($currentUser?->role ?? '', ['super_admin', 'ketua_rw', 'ketua_rt', 'satpam']))
+            @if(in_array($currentUser?->role ?? '', ['super_admin', 'ketua_rw', 'ketua_rt', 'sekretaris', 'satpam']))
                 <div>
                     <div class="px-3 pb-2 text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
                         Keamanan & Pos Jaga
@@ -728,6 +776,16 @@
                                 <span>Pos Pantau Satpam</span>
                             </div>
                             <span class="text-[9px] font-mono text-cyan-500 font-bold">GATE</span>
+                        </a>
+
+                        <a href="{{ route('warga.smart-gate') }}" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors {{ request()->routeIs('warga.smart-gate') ? 'bg-emerald-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                            <div class="flex items-center gap-2.5">
+                                <span class="text-base">🚧</span>
+                                <span>Akses Smart Gate</span>
+                            </div>
+                            <span class="text-[9px] px-1.5 py-0.5 rounded-md font-bold {{ $sidebarGateOnline ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300' }}">
+                                {{ $sidebarGateOnline ? 'ONLINE' : 'OFFLINE' }}
+                            </span>
                         </a>
 
                         <a href="{{ route('schedules.index') }}" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition {{ request()->routeIs('schedules.*') ? 'bg-amber-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
@@ -744,9 +802,24 @@
                             </div>
                             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                         </a>
+
+                        @if(($currentUser?->role ?? '') === 'satpam')
+                            <a href="{{ route('reports.index') }}" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition {{ request()->routeIs('reports.*') ? 'bg-amber-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="text-base">📣</span>
+                                    <span>Laporan Keamanan Warga</span>
+                                </div>
+                            </a>
+                        @endif
                     </div>
                 </div>
             @endif
+
+            @php
+                $pendingVisitorCount = ($currentUser?->house_id && in_array($currentUser?->role ?? '', ['super_admin', 'warga']))
+                    ? \App\Models\Visitor::where('host_house_id', $currentUser->house_id)->where('approval_status', 'pending')->where('valid_until', '>=', now())->count()
+                    : 0;
+            @endphp
 
             <!-- MENU WARGA MANDIRI (WARGA & SUPER ADMIN UNTUK INSPEKSI) -->
             @if(in_array($currentUser?->role ?? '', ['super_admin', 'warga']))
@@ -763,6 +836,22 @@
                             <span class="text-[9px] px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 font-bold">WARGA</span>
                         </a>
 
+                        <a href="{{ route('warga.smart-gate') }}" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition {{ request()->routeIs('warga.smart-gate') ? 'bg-emerald-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                            <div class="flex items-center gap-2.5">
+                                <span class="text-base">🚧</span>
+                                <span>Smart Gate Perumahan</span>
+                            </div>
+                            @if($pendingVisitorCount > 0)
+                                <span class="text-[9px] px-2 py-0.5 rounded-full bg-amber-500 text-slate-950 font-black animate-pulse">{{ $pendingVisitorCount }} Tamu</span>
+                            @elseif($currentUser?->canAccessGate())
+                                <span class="text-[9px] px-1.5 py-0.5 rounded-md font-bold {{ ($sidebarGateOnline ?? false) ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300' }}">
+                                    {{ ($sidebarGateOnline ?? false) ? 'ONLINE' : 'OFFLINE' }}
+                                </span>
+                            @else
+                                <span class="text-[9px] px-1.5 py-0.5 rounded-md bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300 font-bold">KUNCI</span>
+                            @endif
+                        </a>
+
                         <a href="{{ route('warga.profile') }}" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition {{ request()->routeIs('warga.profile') ? 'bg-emerald-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
                             <div class="flex items-center gap-2.5">
                                 <span class="text-base">🪪</span>
@@ -774,6 +863,13 @@
                         </a>
 
                         @if(($currentUser?->role ?? '') === 'warga')
+                            <a href="{{ route('reports.index') }}" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition {{ request()->routeIs('reports.*') ? 'bg-amber-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="text-base">📣</span>
+                                    <span>Laporan &amp; Aspirasi</span>
+                                </div>
+                            </a>
+
                             <a href="{{ route('letters.index') }}" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition {{ request()->routeIs('letters.*') ? 'bg-blue-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
                                 <div class="flex items-center gap-2.5">
                                     <span class="text-base">📜</span>
@@ -893,6 +989,17 @@
                                 <div>
                                     <div class="font-bold">Ketua RT (Bpk. H. Sutrisno)</div>
                                     <div class="text-[9px] text-slate-400">Persetujuan surat & kas</div>
+                                </div>
+                            </div>
+                        </a>
+
+                        <!-- Sekretaris RT -->
+                        <a href="{{ route('quick.login', 'sekretaris') }}" class="flex items-center justify-between px-2.5 py-2 rounded-xl {{ ($currentUser?->role ?? '') === 'sekretaris' ? 'bg-indigo-50 dark:bg-indigo-950/70 text-indigo-900 dark:text-indigo-200 font-bold' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                            <div class="flex items-center gap-2">
+                                <span>🗂️</span>
+                                <div>
+                                    <div class="font-bold">Sekretaris (Ibu Farida)</div>
+                                    <div class="text-[9px] text-slate-400">Administrasi warga, KK &amp; surat</div>
                                 </div>
                             </div>
                         </a>
@@ -1139,15 +1246,20 @@
                         <span class="text-[11px] tracking-tight mt-0.5">Iuran</span>
                     </a>
 
-                    <!-- Tab Warga 3: Akses Gerbang & QR -->
+                    <!-- Tab Warga 3: Smart Gate & Tamu -->
                     <a 
-                        href="{{ route('warga.index') }}#step-open-gate" 
-                        class="flex flex-col items-center justify-center flex-1 min-h-[48px] py-1 text-center transition-colors group touch-press text-emerald-700 dark:text-emerald-300 font-extrabold"
+                        href="{{ route('warga.smart-gate') }}" 
+                        class="flex flex-col items-center justify-center flex-1 min-h-[48px] py-1 text-center transition-colors group touch-press {{ request()->routeIs('warga.smart-gate') ? 'text-emerald-700 dark:text-emerald-300 font-extrabold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-semibold' }}"
                     >
-                        <div class="relative px-3 py-1 rounded-full bg-emerald-500/15 dark:bg-emerald-500/25 border border-emerald-500/30 shadow-xs transition-transform group-active:scale-95">
-                            <span class="text-xl">🚪</span>
+                        <div class="relative px-3 py-1 rounded-full {{ request()->routeIs('warga.smart-gate') ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-600 dark:text-emerald-300' : 'bg-emerald-500/10' }} transition-colors">
+                            <span class="text-xl">🚧</span>
+                            @if($pendingVisitorCount > 0)
+                                <span class="absolute -top-1 -right-1 px-1.5 py-0.2 bg-amber-500 text-slate-950 font-black text-[9px] rounded-full shadow-xs animate-pulse">
+                                    {{ $pendingVisitorCount }}
+                                </span>
+                            @endif
                         </div>
-                        <span class="text-[11px] tracking-tight mt-0.5">Akses QR</span>
+                        <span class="text-[11px] tracking-tight mt-0.5">Smart Gate</span>
                     </a>
 
                     <!-- Tab Warga 4: Surat RT Online -->
@@ -1280,12 +1392,12 @@
                         <span class="text-[11px] tracking-tight mt-0.5">Surat RT</span>
                     </a>
 
-                    <!-- Tab 4: Verifikasi KTP Warga -->
+                    <!-- Tab 4: Data Warga & Kartu Keluarga -->
                     <a 
-                        href="{{ route('dashboard') }}#seksi-verifikasi" 
-                        class="flex flex-col items-center justify-center flex-1 min-h-[48px] py-1 text-center transition-colors group touch-press text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-semibold"
+                        href="{{ route('residents.index') }}" 
+                        class="flex flex-col items-center justify-center flex-1 min-h-[48px] py-1 text-center transition-colors group touch-press focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-xl {{ request()->routeIs('residents.*') ? 'text-emerald-700 dark:text-emerald-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-semibold' }}"
                     >
-                        <div class="relative px-3 py-1 rounded-full transition-colors">
+                        <div class="relative px-3 py-1 rounded-full transition-colors {{ request()->routeIs('residents.*') ? 'bg-emerald-100 dark:bg-emerald-950/80 shadow-inner' : '' }}">
                             <span class="text-xl">🪪</span>
                         </div>
                         <span class="text-[11px] tracking-tight mt-0.5">Warga</span>
@@ -1407,32 +1519,103 @@
                 </div>
             </div>
 
-            <div class="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-100 dark:border-slate-800">
-                @if($currentUser->role === 'warga')
-                    <a href="{{ route('warga.profile') }}" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs transition flex items-center justify-center gap-1.5 shadow-sm">
-                        <span>🪪 Atur Data Diri & KTP</span>
-                        <span>➔</span>
-                    </a>
-                @else
-                    <button 
-                        type="button" 
-                        @click="triggerComingSoon('Ubah Password Akun Staf', 'Untuk menjaga kepatuhan SOP keamanan lingkungan, pembaruan kata sandi akun pejabat/pengurus RT dapat dikoordinasikan langsung ke Administrator Utama Platform.'); showUserAccountModal = false;" 
-                        class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs transition cursor-pointer"
+            <div x-data="{ showStaffPasswordForm: false }" class="space-y-3">
+                @if($currentUser->role !== 'warga')
+                    <form
+                        x-show="showStaffPasswordForm"
+                        x-cloak
+                        action="{{ route('warga.change-password') }}"
+                        method="POST"
+                        class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 space-y-2.5 text-left"
                     >
-                        🔒 Ganti Kata Sandi
-                    </button>
+                        @csrf
+                        <div class="text-xs font-extrabold text-slate-800 dark:text-slate-100">Ganti Kata Sandi Akun</div>
+                        <div>
+                            <label for="staff_current_password" class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Kata Sandi Saat Ini</label>
+                            <input
+                                id="staff_current_password"
+                                type="password"
+                                name="current_password"
+                                autocomplete="current-password"
+                                required
+                                placeholder="Masukkan kata sandi saat ini…"
+                                class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs text-slate-900 dark:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                            >
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            <div>
+                                <label for="staff_new_password" class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Kata Sandi Baru</label>
+                                <input
+                                    id="staff_new_password"
+                                    type="password"
+                                    name="new_password"
+                                    autocomplete="new-password"
+                                    minlength="6"
+                                    required
+                                    placeholder="Minimal 6 karakter…"
+                                    class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs text-slate-900 dark:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                                >
+                            </div>
+                            <div>
+                                <label for="staff_new_password_confirmation" class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">Konfirmasi Sandi Baru</label>
+                                <input
+                                    id="staff_new_password_confirmation"
+                                    type="password"
+                                    name="new_password_confirmation"
+                                    autocomplete="new-password"
+                                    minlength="6"
+                                    required
+                                    placeholder="Ulangi sandi baru…"
+                                    class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs text-slate-900 dark:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                                >
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-end gap-2 pt-1">
+                            <button
+                                type="button"
+                                @click="showStaffPasswordForm = false"
+                                class="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-[11px] font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer touch-press focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                            >
+                                Batal
+                            </button>
+                            <button
+                                type="submit"
+                                class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-extrabold transition-colors cursor-pointer touch-press focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                            >
+                                Simpan Kata Sandi
+                            </button>
+                        </div>
+                    </form>
                 @endif
 
-                <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-                    <button type="button" @click="showUserAccountModal = false" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 font-bold text-xs transition cursor-pointer">
-                        Tutup
-                    </button>
-                    <form action="{{ route('logout') }}" method="POST" class="inline">
-                        @csrf
-                        <button type="submit" class="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs transition flex items-center gap-1 cursor-pointer shadow-sm" title="Keluar dari sesi ini">
-                            <span>Keluar</span>
+                <div class="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-100 dark:border-slate-800">
+                    @if($currentUser->role === 'warga')
+                        <a href="{{ route('warga.profile') }}" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs transition-colors flex items-center justify-center gap-1.5 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
+                            <span>🪪 Atur Data Diri &amp; KTP</span>
+                            <span>➔</span>
+                        </a>
+                    @else
+                        <button 
+                            type="button" 
+                            @click="showStaffPasswordForm = !showStaffPasswordForm" 
+                            :aria-expanded="showStaffPasswordForm"
+                            class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs transition-colors cursor-pointer touch-press focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                        >
+                            🔒 Ganti Kata Sandi
                         </button>
-                    </form>
+                    @endif
+
+                    <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                        <button type="button" @click="showUserAccountModal = false" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 font-bold text-xs transition-colors cursor-pointer touch-press focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
+                            Tutup
+                        </button>
+                        <form action="{{ route('logout') }}" method="POST" class="inline">
+                            @csrf
+                            <button type="submit" class="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs transition-colors flex items-center gap-1 cursor-pointer touch-press shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500" title="Keluar dari sesi ini">
+                                <span>Keluar</span>
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>

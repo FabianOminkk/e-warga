@@ -248,7 +248,7 @@
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
                 <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Riwayat</div>
-                <div class="text-2xl font-black text-slate-900 dark:text-white mt-1">
+                <div class="text-2xl font-black text-slate-900 dark:text-white mt-1 tabular-nums">
                     {{ number_format($auditStats['total_logs']) }}
                 </div>
                 <div class="text-[10px] text-slate-500 mt-0.5">Semua aksi terekam</div>
@@ -256,7 +256,7 @@
 
             <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-rose-200 dark:border-rose-950/80 bg-rose-50/20">
                 <div class="text-[11px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider">Insiden Kritis</div>
-                <div class="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">
+                <div class="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1 tabular-nums">
                     {{ number_format($auditStats['total_danger']) }}
                 </div>
                 <div class="text-[10px] text-rose-600/80 mt-0.5">Gagal login / tombol panik</div>
@@ -264,7 +264,7 @@
 
             <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-amber-200 dark:border-amber-950/80 bg-amber-50/20">
                 <div class="text-[11px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">Akses Sensitif / Audit</div>
-                <div class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">
+                <div class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1 tabular-nums">
                     {{ number_format($auditStats['total_warning']) }}
                 </div>
                 <div class="text-[10px] text-amber-600/80 mt-0.5">Akses berkas KTP & penolakan</div>
@@ -272,7 +272,7 @@
 
             <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-emerald-200 dark:border-emerald-950/80 bg-emerald-50/20">
                 <div class="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Login Hari Ini</div>
-                <div class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
+                <div class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1 tabular-nums">
                     {{ number_format($auditStats['logins_today']) }}
                 </div>
                 <div class="text-[10px] text-emerald-600/80 mt-0.5">Sesi aktif terdaftar</div>
@@ -287,14 +287,14 @@
                 <div class="lg:col-span-2">
                     <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Cari Aksi / Warga / IP</label>
                     <div class="relative">
-                        <input type="text" name="search" value="{{ $filters['search'] ?? '' }}" placeholder="Ketik nama, IP (cth 127.0.0.1), atau aksi…" class="w-full text-xs py-2.5 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500">
+                        <input type="text" name="search" value="{{ $filters['search'] ?? '' }}" placeholder="Ketik nama, IP (cth 127.0.0.1), atau aksi…" class="w-full text-xs py-2.5 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white outline-hidden focus-visible:ring-2 focus-visible:ring-indigo-500">
                     </div>
                 </div>
 
                 <!-- Filter Tingkat Urgensi (Severity) -->
                 <div>
                     <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Tingkat Urgensi</label>
-                    <select name="severity" class="w-full text-xs py-2.5 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500">
+                    <select name="severity" class="w-full text-xs py-2.5 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white outline-hidden focus-visible:ring-2 focus-visible:ring-indigo-500">
                         <option value="">Semua Tingkat</option>
                         <option value="info" {{ ($filters['severity'] ?? '') === 'info' ? 'selected' : '' }}>🟢 Info / Reguler</option>
                         <option value="warning" {{ ($filters['severity'] ?? '') === 'warning' ? 'selected' : '' }}>🟡 Warning / Audit</option>
@@ -305,7 +305,7 @@
                 <!-- Filter Kode Aksi -->
                 <div>
                     <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Kode Aksi</label>
-                    <select name="action" class="w-full text-xs py-2.5 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500">
+                    <select name="action" class="w-full text-xs py-2.5 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white outline-hidden focus-visible:ring-2 focus-visible:ring-indigo-500">
                         <option value="">Semua Aksi</option>
                         @foreach($availableActions as $actionItem)
                             <option value="{{ $actionItem }}" {{ ($filters['action'] ?? '') === $actionItem ? 'selected' : '' }}>
@@ -317,11 +317,11 @@
 
                 <!-- Tombol Aksi Form -->
                 <div class="flex items-end gap-2">
-                    <button type="submit" class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer">
+                    <button type="submit" class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-xs transition-colors cursor-pointer">
                         Filter Log
                     </button>
                     @if(!empty(array_filter($filters ?? [])))
-                        <a href="{{ route('superadmin.index') }}" class="py-2.5 px-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold rounded-xl transition" title="Reset filter">
+                        <a href="{{ route('superadmin.index') }}" class="py-2.5 px-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold rounded-xl transition-colors" title="Reset filter">
                             ↺
                         </a>
                     @endif

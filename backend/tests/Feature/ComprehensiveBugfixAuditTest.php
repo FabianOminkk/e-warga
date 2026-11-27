@@ -140,7 +140,10 @@ class ComprehensiveBugfixAuditTest extends TestCase
             'name' => 'Gerbang Utama 2',
             'device_uid' => 'ESP32-CEMPAKA-2',
             'status' => 'online',
+            'last_ping_at' => now(),
         ]);
+
+        \App\Services\RfidService::recordHeartbeat('ESP32-CEMPAKA-2', '127.0.0.1', $tenant->id, null, 'Gerbang Utama 2');
 
         // Verified citizen (approved by RW)
         $verifiedCitizen = User::factory()->create([

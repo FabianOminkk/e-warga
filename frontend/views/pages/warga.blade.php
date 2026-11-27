@@ -15,18 +15,20 @@
         <!-- 1. Ringkasan Status Iuran Bulan Ini (Above-The-Fold Card) -->
         <div class="p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs flex items-center justify-between gap-3">
             <div class="flex items-center gap-3">
-                <div class="w-11 h-11 rounded-2xl {{ ($billing && $billing->status === 'paid') ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300' : 'bg-rose-100 text-rose-700 dark:bg-rose-950/80 dark:text-rose-300' }} flex items-center justify-center text-xl shrink-0">
+                <div class="w-11 h-11 rounded-2xl {{ ($billing && $billing->status === 'paid') ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300' : (($billing && $billing->status === 'pending_verification') ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/80 dark:text-amber-300' : 'bg-rose-100 text-rose-700 dark:bg-rose-950/80 dark:text-rose-300') }} flex items-center justify-center text-xl shrink-0">
                     💳
                 </div>
                 <div>
                     <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Iuran Lingkungan Bulan Ini</div>
-                    <div class="text-sm font-black text-slate-900 dark:text-white flex items-center gap-1.5 mt-0.5">
+                    <div class="text-sm font-black text-slate-900 dark:text-white flex items-center gap-1.5 mt-0.5 flex-wrap">
                         @if($billing && $billing->status === 'paid')
                             <span class="text-emerald-600 dark:text-emerald-400">LUNAS</span>
                             <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 tabular-nums">({{ $billing->formatted_amount }})</span>
+                        @elseif($billing && $billing->status === 'pending_verification')
+                            <span class="text-amber-600 dark:text-amber-400">PROSES VERIFIKASI</span>
                         @else
                             <span class="text-rose-600 dark:text-rose-400">BELUM LUNAS</span>
-                            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 tabular-nums">(Rp&nbsp;150.000)</span>
+                            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 tabular-nums">({{ $billing?->formatted_amount ?? 'Rp 150.000' }})</span>
                         @endif
                     </div>
                 </div>
@@ -34,17 +36,22 @@
 
             <div class="shrink-0">
                 @if($billing && $billing->status === 'paid')
-                    <span class="inline-flex items-center px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-xs font-bold border border-emerald-200 dark:border-emerald-800">
-                        ✅ Terverifikasi
+                    <a href="{{ route('warga.receipt', $billing->id) }}" class="inline-flex items-center px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-xs font-bold border border-emerald-200 dark:border-emerald-800">
+                        📄 Kwitansi
+                    </a>
+                @elseif($billing && $billing->status === 'pending_verification')
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 text-xs font-bold border border-amber-200 dark:border-amber-800">
+                        ⏳ Menunggu
                     </span>
                 @else
-                    <a 
-                        href="#step-billing" 
-                        class="min-h-[44px] px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5 touch-press"
+                    <button 
+                        type="button"
+                        @click="openPaymentModal = true" 
+                        class="min-h-[44px] px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-colors flex items-center gap-1.5 touch-press cursor-pointer"
                     >
                         <span>Bayar</span>
                         <span>➔</span>
-                    </a>
+                    </button>
                 @endif
             </div>
         </div>
@@ -57,13 +64,14 @@
                     <button 
                         type="submit" 
                         @click="handleGateClick($event)"
-                        :disabled="isOpening"
-                        class="w-full min-h-[52px] px-4 py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 active:scale-95 text-white font-extrabold text-xs shadow-md shadow-emerald-600/25 transition-transform flex items-center justify-center gap-2 cursor-pointer touch-press"
+                        :disabled="isOpening || !gateOnline"
+                        class="w-full min-h-[52px] px-4 py-3 rounded-2xl text-white font-extrabold text-xs shadow-md transition-colors flex items-center justify-center gap-2 touch-press"
+                        :class="gateOnline ? 'bg-gradient-to-r from-emerald-600 to-teal-600 active:scale-95 shadow-emerald-600/25 cursor-pointer' : 'bg-slate-700 border border-rose-500/40 text-slate-300 cursor-not-allowed opacity-85'"
                     >
-                        <span class="text-xl" x-text="isOpening ? '⏳' : '🟢'"></span>
+                        <span class="text-xl" x-text="!gateOnline ? '⛔' : (isOpening ? '⏳' : '🟢')"></span>
                         <span class="text-left leading-tight">
-                            <span class="block font-black" x-text="isOpening ? 'Membuka…' : 'Buka Gerbang'"></span>
-                            <span class="text-[10px] font-medium text-emerald-100 opacity-90">Sensor IoT Aktif</span>
+                            <span class="block font-black" x-text="!gateOnline ? 'Gerbang Offline' : (isOpening ? 'Membuka…' : 'Buka Gerbang')"></span>
+                            <span class="text-[10px] font-medium opacity-90" :class="gateOnline ? 'text-emerald-100' : 'text-rose-300'" x-text="gateOnline ? 'Sensor IoT Aktif' : 'ESP32 Terputus'"></span>
                         </span>
                     </button>
                 </form>
@@ -268,7 +276,7 @@
 
             <div 
                 @click="openRfidModal = true" 
-                class="p-3 rounded-2xl bg-white/80 dark:bg-slate-900/80 border {{ $user->rfid_tag ? 'border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300' : 'border-cyan-300 dark:border-cyan-700 text-cyan-800 dark:text-cyan-300' }} cursor-pointer touch-press hover:shadow-sm transition-all"
+                class="p-3 rounded-2xl bg-white/80 dark:bg-slate-900/80 border {{ $user->rfid_tag ? 'border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300' : 'border-cyan-300 dark:border-cyan-700 text-cyan-800 dark:text-cyan-300' }} cursor-pointer touch-press hover:shadow-sm transition-shadow"
                 title="Klik untuk daftarkan atau ganti e-KTP RFID"
             >
                 <div class="font-extrabold flex items-center justify-between gap-1">
@@ -303,16 +311,26 @@
 
             <!-- TOMBOL KENDALI PALANG GERBANG -->
             <div id="step-open-gate" class="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-xs relative overflow-hidden">
-                <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-100 dark:border-slate-800">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-4 border-b border-slate-100 dark:border-slate-800">
                     <div class="flex items-center gap-2.5">
-                        <span class="w-3 h-3 rounded-full {{ $user->canAccessGate() ? 'bg-emerald-500 animate-ping' : 'bg-rose-500' }}"></span>
+                        <span class="w-3 h-3 shrink-0 rounded-full" :class="{{ $user->canAccessGate() ? 'true' : 'false' }} ? (gateOnline ? 'bg-emerald-500 animate-ping' : 'bg-rose-500') : 'bg-rose-500'"></span>
                         <h2 class="font-black text-slate-900 dark:text-white text-base uppercase tracking-wider">
                             {{ $user->canAccessGate() ? 'KONTROL PALANG GERBANG MASUK' : 'STATUS PALANG GERBANG: TERKUNCI' }}
                         </h2>
                     </div>
-                    <span class="text-xs font-mono font-bold px-2.5 py-1 rounded-lg {{ $user->canAccessGate() ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400' : 'bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400' }}">
-                        {{ $smartGate->status ?? 'ONLINE' }} • {{ $smartGate->name ?? 'Gerbang Utama' }}
-                    </span>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <a href="{{ route('warga.smart-gate') }}" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black transition-colors flex items-center gap-1 shadow-xs whitespace-nowrap">
+                            <span>🚧 Smart Gate & Tamu</span>
+                            <span>➔</span>
+                        </a>
+                        <span
+                            class="text-xs font-mono font-bold px-2.5 py-1.5 rounded-xl whitespace-nowrap border transition-colors"
+                            :class="gateOnline ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400' : 'bg-rose-50 dark:bg-rose-950/60 border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400'"
+                            x-text="(gateOnline ? 'ONLINE' : 'OFFLINE') + ' • {{ addslashes($smartGate->name ?? 'Gerbang Utama') }}'"
+                        >
+                            {{ ($isGateOnline ?? false) ? 'ONLINE' : 'OFFLINE' }} • {{ $smartGate->name ?? 'Gerbang Utama' }}
+                        </span>
+                    </div>
                 </div>
 
                 @if($user->canAccessGate())
@@ -321,13 +339,17 @@
                         <button 
                             type="submit" 
                             @click="handleGateClick($event)"
-                            :disabled="isOpening"
-                            class="w-full py-8 sm:py-10 px-6 rounded-3xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xl sm:text-2xl shadow-xl shadow-emerald-600/30 active:scale-98 transition-transform duration-200 flex flex-col items-center justify-center gap-2.5 group border-4 border-emerald-400/40 cursor-pointer"
+                            :disabled="isOpening || !gateOnline"
+                            class="w-full py-8 sm:py-10 px-6 rounded-3xl font-black text-xl sm:text-2xl shadow-xl transition-colors duration-200 flex flex-col items-center justify-center gap-2.5 group border-4"
+                            :class="gateOnline ? 'bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:to-teal-500 text-white shadow-emerald-600/30 active:scale-98 border-emerald-400/40 cursor-pointer' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border-rose-300/60 dark:border-rose-800/60 cursor-not-allowed'"
                         >
-                            <span class="text-4xl sm:text-5xl group-hover:scale-110 transition duration-200" x-text="isOpening ? '⏳' : '🟢'"></span>
-                            <span x-text="isOpening ? 'PALANG SEDANG TERBUKA…' : 'BUKA GERBANG PORTAL'"></span>
-                            <span class="text-xs sm:text-sm font-medium text-emerald-100 tracking-wide font-sans">
-                                Sensor RFID E-KTP Aktif • Tekan saat kendaraan tiba di depan palang pos satpam
+                            <span class="text-4xl sm:text-5xl transition-transform duration-200" :class="gateOnline ? 'group-hover:scale-110' : ''" x-text="!gateOnline ? '🔌' : (isOpening ? '⏳' : '🟢')"></span>
+                            <span class="flex items-center gap-2 flex-wrap justify-center">
+                                <span x-text="isOpening && gateOnline ? 'PALANG SEDANG TERBUKA…' : 'BUKA GERBANG PORTAL'">BUKA GERBANG PORTAL</span>
+                                <span x-show="!gateOnline" class="px-2.5 py-0.5 rounded-full text-xs bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-800">ESP32 OFFLINE</span>
+                            </span>
+                            <span class="text-xs sm:text-sm font-medium tracking-wide font-sans" :class="gateOnline ? 'text-emerald-100' : 'text-rose-600 dark:text-rose-400'" x-text="gateOnline ? 'Sensor RFID E-KTP Aktif • Tekan saat kendaraan tiba di depan palang pos satpam' : 'Perangkat ESP32 Smart Gate belum terhubung ke WiFi/Hotspot • Hubungkan ESP32 terlebih dahulu'">
+                                {{ ($isGateOnline ?? false) ? 'Sensor RFID E-KTP Aktif • Tekan saat kendaraan tiba di depan palang pos satpam' : 'Perangkat ESP32 Smart Gate belum terhubung ke WiFi/Hotspot • Hubungkan ESP32 terlebih dahulu' }}
                             </span>
                         </button>
                     </form>
@@ -495,8 +517,9 @@
                 <!-- Card 2: Status Iuran Kas Lingkungan -->
                 <div 
                     id="step-billing" 
-                    class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs relative flex flex-col justify-between"
+                    class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs relative flex flex-col justify-between scroll-mt-24"
                 >
+                    <span id="iuran" class="sr-only">Iuran Lingkungan</span>
                     <div>
                         <div class="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center text-2xl mb-4">
                             💳
@@ -509,37 +532,51 @@
                                     <span class="font-normal tabular-nums">({{ $billing->formatted_amount }})</span>
                                 </div>
                                 <div class="text-[11px] text-slate-400 dark:text-slate-500 mt-2">
-                                    IPL & Kas Terverifikasi oleh Bendahara RT
+                                    IPL &amp; Kas Terverifikasi oleh Bendahara RT
+                                </div>
+                            @elseif($billing && $billing->status === 'pending_verification')
+                                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 text-xs font-black">
+                                    <span>⏳ MENUNGGU VERIFIKASI BENDAHARA</span>
+                                </div>
+                                <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-2 tabular-nums">
+                                    Nominal: <strong>{{ $billing->formatted_amount }}</strong> • Bukti transfer sedang diperiksa.
                                 </div>
                             @else
-                                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 text-xs font-black">
-                                    <span>⏳ MENUNGGU PEMBAYARAN</span>
+                                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-100 dark:bg-rose-950/80 text-rose-800 dark:text-rose-300 text-xs font-black">
+                                    <span>⏳ BELUM DIBAYAR</span>
                                 </div>
-                                <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-2">
-                                    Nominal: <strong class="tabular-nums">Rp&nbsp;150.000 / Bulan</strong> (Setor ke Rekening Kas RT)
+                                <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-2 tabular-nums">
+                                    Nominal: <strong>{{ $billing?->formatted_amount ?? 'Rp 150.000' }} / Bulan</strong> (Transfer / QRIS / Tunai)
                                 </div>
+                                @if($latestPayment && $latestPayment->rejection_reason)
+                                    <div class="mt-2 p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-[11px] text-rose-700 dark:text-rose-300">
+                                        Catatan Bendahara: {{ $latestPayment->rejection_reason }}
+                                    </div>
+                                @endif
                             @endif
                         </div>
                     </div>
 
                     <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
                         @if($billing && $billing->status === 'paid')
-                            <button 
-                                type="button" 
-                                @click="triggerComingSoon('E-Kwitansi & Tanda Terima Kas Resmi', 'Fitur unduh e-Kwitansi PDF berstempel QR digital resmi dari Bendahara lingkungan sedang disiapkan. Bukti pembayaran Anda telah tercatat aman di sistem.')" 
-                                class="w-full px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                            <a 
+                                href="{{ route('warga.receipt', $billing->id) }}" 
+                                target="_blank"
+                                class="w-full px-3 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900 text-emerald-700 dark:text-emerald-300 text-xs font-extrabold transition-colors flex items-center justify-center gap-1.5"
                             >
-                                <span>📄 Unduh E-Kwitansi</span>
-                                <span class="text-[10px] text-slate-400 font-extrabold">(Coming Soon)</span>
-                            </button>
+                                <span>📄 Unduh / Cetak E-Kwitansi</span>
+                            </a>
+                        @elseif($billing && $billing->status === 'pending_verification')
+                            <div class="w-full px-3 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 text-xs font-bold text-center">
+                                Menunggu Persetujuan Bendahara
+                            </div>
                         @else
                             <button 
                                 type="button" 
-                                @click="triggerComingSoon('Pembayaran Online via QRIS & Virtual Account', 'Fitur pembayaran iuran otomatis melalui QRIS statis/dinamis dan Virtual Account Bank BCA/BRI/Mandiri sedang dalam integrasi gateway resmi. Untuk saat ini silakan setor tunai ke Bendahara atau transfer bank manual.')" 
-                                class="w-full px-3 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 dark:bg-blue-950 dark:hover:bg-blue-900 text-blue-700 dark:text-blue-300 text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                                @click="openPaymentModal = true" 
+                                class="w-full px-3 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold transition-colors flex items-center justify-center gap-1.5 cursor-pointer touch-press shadow-xs"
                             >
-                                <span>💳 Bayar via QRIS</span>
-                                <span class="text-[10px] text-amber-600 dark:text-amber-400 font-black">(Coming Soon)</span>
+                                <span>💳 Bayar &amp; Upload Bukti Transfer</span>
                             </button>
                         @endif
                     </div>
@@ -571,7 +608,7 @@
                 <!-- Card 4: Siap Satpam (Jadwal Keamanan & Ronda) -->
                 <a 
                     href="{{ route('schedules.index') }}" 
-                    class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs hover:border-emerald-500 transition-colors group"
+                    class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs hover:border-emerald-500 transition-colors group touch-press focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                 >
                     <div class="w-12 h-12 rounded-2xl bg-cyan-50 dark:bg-cyan-950/60 text-cyan-600 dark:text-cyan-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
                         🛡️
@@ -582,6 +619,42 @@
                     </p>
                     <div class="mt-4 flex items-center text-xs font-bold text-cyan-600 dark:text-cyan-400 gap-1">
                         <span>Cek Siap Satpam</span>
+                        <span>&rarr;</span>
+                    </div>
+                </a>
+
+                <!-- Card 5: Laporan, Pengaduan & Aspirasi Warga -->
+                <a 
+                    href="{{ route('reports.index') }}" 
+                    class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs hover:border-emerald-500 transition-colors group touch-press focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                >
+                    <div class="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
+                        📢
+                    </div>
+                    <div class="font-black text-base text-slate-900 dark:text-white">Laporan &amp; Aspirasi Warga</div>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                        Laporkan kerusakan fasilitas, gangguan keamanan, atau kirim usulan langsung ke Pengurus RT.
+                    </p>
+                    <div class="mt-4 flex items-center text-xs font-bold text-rose-600 dark:text-rose-400 gap-1">
+                        <span>Buat &amp; Pantau Aduan</span>
+                        <span>&rarr;</span>
+                    </div>
+                </a>
+
+                <!-- Card 6: Posyandu Digital -->
+                <a 
+                    href="{{ route('posyandu.index') }}" 
+                    class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs hover:border-emerald-500 transition-colors group touch-press focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                >
+                    <div class="w-12 h-12 rounded-2xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
+                        🩺
+                    </div>
+                    <div class="font-black text-base text-slate-900 dark:text-white">Posyandu Digital</div>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                        Lihat jadwal layanan kesehatan balita, lansia, imunisasi, dan edukasi gizi lingkungan.
+                    </p>
+                    <div class="mt-4 flex items-center text-xs font-bold text-purple-600 dark:text-purple-400 gap-1">
+                        <span>Buka Info Posyandu</span>
                         <span>&rarr;</span>
                     </div>
                 </a>
@@ -784,7 +857,7 @@
     <!-- MODAL 1: HAK AKSES TERKUNCI (INTERAKTIF & JELAS)         -->
     <!-- ======================================================== -->
     <div x-show="openLockedInfoModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs overscroll-contain">
-        <div @click.away="openLockedInfoModal = false" class="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl space-y-5 border border-slate-200 dark:border-slate-800">
+        <div @click.away="openLockedInfoModal = false" class="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 sm:p-7 shadow-2xl space-y-5 border border-slate-200 dark:border-slate-800">
             <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
                 <div class="flex items-center gap-2.5">
                     <div class="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 flex items-center justify-center text-lg">
@@ -794,7 +867,7 @@
                         Hak Akses Terkunci
                     </h3>
                 </div>
-                <button @click="openLockedInfoModal = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 font-bold text-xl cursor-pointer">&times;</button>
+                <button type="button" @click="openLockedInfoModal = false" aria-label="Tutup modal" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-bold text-xl leading-none cursor-pointer">&times;</button>
             </div>
 
             <div class="space-y-3 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
@@ -877,7 +950,7 @@
     <!-- MODAL 2: PAIRING & SCAN e-KTP FISIK (NFC & ESP32)        -->
     <!-- ======================================================== -->
     <div x-show="openRfidModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs overscroll-contain">
-        <div @click.away="openRfidModal = false" class="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl space-y-5 border border-slate-200 dark:border-slate-800">
+        <div @click.away="openRfidModal = false" class="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 sm:p-7 shadow-2xl space-y-5 border border-slate-200 dark:border-slate-800">
             <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
                 <div class="flex items-center gap-2.5">
                     <div class="w-10 h-10 rounded-xl bg-cyan-100 dark:bg-cyan-950 text-cyan-700 dark:text-cyan-300 flex items-center justify-center text-xl">
@@ -1092,10 +1165,10 @@
     <!-- MODAL 3: BUAT UNDANGAN TAMU / KURIR                      -->
     <!-- ======================================================== -->
     <div x-show="openGuestModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-xs overscroll-contain">
-        <div @click.away="openGuestModal = false" class="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-slate-200 dark:border-slate-800">
+        <div @click.away="openGuestModal = false" class="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl space-y-4 border border-slate-200 dark:border-slate-800">
             <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
                 <h3 class="font-extrabold text-slate-900 dark:text-white text-base">Buat Izin Masuk Tamu / Kurir</h3>
-                <button @click="openGuestModal = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 font-bold">&times;</button>
+                <button type="button" @click="openGuestModal = false" aria-label="Tutup modal" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-bold text-lg leading-none cursor-pointer">&times;</button>
             </div>
 
             <form action="{{ route('warga.create-visitor') }}" method="POST" class="space-y-4" x-data="{ isSubmitting: false }" @submit="isSubmitting = true">
@@ -1219,6 +1292,62 @@
         </div>
     </div>
 
+    <!-- ======================================================== -->
+    <!-- MODAL 4: KONFIRMASI & UPLOAD BUKTI PEMBAYARAN IURAN      -->
+    <!-- ======================================================== -->
+    <div x-show="openPaymentModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-xs overscroll-contain">
+        <div @click.away="openPaymentModal = false" class="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl space-y-4 border border-slate-200 dark:border-slate-800">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                <div>
+                    <h3 class="font-extrabold text-slate-900 dark:text-white text-base">Bayar &amp; Konfirmasi Iuran RT</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Kirim bukti pembayaran ke antrian verifikasi Bendahara</p>
+                </div>
+                <button type="button" @click="openPaymentModal = false" aria-label="Tutup modal" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-bold text-lg leading-none cursor-pointer">&times;</button>
+            </div>
+
+            <div class="p-3.5 rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 text-xs space-y-1">
+                <div class="font-extrabold text-blue-900 dark:text-blue-200">Rekening Kas Lingkungan ({{ $tenant->name ?? 'E-WARGA' }})</div>
+                <div class="font-mono font-bold text-slate-800 dark:text-slate-100">BCA: 8820-123-456 a.n Kas Guyub RT</div>
+                <div class="text-[11px] text-slate-600 dark:text-slate-300">Atau bayar tunai / QRIS ke Pos Bendahara RT lalu unggah bukti di bawah.</div>
+            </div>
+
+            <form action="{{ route('warga.pay-billing') }}" method="POST" enctype="multipart/form-data" class="space-y-4" x-data="{ isSubmitting: false }" @submit="isSubmitting = true">
+                @csrf
+                @if($billing)
+                    <input type="hidden" name="billing_id" value="{{ $billing->id }}">
+                @endif
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1.5">Metode Pembayaran</label>
+                    <select name="payment_method" required class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-semibold focus-visible:ring-2 focus-visible:ring-emerald-500">
+                        <option value="manual_transfer">🏦 Transfer Bank Manual (BCA / BRI / Mandiri)</option>
+                        <option value="qris">📱 Pembayaran QRIS / E-Wallet</option>
+                        <option value="cash">💵 Setor Tunai ke Bendahara</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1.5">Nominal Dibayarkan (Rp)</label>
+                    <input type="number" name="amount_paid" value="{{ (int) ($billing?->amount ?? 150000) }}" min="1000" required class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-base font-mono font-bold tabular-nums focus-visible:ring-2 focus-visible:ring-emerald-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1.5">Unggah Foto Bukti Transfer / Struk</label>
+                    <input type="file" name="proof_image" accept="image/*,application/pdf" class="w-full text-xs text-slate-500 cursor-pointer file:cursor-pointer file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-blue-950 dark:file:text-blue-300">
+                    <p class="text-[11px] text-slate-400 mt-1">Format JPG, PNG, WEBP, atau PDF (Maks. 5&nbsp;MB).</p>
+                </div>
+
+                <div class="pt-2 flex items-center gap-3">
+                    <button type="button" @click="openPaymentModal = false" :disabled="isSubmitting" class="flex-1 min-h-[46px] py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold text-xs cursor-pointer touch-press">Batal</button>
+                    <button type="submit" :disabled="isSubmitting" class="flex-1 min-h-[46px] py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-xs shadow-md transition-colors flex items-center justify-center gap-2 cursor-pointer touch-press">
+                        <span x-show="isSubmitting" class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                        <span x-text="isSubmitting ? 'Mengirim…' : 'Kirim Konfirmasi Bayar'"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 </div>
 
 <script>
@@ -1226,6 +1355,7 @@ function wargaApp() {
     return {
         isOpening: false,
         openGuestModal: false,
+        openPaymentModal: false,
         openLockedInfoModal: false,
         lockedFeatureName: '',
         openRfidModal: false,
@@ -1239,6 +1369,7 @@ function wargaApp() {
         
         // ESP32 Pairing & Connection State
         esp32Online: false,
+        gateOnline: {{ ($isGateOnline ?? false) ? 'true' : 'false' }},
         isCheckingStatus: false,
         esp32StatusHeartbeatInterval: null,
         esp32PairingActive: false,
@@ -1270,7 +1401,7 @@ function wargaApp() {
         },
 
         triggerComingSoon(featureTitle, featureDesc) {
-            alert(featureTitle + '\n\n' + featureDesc);
+            window.triggerComingSoon(featureTitle, featureDesc);
         },
 
         startTour() {
@@ -1278,6 +1409,10 @@ function wargaApp() {
         },
 
         handleGateClick(e) {
+            if (!this.gateOnline) {
+                e.preventDefault();
+                return;
+            }
             this.isOpening = true;
             if (navigator.vibrate) {
                 navigator.vibrate(200);
@@ -1319,6 +1454,7 @@ function wargaApp() {
                 if (res.ok) {
                     const data = await res.json();
                     this.esp32Online = !!data.online;
+                    this.gateOnline = data.gate_online !== undefined ? !!data.gate_online : !!data.online;
                     if (this.esp32PairingActive && !this.esp32Success) {
                         if (this.esp32Online) {
                             this.esp32Message = 'Sensor siap! Tempelkan fisik e-KTP Anda ke scanner RFID di pos satpam / gerbang sekarang…';
@@ -1327,21 +1463,24 @@ function wargaApp() {
                         }
                     }
                 } else {
-                    const resPub = await fetch("/api/v1/esp32/status?tenant_id={{ Auth::user()?->tenant_id ?? 1 }}");
+                    const resPub = await fetch("{{ route('api.rfid.status') }}");
                     if (resPub.ok) {
                         const dataPub = await resPub.json();
-                        this.esp32Online = !!dataPub.online;
+                        this.gateOnline = !!dataPub.online;
+                        this.esp32Online = !!(dataPub.device_online ?? dataPub.online);
                     }
                 }
             } catch (e) {
                 try {
-                    const resPub = await fetch("/api/v1/esp32/status?tenant_id={{ Auth::user()?->tenant_id ?? 1 }}");
+                    const resPub = await fetch("{{ route('api.rfid.status') }}");
                     if (resPub.ok) {
                         const dataPub = await resPub.json();
-                        this.esp32Online = !!dataPub.online;
+                        this.gateOnline = !!dataPub.online;
+                        this.esp32Online = !!(dataPub.device_online ?? dataPub.online);
                     }
                 } catch (err) {
                     this.esp32Online = false;
+                    this.gateOnline = false;
                 }
             } finally {
                 if (manual) setTimeout(() => { this.isCheckingStatus = false; }, 400);
@@ -1410,6 +1549,12 @@ function wargaApp() {
                     } else {
                         this.esp32Message = 'Scanner Offline: Alat ESP32 belum terhubung ke hotspot "BIAN". Menunggu alat online…';
                     }
+                }
+
+                if (data.pairing_error) {
+                    this.stopEsp32Pairing(data.message || 'Kartu gagal ditautkan.');
+                    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+                    return;
                 }
 
                 if (data.paired) {

@@ -63,11 +63,14 @@ Alpine.data('countUp', (targetValue, duration = 1600, isCurrency = false) => ({
 }));
 
 // Komponen Interaktif Simulator Palang Pintu Mini di Hero Landing
-Alpine.data('heroGateDemo', () => ({
+Alpine.data('heroGateDemo', (initialOnline = false, statusUrl = '/api/rfid/status') => ({
+    isOnline: Boolean(initialOnline),
+    statusUrl: statusUrl,
     isOpen: false,
     timer: 0,
     activeEventIndex: 0,
     countdownInterval: null,
+    statusInterval: null,
     events: [
         {
             icon: '🚗',
@@ -97,9 +100,32 @@ Alpine.data('heroGateDemo', () => ({
                 this.activeEventIndex = (this.activeEventIndex + 1) % this.events.length;
             }
         }, 4000);
+
+        this.fetchOnlineStatus();
+        this.statusInterval = setInterval(() => {
+            this.fetchOnlineStatus();
+        }, 3000);
+    },
+    async fetchOnlineStatus() {
+        try {
+            const res = await fetch(this.statusUrl, {
+                headers: { 'Accept': 'application/json' }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                this.isOnline = !!data.online;
+                if (!this.isOnline && this.isOpen) {
+                    if (this.countdownInterval) clearInterval(this.countdownInterval);
+                    this.isOpen = false;
+                    this.timer = 0;
+                }
+            }
+        } catch (err) {
+            // Keep existing status safely on transient network blip
+        }
     },
     triggerOpen() {
-        if (this.isOpen) return;
+        if (!this.isOnline || this.isOpen) return;
         this.isOpen = true;
         this.timer = 5;
 

@@ -6,8 +6,10 @@ use App\Models\House;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\ActivityLogger;
+use App\Services\RfidService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
@@ -84,6 +86,7 @@ class RegisterController extends Controller
 
         if ($method === 'ktp') {
             $rules['nik'] = 'required|digits:16|unique:users,nik';
+            $rules['no_kk'] = 'nullable|digits:16';
             $rules['gender'] = 'required|in:male,female';
             $rules['birth_date'] = 'nullable|date';
             $rules['birth_place'] = 'nullable|string|max:100';
@@ -92,6 +95,8 @@ class RegisterController extends Controller
             $rules['address_ktp'] = 'required|string|max:300';
             $rules['ktp_photo'] = 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120';
             $rules['rfid_tag'] = 'nullable|string|max:64';
+        } else {
+            $rules['no_kk'] = 'nullable|digits:16';
         }
 
         $validated = $request->validate($rules, [
@@ -99,13 +104,14 @@ class RegisterController extends Controller
             'phone_number.unique' => 'Nomor WhatsApp ini sudah terdaftar di sistem E-WARGA.',
             'nik.unique' => 'Nomor Induk Kependudukan (NIK) ini sudah terdaftar.',
             'nik.digits' => 'NIK KTP harus tepat berjumlah 16 digit angka.',
+            'no_kk.digits' => 'Nomor Kartu Keluarga (KK) harus tepat berjumlah 16 digit angka.',
             'password.confirmed' => 'Konfirmasi password tidak cocok dengan password yang dimasukkan.',
             'password.min' => 'Password minimal harus berjumlah 6 karakter.',
-            'ktp_photo.max' => 'Ukuran berkas KTP maksimal 3 MB.',
+            'ktp_photo.max' => 'Ukuran berkas KTP maksimal 5 MB.',
             'ktp_photo.mimes' => 'Format berkas KTP harus JPG, PNG, WEBP, atau PDF.',
         ]);
 
-        // Resolusi nomor rumah / blok
+        // Resolusi nomor rumah / blok & No. KK
         $houseId = $validated['house_id'] ?? null;
         if (!$houseId && !empty($validated['new_block_name']) && !empty($validated['new_house_number'])) {
             $house = House::firstOrCreate(
@@ -115,12 +121,19 @@ class RegisterController extends Controller
                     'house_number' => trim($validated['new_house_number']),
                 ],
                 [
+                    'no_kk' => $validated['no_kk'] ?? null,
                     'full_address' => strtoupper(trim($validated['new_block_name'])) . ' No. ' . trim($validated['new_house_number']),
                     'occupancy_status' => 'occupied',
                 ]
             );
             $houseId = $house->id;
+        } elseif ($houseId && !empty($validated['no_kk']) && $request->boolean('is_family_head', true)) {
+            House::where('id', $houseId)->whereNull('no_kk')->update(['no_kk' => trim($validated['no_kk'])]);
         }
+
+        $resolvedNoKk = !empty($validated['no_kk'])
+            ? trim($validated['no_kk'])
+            : ($houseId ? House::where('id', $houseId)->value('no_kk') : null);
 
         $ktpPath = null;
         if ($method === 'ktp') {
@@ -171,6 +184,7 @@ class RegisterController extends Controller
             'role' => 'warga',
             'is_family_head' => $request->boolean('is_family_head', true),
             'nik' => $validated['nik'] ?? null,
+            'no_kk' => $resolvedNoKk,
             'ktp_photo' => $ktpPath,
             'birth_date' => $validated['birth_date'] ?? null,
             'birth_place' => $validated['birth_place'] ?? null,
@@ -214,13 +228,16 @@ class RegisterController extends Controller
      */
     public function startEsp32Pairing(Request $request)
     {
-        $tenantId = $request->input('tenant_id') ?? 1;
+        $tenantId = (int) ($request->input('tenant_id') ?? 1);
 
-        \Illuminate\Support\Facades\Cache::put("reg_pairing_tenant_{$tenantId}", [
+        $pairingPayload = [
+            'tenant_id' => $tenantId,
             'started_at' => now()->timestamp,
-        ], 60);
+        ];
 
-        \Illuminate\Support\Facades\Cache::forget("reg_pairing_result_{$tenantId}");
+        Cache::put("reg_pairing_tenant_{$tenantId}", $pairingPayload, 60);
+        Cache::put('reg_pairing_global', $pairingPayload, 60);
+        Cache::forget("reg_pairing_result_{$tenantId}");
 
         return response()->json([
             'success' => true,
@@ -233,33 +250,14 @@ class RegisterController extends Controller
 
     /**
      * Cek status konektivitas perangkat ESP32 (Online / Offline).
-     * Terhubung ke hotspot ("BIAN") jika heartbeat diterima dalam 25 detik terakhir.
+     * Mendukung heartbeat /api/rfid/heartbeat maupun /api/v1/registration-device/ping.
      */
     public function checkEsp32DeviceStatus(Request $request)
     {
         $tenantId = (int) ($request->input('tenant_id') ?? 1);
-        $cachedHeartbeat = \Illuminate\Support\Facades\Cache::get("esp32_heartbeat_tenant_{$tenantId}");
-        $isOnline = false;
-        $secondsAgo = null;
-
-        if ($cachedHeartbeat) {
-            $secondsAgo = now()->timestamp - $cachedHeartbeat;
-            if ($secondsAgo <= 25) {
-                $isOnline = true;
-            }
-        }
-
-        if (!$isOnline) {
-            $latestGate = \App\Models\SmartGate::where('tenant_id', $tenantId)
-                ->whereNotNull('last_ping_at')
-                ->latest('last_ping_at')
-                ->first();
-
-            if ($latestGate && $latestGate->last_ping_at && $latestGate->last_ping_at->diffInSeconds(now()) <= 25) {
-                $isOnline = true;
-                $secondsAgo = $latestGate->last_ping_at->diffInSeconds(now());
-            }
-        }
+        $deviceStatus = RfidService::getDeviceOnlineStatus($tenantId, 25, true);
+        $isOnline = $deviceStatus['online'];
+        $secondsAgo = $deviceStatus['seconds_ago'];
 
         return response()->json([
             'success' => true,
@@ -268,8 +266,8 @@ class RegisterController extends Controller
             'status_label' => $isOnline ? 'ESP32 Online (Terhubung ke Hotspot)' : 'ESP32 Offline (Belum Terhubung)',
             'hotspot_ssid' => 'BIAN',
             'last_seen_seconds_ago' => $secondsAgo,
-            'message' => $isOnline 
-                ? 'Alat ESP32 sudah terhubung ke hotspot Anda ("BIAN"). Sensor siap menerima tap kartu e-KTP.' 
+            'message' => $isOnline
+                ? 'Alat ESP32 sudah terhubung online. Sensor siap menerima tap kartu e-KTP.'
                 : 'Alat ESP32 belum terhubung ke hotspot. Pastikan hotspot HP aktif dan ESP32 menyala.',
         ]);
     }
@@ -279,19 +277,11 @@ class RegisterController extends Controller
      */
     public function checkEsp32PairingStatus(Request $request)
     {
-        $tenantId = $request->input('tenant_id') ?? 1;
-        $pairedTag = \Illuminate\Support\Facades\Cache::pull("reg_pairing_result_{$tenantId}")
-            ?? \Illuminate\Support\Facades\Cache::pull("reg_latest_tap_tenant_{$tenantId}");
+        $tenantId = (int) ($request->input('tenant_id') ?? 1);
+        $pairedTag = Cache::pull("reg_pairing_result_{$tenantId}")
+            ?? Cache::pull("reg_latest_tap_tenant_{$tenantId}");
 
-        $cachedHeartbeat = \Illuminate\Support\Facades\Cache::get("esp32_heartbeat_tenant_{$tenantId}");
-        $isOnline = $cachedHeartbeat && (now()->timestamp - $cachedHeartbeat <= 25);
-
-        if (!$isOnline) {
-            $gate = \App\Models\SmartGate::where('tenant_id', $tenantId)->whereNotNull('last_ping_at')->latest('last_ping_at')->first();
-            if ($gate && $gate->last_ping_at && $gate->last_ping_at->diffInSeconds(now()) <= 25) {
-                $isOnline = true;
-            }
-        }
+        $isOnline = RfidService::getDeviceOnlineStatus($tenantId, 25, true)['online'];
 
         if ($pairedTag) {
             return response()->json([
@@ -304,7 +294,7 @@ class RegisterController extends Controller
             ]);
         }
 
-        $isWaiting = \Illuminate\Support\Facades\Cache::has("reg_pairing_tenant_{$tenantId}");
+        $isWaiting = Cache::has("reg_pairing_tenant_{$tenantId}") || Cache::has('reg_pairing_global');
 
         return response()->json([
             'success' => true,
@@ -312,7 +302,7 @@ class RegisterController extends Controller
             'paired' => false,
             'is_online' => $isOnline,
             'waiting' => $isWaiting,
-            'message' => $isOnline 
+            'message' => $isOnline
                 ? 'Sensor siap. Tempelkan e-KTP fisik Anda ke alat scanner RFID ESP32 sekarang…'
                 : 'Peringatan: Scanner ESP32 sedang Offline (Belum terhubung ke hotspot "BIAN").',
         ]);

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Models\GateLog;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\RfidService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -18,32 +19,21 @@ class RegistrationDeviceController extends BaseApiController
     {
         $deviceUid = $request->input('device_uid', 'ESP32-REGIS-DESK-01');
         $tenantId = (int) ($request->input('tenant_id') ?? 1);
-        
-        // Simpan penanda detak jantung (heartbeat) aktif selama 90 detik
-        Cache::put("esp32_heartbeat_tenant_{$tenantId}", now()->timestamp, 90);
-        Cache::put("esp32_heartbeat_global", now()->timestamp, 90);
-        Cache::put("esp32_device_{$deviceUid}_last_ping", [
-            'timestamp' => now()->timestamp,
-            'ip' => $request->ip(),
-            'time' => now()->toIso8601String(),
-        ], 90);
+        $rfidVer = $request->input('rfid_ver');
 
-        try {
-            \App\Models\SmartGate::updateOrCreate(
-                ['tenant_id' => $tenantId, 'device_uid' => $deviceUid],
-                [
-                    'name' => 'Meja Registrasi Warga',
-                    'status' => 'online',
-                    'last_ping_at' => now(),
-                    'ip_address' => $request->ip(),
-                ]
-            );
-        } catch (\Throwable $e) {}
+        RfidService::recordHeartbeat(
+            $deviceUid,
+            $request->ip(),
+            $tenantId,
+            $rfidVer,
+            'Meja Registrasi Warga'
+        );
 
         return $this->success([
             'device_uid' => $deviceUid,
             'status' => 'online',
             'tenant_id' => $tenantId,
+            'rfid_ver' => $rfidVer,
             'mode' => 'registration_desk',
             'server_time' => now()->toIso8601String(),
         ], 'Alat ESP32 Registrasi Warga terhubung online ke server.');
@@ -58,27 +48,22 @@ class RegistrationDeviceController extends BaseApiController
         $tenantId = (int) ($request->input('tenant_id') ?? 1);
         $deviceUid = $request->input('device_uid', 'ESP32-REGIS-DESK-01');
 
-        $cachedHeartbeat = Cache::get("esp32_heartbeat_tenant_{$tenantId}")
-            ?? Cache::get("esp32_heartbeat_tenant_1")
-            ?? Cache::get("esp32_heartbeat_global");
-        $isOnline = false;
-        $secondsAgo = null;
+        $deviceStatus = RfidService::getDeviceOnlineStatus($tenantId, RfidService::ONLINE_TTL_SECONDS);
+        $isOnline = $deviceStatus['online'];
+        $secondsAgo = $deviceStatus['seconds_ago'];
+        $readerInfo = $deviceStatus['reader_info'];
 
-        if ($cachedHeartbeat) {
-            $secondsAgo = now()->timestamp - $cachedHeartbeat;
-            if ($secondsAgo <= 60) {
-                $isOnline = true;
-            }
-        }
+        $rfidVer = Cache::get("esp32_rfid_ver_tenant_{$tenantId}") ?? Cache::get("esp32_rfid_ver_global");
+        $rfidHealthy = $rfidVer && !in_array(strtolower($rfidVer), ['0x00', '0xff', '0x0', '0xf']);
 
-        if (!$isOnline) {
-            $latestGate = \App\Models\SmartGate::whereNotNull('last_ping_at')
-                ->latest('last_ping_at')
-                ->first();
-
-            if ($latestGate && $latestGate->last_ping_at && $latestGate->last_ping_at->diffInSeconds(now()) <= 60) {
-                $isOnline = true;
-                $secondsAgo = $latestGate->last_ping_at->diffInSeconds(now());
+        $message = 'Alat ESP32 belum terhubung ke hotspot. Pastikan modul ESP32 menyala dan hotspot HP ("BIAN") aktif.';
+        if ($isOnline) {
+            if ($rfidHealthy) {
+                $message = "Alat ESP32 online & sensor RFID RC522 terdeteksi (Versi {$rfidVer}). Siap scan kartu e-KTP.";
+            } elseif ($rfidVer) {
+                $message = "Alat ESP32 online, TETAPI modul RFID RC522 terbaca {$rfidVer} (belum terdeteksi). Periksa kabel RST (GPIO 22) dan pastikan pin header disolder.";
+            } else {
+                $message = 'Alat ESP32 sudah terhubung online. Sensor siap menerima tap kartu e-KTP.';
             }
         }
 
@@ -89,10 +74,11 @@ class RegistrationDeviceController extends BaseApiController
             'status_label' => $isOnline ? 'ESP32 Online (Terhubung ke Hotspot)' : 'ESP32 Offline (Belum Terhubung)',
             'hotspot_ssid' => 'BIAN',
             'last_seen_seconds_ago' => $secondsAgo,
-            'device_uid' => $deviceUid,
-            'message' => $isOnline
-                ? 'Alat ESP32 sudah terhubung ke hotspot ("BIAN"). Sensor siap menerima tap kartu e-KTP.'
-                : 'Alat ESP32 belum terhubung ke hotspot. Pastikan modul ESP32 menyala dan hotspot HP ("BIAN") aktif.',
+            'device_uid' => $readerInfo['device_id'] ?? $deviceUid,
+            'ip_address' => $readerInfo['ip'] ?? null,
+            'rfid_ver' => $rfidVer,
+            'rfid_healthy' => $rfidHealthy,
+            'message' => $message,
         ]);
     }
 

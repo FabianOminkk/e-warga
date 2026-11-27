@@ -35,9 +35,10 @@ class DashboardApiController extends BaseApiController
         $saldoKas = $totalIncome - $totalExpense;
 
         $paidBillings = Billing::where('tenant_id', $tenant->id)->where('status', 'paid')->count();
-        $unpaidBillings = Billing::where('tenant_id', $tenant->id)->where('status', 'unpaid')->count();
+        $unpaidBillings = Billing::where('tenant_id', $tenant->id)->whereIn('status', ['unpaid', 'overdue'])->count();
 
         $pendingPaymentsCount = Payment::whereNull('verified_at')
+            ->whereNull('rejection_reason')
             ->whereHas('billing', fn($q) => $q->where('tenant_id', $tenant->id))
             ->count();
 
@@ -138,12 +139,12 @@ class DashboardApiController extends BaseApiController
             $payment->update([
                 'verified_at'         => now(),
                 'verified_by_user_id' => $verifierId,
+                'rejection_reason'    => null,
             ]);
 
             if ($payment->billing) {
                 $payment->billing->update([
-                    'status'  => 'paid',
-                    'paid_at' => now(),
+                    'status' => 'paid',
                 ]);
             }
 
@@ -166,8 +167,15 @@ class DashboardApiController extends BaseApiController
         } else {
             $payment->update([
                 'verified_by_user_id' => $verifierId,
+                'verified_at'         => null,
                 'rejection_reason'    => $validated['reason'] ?? 'Bukti transfer tidak sesuai / tidak terbaca.',
             ]);
+
+            if ($payment->billing) {
+                $payment->billing->update([
+                    'status' => 'unpaid',
+                ]);
+            }
 
             return $this->success($payment, 'Pembayaran iuran telah ditolak.');
         }

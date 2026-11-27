@@ -8,6 +8,7 @@ use App\Models\SmartGate;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Models\Visitor;
+use App\Services\RfidService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -66,8 +67,15 @@ class IoTGateController extends Controller
                 'ip_address' => $request->ip(),
                 'last_ping_at' => now(),
             ]);
-            Cache::put("esp32_heartbeat_tenant_{$gate->tenant_id}", now()->timestamp, 35);
         }
+
+        RfidService::recordHeartbeat(
+            $gate->device_uid,
+            $request->ip(),
+            $gate->tenant_id,
+            null,
+            $gate->name
+        );
 
         return $gate;
     }
@@ -363,6 +371,49 @@ class IoTGateController extends Controller
                 'lcd_line2' => 'WAKTU HABIS',
                 'message' => 'Masa berlaku tiket QR tamu telah habis.',
             ], 400);
+        }
+
+        // Cek status persetujuan (approval) manual oleh warga pemilik rumah untuk tamu/kurir
+        if ($visitor->approval_status === 'pending') {
+            GateLog::create([
+                'tenant_id' => $visitor->tenant_id,
+                'smart_gate_id' => $gate->id,
+                'visitor_id' => $visitor->id,
+                'access_method' => 'qr_code',
+                'direction' => 'entry',
+                'status' => 'denied',
+                'reason' => "Scan QR Tamu Tertahan: Menunggu Persetujuan Warga Pemilik Rumah ({$visitor->guest_name})",
+                'triggered_at' => now(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'status' => 'denied',
+                'lcd_line1' => 'MENUNGGU IZIN!',
+                'lcd_line2' => 'KONFIRMASI WARGA',
+                'message' => 'Tiket tamu/kurir ini masih menunggu persetujuan (approval) dari warga pemilik rumah.',
+            ], 403);
+        }
+
+        if ($visitor->approval_status === 'rejected') {
+            GateLog::create([
+                'tenant_id' => $visitor->tenant_id,
+                'smart_gate_id' => $gate->id,
+                'visitor_id' => $visitor->id,
+                'access_method' => 'qr_code',
+                'direction' => 'entry',
+                'status' => 'denied',
+                'reason' => "Scan QR Ditolak: Kunjungan Ditolak oleh Pemilik Rumah ({$visitor->guest_name})",
+                'triggered_at' => now(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'status' => 'denied',
+                'lcd_line1' => 'IZIN DITOLAK!',
+                'lcd_line2' => 'AKSES DIBATALKAN',
+                'message' => 'Izin masuk tamu ini telah ditolak oleh pemilik rumah.',
+            ], 403);
         }
 
         // Mark ticket used

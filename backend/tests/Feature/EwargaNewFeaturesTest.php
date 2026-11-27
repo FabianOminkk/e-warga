@@ -184,7 +184,7 @@ class EwargaNewFeaturesTest extends TestCase
         $verifyResponse = $this->get("/surat-pengantar/verifikasi/{$letter->qr_verification_code}");
         $verifyResponse->assertStatus(200);
         $verifyResponse->assertSee($letter->letter_number);
-        $verifyResponse->assertSee('RUKUN TETANGGA 04 / RUKUN WARGA 02');
+        $verifyResponse->assertSee(strtoupper($letter->tenant?->rt_rw ?? 'RT 05 / RW 12'));
     }
 
     public function test_login_page_renders_promotional_highlights_and_super_admin(): void

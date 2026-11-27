@@ -3,13 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\GateLog;
+use App\Models\House;
 use App\Models\SmartGate;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Models\Visitor;
 use App\Services\ActivityLogger;
+use App\Services\RfidService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class SatpamController extends Controller
 {
@@ -21,12 +24,11 @@ class SatpamController extends Controller
         }
 
         $tenant = Tenant::getActiveTenant() ?? Tenant::first();
-        $smartGate = SmartGate::where('tenant_id', $tenant?->id)->where('status', 'online')->first() 
-            ?? SmartGate::where('tenant_id', $tenant?->id)->first() 
-            ?? SmartGate::first();
+        $smartGate = RfidService::resolvePrimaryGate($tenant?->id);
         $recentLogs = GateLog::where('tenant_id', $tenant?->id)->with(['user'])->latest('triggered_at')->take(10)->get();
         $activeVisitors = Visitor::where('tenant_id', $tenant?->id)
             ->where('is_used', false)
+            ->where('approval_status', '!=', 'rejected')
             ->where('valid_until', '>=', now())
             ->with(['hostHouse', 'invitedBy'])
             ->latest()
@@ -40,17 +42,100 @@ class SatpamController extends Controller
             ->orderByRaw("CASE WHEN verification_status = 'approved' THEN 1 WHEN verification_status = 'pending_rw' THEN 2 ELSE 3 END")
             ->get();
 
-        return view('pages.satpam', compact('tenant', 'smartGate', 'recentLogs', 'activeVisitors', 'verifiedWargaList'));
+        // Daftar Rumah beserta penghuni untuk Pendaftaran Tamu/Kurir Datang
+        $houses = House::where('tenant_id', $tenant?->id)
+            ->with(['residents' => fn($q) => $q->where('role', 'warga')->orderByDesc('is_family_head')])
+            ->orderBy('block_name')
+            ->orderBy('house_number')
+            ->get();
+
+        $isGateOnline = RfidService::getGateOnlineStatus($tenant?->id)['online'];
+
+        return view('pages.satpam', compact('tenant', 'smartGate', 'recentLogs', 'activeVisitors', 'verifiedWargaList', 'houses', 'isGateOnline'));
+    }
+
+    public function registerVisitor(Request $request)
+    {
+        $validated = $request->validate([
+            'guest_name' => 'required|string|max:150',
+            'guest_type' => 'required|in:guest,courier,ride_hailing,contractor',
+            'host_house_id' => 'required|exists:houses,id',
+            'vehicle_plate' => 'nullable|string|max:20',
+            'notes' => 'nullable|string|max:255',
+        ]);
+
+        $satpamUser = Auth::user() ?? User::where('role', 'satpam')->first() ?? User::first();
+        $house = House::find($validated['host_house_id']);
+        $tenantId = $house?->tenant_id ?? (Tenant::getActiveTenant() ?? Tenant::first())?->id;
+
+        // Cari warga pemilik rumah tujuan
+        $hostUser = User::where('house_id', $validated['host_house_id'])->where('role', 'warga')->orderByDesc('is_family_head')->first()
+            ?? $satpamUser;
+
+        if (!$hostUser || !$tenantId) {
+            return redirect()->back()->with('error', 'Data rumah atau lingkungan belum lengkap.');
+        }
+
+        $qrToken = 'GUEST-' . strtoupper(\Illuminate\Support\Str::random(10));
+
+        $visitor = Visitor::create([
+            'tenant_id' => $tenantId,
+            'host_house_id' => $validated['host_house_id'],
+            'invited_by_user_id' => $hostUser->id,
+            'guest_name' => $validated['guest_name'],
+            'guest_type' => $validated['guest_type'],
+            'approval_status' => 'pending', // Menunggu persetujuan warga pemilik rumah
+            'approval_notes' => 'Tamu/Kurir tiba di Pos Satpam. Menunggu konfirmasi pemilik rumah.',
+            'vehicle_plate' => $validated['vehicle_plate'] ?? null,
+            'notes' => $validated['notes'] ?? null,
+            'qr_token' => $qrToken,
+            'valid_from' => now(),
+            'valid_until' => now()->addHours(3),
+            'is_used' => false,
+        ]);
+
+        ActivityLogger::log(
+            'visitor.registered_at_gate',
+            "Petugas Satpam mencatat kedatangan {$validated['guest_name']} ({$visitor->guest_type_label}) menuju unit rumah.",
+            'info',
+            ['visitor_id' => $visitor->id, 'house_id' => $validated['host_house_id']],
+            $satpamUser
+        );
+
+        return redirect()->back()->with('success', "Permintaan izin masuk untuk {$validated['guest_name']} berhasil dicatat! Menunggu persetujuan pemilik rumah.");
     }
 
     public function triggerManual(Request $request)
     {
         $reason = $request->input('reason', 'Buka Manual Pos Satpam');
         $tenant = Tenant::getActiveTenant() ?? Tenant::first();
-        $gate = SmartGate::where('tenant_id', $tenant?->id)->first() ?? SmartGate::first();
+        $gate = RfidService::resolvePrimaryGate($tenant?->id);
+        $isGateOnline = RfidService::getGateOnlineStatus($tenant?->id)['online'];
 
         if (!$gate) {
-            return redirect()->back()->with('error', 'Perangkat palang gerbang belum terpasang.');
+            $errMsg = 'Perangkat palang gerbang belum terpasang.';
+            return $request->wantsJson()
+                ? response()->json(['success' => false, 'offline' => true, 'message' => $errMsg], 404)
+                : redirect()->back()->with('error', $errMsg);
+        }
+
+        if (!$isGateOnline) {
+            $satpamUser = Auth::user() ?? User::where('role', 'satpam')->first();
+            GateLog::create([
+                'tenant_id' => $tenant?->id ?? $gate->tenant_id,
+                'smart_gate_id' => $gate->id,
+                'user_id' => $satpamUser?->id,
+                'access_method' => 'satpam_manual',
+                'direction' => 'entry',
+                'status' => 'denied',
+                'reason' => "GAGAL BUKA MANUAL: Smart Gate ESP32 sedang OFFLINE ({$reason})",
+                'triggered_at' => now(),
+            ]);
+
+            $offlineMsg = 'Smart Gate sedang OFFLINE! Pastikan perangkat ESP32 gerbang terhubung ke hotspot/WiFi terlebih dahulu.';
+            return $request->wantsJson()
+                ? response()->json(['success' => false, 'offline' => true, 'message' => $offlineMsg], 422)
+                : redirect()->back()->with('error', $offlineMsg);
         }
 
         $satpamUser = Auth::user() ?? User::where('role', 'satpam')->first() ?? User::first();
@@ -119,6 +204,36 @@ class SatpamController extends Controller
             return redirect()->back()->with('error', 'Masa berlaku tiket QR Tamu sudah kadaluarsa.');
         }
 
+        $gate = SmartGate::where('tenant_id', $visitor->tenant_id)->first() ?? SmartGate::first();
+
+        if ($visitor->isPending()) {
+            RfidService::logGateEvent(
+                $gate,
+                $visitor->tenant_id,
+                'denied',
+                "Check-In Tertahan: Tamu/Kurir {$visitor->guest_name} menunggu persetujuan pemilik rumah",
+                null,
+                $visitor->id,
+                'qr_code'
+            );
+
+            return redirect()->back()->with('error', "Izin masuk untuk {$visitor->guest_name} masih menunggu persetujuan warga pemilik rumah.");
+        }
+
+        if ($visitor->isRejected()) {
+            RfidService::logGateEvent(
+                $gate,
+                $visitor->tenant_id,
+                'denied',
+                "Check-In Ditolak: Kunjungan {$visitor->guest_name} ditolak oleh pemilik rumah",
+                null,
+                $visitor->id,
+                'qr_code'
+            );
+
+            return redirect()->back()->with('error', "Izin masuk {$visitor->guest_name} telah DITOLAK oleh warga pemilik rumah.");
+        }
+
         $satpamUser = Auth::user() ?? User::where('role', 'satpam')->first() ?? User::first();
 
         $visitor->update([
@@ -127,8 +242,10 @@ class SatpamController extends Controller
             'checked_in_at' => now(),
         ]);
 
-        // Picu palang pintu terbuka
-        $gate = SmartGate::where('tenant_id', $visitor->tenant_id)->first() ?? SmartGate::first();
+        // Picu palang pintu terbuka otomatis hanya jika ESP32 terhubung online
+        $isGateOnline = RfidService::getGateOnlineStatus($visitor->tenant_id)['online'];
+        $gateTriggered = false;
+
         if ($gate) {
             GateLog::create([
                 'tenant_id' => $visitor->tenant_id,
@@ -137,20 +254,38 @@ class SatpamController extends Controller
                 'access_method' => 'qr_code',
                 'direction' => 'entry',
                 'status' => 'granted',
-                'reason' => 'Tiket Tamu Terverifikasi: ' . $visitor->guest_name . ' (' . $visitor->guest_type . ')',
+                'reason' => ($isGateOnline ? 'Tiket Tamu Terverifikasi (Palang ESP32): ' : 'Check-In Manual Pos Satpam (ESP32 Offline): ') . $visitor->guest_name . ' (' . $visitor->guest_type . ')',
                 'triggered_at' => now(),
             ]);
+
+            if ($isGateOnline) {
+                Cache::put("gate_remote_open_{$gate->id}", [
+                    'user_name' => $visitor->guest_name,
+                    'reason' => 'Tiket QR Tamu Valid: ' . $visitor->guest_name,
+                    'time' => now()->toIso8601String(),
+                ], 15);
+                Cache::put('gate_remote_open_global', [
+                    'user_name' => $visitor->guest_name,
+                    'reason' => 'Tiket QR Tamu Valid: ' . $visitor->guest_name,
+                    'time' => now()->toIso8601String(),
+                ], 15);
+                $gateTriggered = true;
+            }
         }
 
         ActivityLogger::log(
             'visitor.checked_in',
             "Tamu terverifikasi: {$visitor->guest_name} ({$visitor->guest_type}) masuk melalui pos satpam.",
             'info',
-            ['guest_name' => $visitor->guest_name, 'visitor_id' => $visitor->id],
+            ['guest_name' => $visitor->guest_name, 'visitor_id' => $visitor->id, 'gate_online' => $isGateOnline],
             $satpamUser,
             $visitor
         );
 
-        return redirect()->back()->with('success', 'Tiket VALID! Tamu: ' . $visitor->guest_name . ' diizinkan masuk. Palang terbuka.');
+        $checkinMsg = $gateTriggered
+            ? 'Tiket VALID! Tamu: ' . $visitor->guest_name . ' diizinkan masuk. Palang ESP32 terbuka otomatis.'
+            : 'Tiket VALID! Tamu: ' . $visitor->guest_name . ' dicatat masuk. (Catatan: Smart Gate ESP32 sedang OFFLINE — buka palang secara manual).';
+
+        return redirect()->back()->with('success', $checkinMsg);
     }
 }

@@ -22,9 +22,9 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-3">
-            <button @click="showRequestModal = true" class="px-4 py-2.5 rounded-xl font-semibold text-sm bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition flex items-center gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                + Ajukan Surat Baru
+            <button type="button" @click="showRequestModal = true" class="px-4 py-2.5 rounded-xl font-semibold text-sm bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition-colors flex items-center gap-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                <span>Ajukan Surat Baru</span>
             </button>
         </div>
     </div>
@@ -116,21 +116,27 @@
                     </div>
 
                     @if($item->status === 'pending')
-                        <div class="pt-2 flex items-center gap-2.5 border-t border-slate-100 dark:border-slate-800">
-                            <form action="{{ route('letters.approve', $item->id) }}" method="POST" class="flex-1">
-                                @csrf
-                                <button type="submit" class="w-full min-h-[44px] px-3 py-2.5 rounded-xl text-xs font-black bg-emerald-600 hover:bg-emerald-700 text-white transition-transform active:scale-95 flex items-center justify-center gap-1.5 shadow-sm cursor-pointer touch-press">
-                                    <span>✓ Setujui & TTD</span>
+                        @if(in_array(Auth::user()?->role ?? '', ['super_admin', 'ketua_rw', 'ketua_rt', 'sekretaris', 'pengurus_rt']))
+                            <div class="pt-2 flex items-center gap-2.5 border-t border-slate-100 dark:border-slate-800">
+                                <form action="{{ route('letters.approve', $item->id) }}" method="POST" class="flex-1">
+                                    @csrf
+                                    <button type="submit" class="w-full min-h-[44px] px-3 py-2.5 rounded-xl text-xs font-black bg-emerald-600 hover:bg-emerald-700 text-white transition-transform active:scale-95 flex items-center justify-center gap-1.5 shadow-sm cursor-pointer touch-press">
+                                        <span>✓ Setujui & TTD</span>
+                                    </button>
+                                </form>
+                                <button 
+                                    type="button"
+                                    @click="showRejectModal = true; selectedLetterId = '{{ $item->id }}'; selectedLetterTitle = '{{ $item->letter_type_title }} - {{ $item->applicant_name }}'" 
+                                    class="flex-1 min-h-[44px] px-3 py-2.5 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800 transition-transform active:scale-95 flex items-center justify-center gap-1 cursor-pointer touch-press"
+                                >
+                                    <span>✕ Tolak</span>
                                 </button>
-                            </form>
-                            <button 
-                                type="button"
-                                @click="showRejectModal = true; selectedLetterId = '{{ $item->id }}'; selectedLetterTitle = '{{ $item->letter_type_title }} - {{ $item->applicant_name }}'" 
-                                class="flex-1 min-h-[44px] px-3 py-2.5 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800 transition-transform active:scale-95 flex items-center justify-center gap-1 cursor-pointer touch-press"
-                            >
-                                <span>✕ Tolak</span>
-                            </button>
-                        </div>
+                            </div>
+                        @else
+                            <div class="pt-2 text-xs font-bold text-amber-600 dark:text-amber-400 border-t border-slate-100 dark:border-slate-800">
+                                ⏳ Sedang ditinjau Pengurus RT/RW
+                            </div>
+                        @endif
                     @elseif($item->status === 'approved')
                         <div class="pt-2 flex items-center justify-between border-t border-slate-100 dark:border-slate-800">
                             <span class="text-xs text-emerald-600 dark:text-emerald-400 font-bold">✓ Ditandatangani Digital</span>
@@ -209,24 +215,29 @@
                             </td>
                             <td class="py-4 px-6 text-right space-x-2">
                                 @if($item->status === 'pending')
-                                    <!-- RT 1-Click Approve -->
-                                    <form action="{{ route('letters.approve', $item->id) }}" method="POST" class="inline">
-                                        @csrf
-                                        <button type="submit" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition shadow-xs">
-                                            ✓ Setujui & TTD
+                                    @if(in_array(Auth::user()?->role ?? '', ['super_admin', 'ketua_rw', 'ketua_rt', 'sekretaris', 'pengurus_rt']))
+                                        <!-- RT 1-Click Approve -->
+                                        <form action="{{ route('letters.approve', $item->id) }}" method="POST" class="inline">
+                                            @csrf
+                                            <button type="submit" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors shadow-xs cursor-pointer whitespace-nowrap focus-visible:ring-2 focus-visible:ring-emerald-500">
+                                                ✓ Setujui & TTD
+                                            </button>
+                                        </form>
+                                        <button 
+                                            type="button"
+                                            @click="showRejectModal = true; selectedLetterId = '{{ $item->id }}'; selectedLetterTitle = '{{ $item->letter_type_title }} - {{ $item->applicant_name }}'" 
+                                            class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-rose-50 text-rose-600 hover:bg-rose-100 dark:bg-rose-950/60 dark:text-rose-300 transition-colors cursor-pointer whitespace-nowrap focus-visible:ring-2 focus-visible:ring-rose-500"
+                                        >
+                                            Tolak
                                         </button>
-                                    </form>
-                                    <button 
-                                        @click="showRejectModal = true; selectedLetterId = '{{ $item->id }}'; selectedLetterTitle = '{{ $item->letter_type_title }} - {{ $item->applicant_name }}'" 
-                                        class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-rose-50 text-rose-600 hover:bg-rose-100 dark:bg-rose-950/60 dark:text-rose-300 transition"
-                                    >
-                                        Tolak
-                                    </button>
+                                    @else
+                                        <span class="text-xs font-semibold text-amber-600 dark:text-amber-400">⏳ Menunggu TTD RT</span>
+                                    @endif
                                 @elseif($item->status === 'approved')
                                     <a 
                                         href="{{ route('letters.verify', $item->qr_verification_code) }}" 
                                         target="_blank" 
-                                        class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-950/60 dark:text-blue-300 transition"
+                                        class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-950/60 dark:text-blue-300 transition-colors whitespace-nowrap"
                                     >
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                         Lihat Surat / Cetak
@@ -247,11 +258,11 @@
     </div>
 
     <!-- MODAL: Ajukan Surat Pengantar Warga -->
-    <div x-show="showRequestModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs" x-cloak>
+    <div x-show="showRequestModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs overscroll-contain" x-cloak>
         <div @click.away="showRequestModal = false" class="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800">
             <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
                 <h3 class="text-lg font-bold text-slate-900 dark:text-white">Form Pengajuan Surat Pengantar RT</h3>
-                <button @click="showRequestModal = false" class="text-slate-400 hover:text-slate-600">&times;</button>
+                <button type="button" @click="showRequestModal = false" aria-label="Tutup modal" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer text-lg leading-none">&times;</button>
             </div>
 
             <form action="{{ route('letters.store') }}" method="POST" class="space-y-4 mt-4" x-data="{ isSubmitting: false }" @submit="isSubmitting = true">
@@ -311,7 +322,7 @@
         <div @click.away="showRejectModal = false" class="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800">
             <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
                 <h3 class="text-lg font-bold text-slate-900 dark:text-white">Tolak Pengajuan Surat</h3>
-                <button @click="showRejectModal = false" class="text-slate-400 hover:text-slate-600">&times;</button>
+                <button type="button" @click="showRejectModal = false" aria-label="Tutup modal" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer text-lg leading-none">&times;</button>
             </div>
 
             <form :action="'{{ url('/surat-pengantar') }}/' + selectedLetterId + '/reject'" method="POST" class="space-y-4 mt-4">
@@ -319,11 +330,11 @@
                 <p class="text-xs text-slate-500" x-text="selectedLetterTitle"></p>
                 <div>
                     <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Alasan Penolakan</label>
-                    <textarea name="rejection_reason" rows="3" required placeholder="Contoh: Dokumen KK lampiran belum lengkap atau ada tunggakan IPL" class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"></textarea>
+                    <textarea name="rejection_reason" rows="3" required placeholder="Contoh: Dokumen KK lampiran belum lengkap atau ada tunggakan IPL…" class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-rose-500 focus-visible:ring-2 focus-visible:ring-rose-500 outline-hidden"></textarea>
                 </div>
                 <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
-                    <button type="button" @click="showRejectModal = false" class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100">Batal</button>
-                    <button type="submit" class="px-5 py-2 rounded-xl text-sm font-semibold bg-rose-600 hover:bg-rose-700 text-white">Tolak Pengajuan</button>
+                    <button type="button" @click="showRejectModal = false" class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">Batal</button>
+                    <button type="submit" class="px-5 py-2 rounded-xl text-sm font-semibold bg-rose-600 hover:bg-rose-700 text-white transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-rose-500">Tolak Pengajuan</button>
                 </div>
             </form>
         </div>

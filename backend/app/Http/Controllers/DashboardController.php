@@ -11,6 +11,7 @@ use App\Models\SmartGate;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\ActivityLogger;
+use App\Services\RfidService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -37,8 +38,9 @@ class DashboardController extends Controller
 
         // Tagihan scoped to tenant
         $paidBillings = Billing::where('tenant_id', $tenant->id)->where('status', 'paid')->count();
-        $unpaidBillings = Billing::where('tenant_id', $tenant->id)->where('status', 'unpaid')->count();
+        $unpaidBillings = Billing::where('tenant_id', $tenant->id)->whereIn('status', ['unpaid', 'overdue'])->count();
         $pendingPayments = Payment::whereNull('verified_at')
+            ->whereNull('rejection_reason')
             ->whereHas('billing', fn($q) => $q->where('tenant_id', $tenant->id))
             ->with(['billing.house', 'payer'])
             ->get();
@@ -91,6 +93,14 @@ class DashboardController extends Controller
         // Riwayat Kas Terakhir
         $recentCashBooks = CashBook::where('tenant_id', $tenant->id)->latest('transaction_date')->take(8)->get();
 
+        // Daftar Tagihan Bulan Berjalan / Terkini
+        $recentBillings = Billing::where('tenant_id', $tenant->id)
+            ->with('house')
+            ->orderByDesc('billing_period')
+            ->orderBy('status')
+            ->take(12)
+            ->get();
+
         return view('pages.dashboard', compact(
             'tenant',
             'totalHouses',
@@ -109,7 +119,8 @@ class DashboardController extends Controller
             'chartCashflow',
             'recentGateLogs',
             'houses',
-            'recentCashBooks'
+            'recentCashBooks',
+            'recentBillings'
         ));
     }
 
@@ -124,6 +135,7 @@ class DashboardController extends Controller
             $payment->update([
                 'verified_by_user_id' => $verifierId,
                 'verified_at' => now(),
+                'rejection_reason' => null,
             ]);
 
             if ($payment->billing) {
@@ -158,11 +170,18 @@ class DashboardController extends Controller
 
             return redirect()->back()->with('success', 'Pembayaran berhasil diverifikasi dan masuk ke kas RT.');
         } else {
-            $reason = $request->input('reason', 'Bukti transfer tidak sesuai / tidak terbaca.');
+            $reason = $request->input('reason') ?: $request->input('rejection_reason') ?: 'Bukti transfer tidak sesuai / tidak terbaca.';
             $payment->update([
                 'verified_by_user_id' => $verifierId,
+                'verified_at' => null,
                 'rejection_reason' => $reason,
             ]);
+
+            if ($payment->billing) {
+                $payment->billing->update([
+                    'status' => 'unpaid',
+                ]);
+            }
 
             $verifierUser = User::find($verifierId);
             ActivityLogger::log(
@@ -240,8 +259,8 @@ class DashboardController extends Controller
         ]);
 
         // Buat log sistem bahwa palang gerbang dan satpam telah disinkronkan
-        $tenant = Tenant::getActiveTenant() ?? Tenant::first();
-        $gate = SmartGate::where('tenant_id', $tenant?->id)->first() ?? SmartGate::first();
+        $tenant = Tenant::find($targetUser->tenant_id) ?? Tenant::getActiveTenant() ?? Tenant::first();
+        $gate = RfidService::resolvePrimaryGate($tenant?->id);
         if ($gate) {
             GateLog::create([
                 'tenant_id' => $tenant?->id ?? $gate->tenant_id,
@@ -289,5 +308,113 @@ class DashboardController extends Controller
         );
 
         return redirect()->back()->with('warning', "Pengajuan verifikasi KTP untuk {$targetUser->name} telah ditolak dengan catatan: {$reason}");
+    }
+
+    /**
+     * Terbitkan tagihan iuran bulanan secara massal ke rumah warga di wilayah aktif.
+     */
+    public function generateBillings(Request $request)
+    {
+        $actor = Auth::user();
+        if (!$actor || !in_array($actor->role, ['super_admin', 'ketua_rw', 'ketua_rt', 'bendahara', 'pengurus_rt'])) {
+            return redirect()->back()->with('error', 'Akses ditolak: Hanya Bendahara atau Pengurus RT/RW yang berwenang menerbitkan tagihan.');
+        }
+
+        $validated = $request->validate([
+            'billing_month' => 'required|date_format:Y-m',
+            'amount' => 'required|numeric|min:1000',
+            'description' => 'required|string|max:255',
+            'due_date' => 'required|date',
+        ]);
+
+        $tenant = Tenant::getActiveTenant() ?? Tenant::first();
+        if (!$tenant) {
+            return redirect()->back()->with('error', 'Data komplek tidak ditemukan.');
+        }
+
+        $periodStart = \Carbon\Carbon::createFromFormat('Y-m', $validated['billing_month'])->startOfMonth()->toDateString();
+        $houses = House::where('tenant_id', $tenant->id)
+            ->whereIn('occupancy_status', ['occupied', 'rented'])
+            ->get();
+
+        $createdCount = 0;
+        foreach ($houses as $house) {
+            $exists = Billing::where('tenant_id', $tenant->id)
+                ->where('house_id', $house->id)
+                ->whereDate('billing_period', $periodStart)
+                ->exists();
+
+            if (!$exists) {
+                Billing::create([
+                    'tenant_id' => $tenant->id,
+                    'house_id' => $house->id,
+                    'billing_period' => $periodStart,
+                    'amount' => $validated['amount'],
+                    'description' => $validated['description'],
+                    'status' => 'unpaid',
+                    'due_date' => $validated['due_date'],
+                ]);
+                $createdCount++;
+            }
+        }
+
+        ActivityLogger::log(
+            'finance.billings_generated',
+            "Bendahara ({$actor->name}) menerbitkan {$createdCount} tagihan iuran periode {$validated['billing_month']} (Rp " . number_format($validated['amount'], 0, ',', '.') . ").",
+            'info',
+            ['billing_month' => $validated['billing_month'], 'created_count' => $createdCount],
+            $actor
+        );
+
+        return redirect()->back()->with('success', $createdCount > 0
+            ? "Berhasil menerbitkan {$createdCount} tagihan iuran untuk periode {$validated['billing_month']}!"
+            : "Seluruh unit rumah sudah memiliki tagihan untuk periode {$validated['billing_month']}.");
+    }
+
+    /**
+     * Ekspor Buku Kas Terbuka RT ke berkas CSV siap buka di Excel.
+     */
+    public function exportCashBook(): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $actor = Auth::user();
+        if (!$actor || !in_array($actor->role, ['super_admin', 'ketua_rw', 'ketua_rt', 'bendahara', 'sekretaris', 'pengurus_rt'])) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        $tenant = Tenant::getActiveTenant() ?? Tenant::first();
+        $filename = 'rekap-kas-' . ($tenant?->slug ?? 'ewarga') . '-' . date('Y-m-d_His') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=utf-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+
+        $callback = function () use ($tenant) {
+            $handle = fopen('php://output', 'w');
+            fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+            fputcsv($handle, ['Tanggal', 'Jenis', 'Kategori', 'Judul Transaksi', 'Nominal (Rp)', 'Dicatat Oleh', 'Catatan']);
+
+            CashBook::where('tenant_id', $tenant?->id)
+                ->with('creator')
+                ->orderByDesc('transaction_date')
+                ->chunk(200, function ($rows) use ($handle) {
+                    foreach ($rows as $row) {
+                        fputcsv($handle, [
+                            $row->transaction_date?->format('Y-m-d') ?? '-',
+                            $row->type === 'income' ? 'Pemasukan' : 'Pengeluaran',
+                            $row->category,
+                            $row->title,
+                            number_format((float) $row->amount, 0, '', ''),
+                            $row->creator?->name ?? 'Pengurus',
+                            $row->notes ?? '-',
+                        ]);
+                    }
+                });
+
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 }

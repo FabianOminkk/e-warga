@@ -24,6 +24,15 @@ class EwargaActionsTest extends TestCase
     {
         $warga = User::where('role', 'warga')->first();
 
+        // Offline: ditolak jika ESP32 belum terhubung
+        $offlineResp = $this->actingAs($warga)->post('/warga/open-gate');
+        $offlineResp->assertSessionHas('error');
+
+        // Hubungkan ESP32 ke Smart Gate
+        $this->postJson('/api/v1/gate/ping', [
+            'device_uid' => 'ESP32-GATE-MELATI-01',
+        ])->assertStatus(200);
+
         $response = $this->actingAs($warga)->post('/warga/open-gate');
         $response->assertSessionHas('success');
     }
@@ -50,6 +59,11 @@ class EwargaActionsTest extends TestCase
     {
         $satpam = User::where('role', 'satpam')->first();
 
+        // Hubungkan ESP32 ke Smart Gate terlebih dahulu
+        $this->postJson('/api/v1/gate/ping', [
+            'device_uid' => 'ESP32-GATE-MELATI-01',
+        ])->assertStatus(200);
+
         $response = $this->actingAs($satpam)->post('/satpam/trigger-manual', [
             'reason' => 'Buka Manual Darurat',
         ]);
@@ -58,6 +72,7 @@ class EwargaActionsTest extends TestCase
         $this->assertDatabaseHas('gate_logs', [
             'reason' => 'Buka Manual Darurat',
             'access_method' => 'satpam_manual',
+            'status' => 'granted',
         ]);
     }
 

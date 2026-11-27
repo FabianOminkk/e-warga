@@ -40,5 +40,18 @@ class Payment extends Model
     {
         return $this->belongsTo(User::class, 'verified_by_user_id');
     }
+
+    public function getProofUrlAttribute(): ?string
+    {
+        if (!$this->proof_image) {
+            return null;
+        }
+
+        if (str_starts_with($this->proof_image, 'uploads/')) {
+            return asset($this->proof_image);
+        }
+
+        return route('payments.proof.show', $this->id);
+    }
 }
 

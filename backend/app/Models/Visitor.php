@@ -16,7 +16,12 @@ class Visitor extends Model
         'invited_by_user_id',
         'guest_name',
         'guest_type',
+        'approval_status',
+        'approval_notes',
+        'approved_at',
+        'approved_by_user_id',
         'vehicle_plate',
+        'notes',
         'qr_token',
         'valid_from',
         'valid_until',
@@ -29,8 +34,39 @@ class Visitor extends Model
         'valid_from' => 'datetime',
         'valid_until' => 'datetime',
         'checked_in_at' => 'datetime',
+        'approved_at' => 'datetime',
         'is_used' => 'boolean',
     ];
+
+    public function isPending(): bool
+    {
+        return ($this->approval_status ?? 'approved') === 'pending';
+    }
+
+    public function isApproved(): bool
+    {
+        return ($this->approval_status ?? 'approved') === 'approved';
+    }
+
+    public function isRejected(): bool
+    {
+        return ($this->approval_status ?? 'approved') === 'rejected';
+    }
+
+    public function getGuestTypeLabelAttribute(): string
+    {
+        return match ($this->guest_type) {
+            'courier' => 'Kurir Paket / Ekspedisi',
+            'ride_hailing' => 'Ojek Online / Antar Makanan',
+            'contractor' => 'Teknisi / Tukang / Perbaikan',
+            default => 'Tamu Pribadi / Kerabat',
+        };
+    }
+
+    public function approvedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by_user_id');
+    }
 
     public function tenant(): BelongsTo
     {

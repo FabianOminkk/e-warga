@@ -25,7 +25,7 @@
             <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300">
                 ✓ Terverifikasi Digital
             </span>
-            <button onclick="window.print()" class="px-4 py-2 rounded-xl text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition flex items-center gap-2">
+            <button type="button" onclick="window.print()" class="px-4 py-2 rounded-xl text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition-colors flex items-center gap-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-500">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
                 Cetak Dokumen Resmi
             </button>
@@ -35,15 +35,24 @@
     <!-- Official Letter Paper Container (A4 Printable Canvas) -->
     <div class="print-container bg-white text-slate-900 max-w-3xl w-full p-10 md:p-14 rounded-2xl shadow-xl border border-slate-200 font-serif">
         
+        @php
+            $tName = $letter->tenant?->name ?? 'Graha Asri Residence';
+            $tRtRw = $letter->tenant?->rt_rw ?? 'RT 04 / RW 02';
+            $tDistrict = $letter->tenant?->district ?? 'Cikarang Utara';
+            $tCity = $letter->tenant?->city ?? 'Bekasi';
+            $tProvince = $letter->tenant?->province ?? 'Jawa Barat';
+            $tPostal = $letter->tenant?->postal_code ?? '17530';
+            $rwSigner = \App\Models\User::where('tenant_id', $letter->tenant_id)->where('role', 'ketua_rw')->first();
+        @endphp
         <!-- Kop Surat Resmi RT/RW -->
         <div class="text-center border-b-4 border-double border-slate-900 pb-4 mb-6">
             <div class="flex items-center justify-center gap-4 mb-2">
                 <img src="/images/logo.svg" alt="Logo RT" class="w-14 h-14 object-contain">
                 <div>
-                    <h2 class="text-lg font-bold tracking-widest uppercase">RUKUN TETANGGA 04 / RUKUN WARGA 02</h2>
-                    <h3 class="text-base font-bold uppercase tracking-wider text-slate-800">PERUMAHAN GRAHA ASRI RESIDENCE</h3>
+                    <h2 class="text-lg font-bold tracking-widest uppercase">RUKUN TETANGGA / RUKUN WARGA ({{ strtoupper($tRtRw) }})</h2>
+                    <h3 class="text-base font-bold uppercase tracking-wider text-slate-800">{{ strtoupper($tName) }}</h3>
                     <p class="text-xs font-sans text-slate-600">
-                        Kecamatan Cikarang Utara, Kabupaten Bekasi, Provinsi Jawa Barat 17530
+                        Kecamatan {{ $tDistrict }}, {{ $tCity }}, Provinsi {{ $tProvince }} {{ $tPostal }}
                     </p>
                 </div>
             </div>
@@ -58,7 +67,7 @@
         <!-- Isi Surat -->
         <div class="font-sans text-sm leading-relaxed space-y-4 mb-8 text-slate-800">
             <p>
-                Yang bertanda tangan di bawah ini, Ketua Rukun Tetangga (RT) 04 Rukun Warga (RW) 02 Perumahan Graha Asri Residence, menerangkan dengan sebenarnya bahwa:
+                Yang bertanda tangan di bawah ini, Pengurus {{ $tRtRw }} {{ $tName }}, menerangkan dengan sebenarnya bahwa:
             </p>
 
             <div class="pl-6 space-y-2 py-2">
@@ -72,11 +81,11 @@
                 </div>
                 <div class="grid grid-cols-12 gap-2">
                     <div class="col-span-4 font-semibold text-slate-600">Alamat Tempat Tinggal</div>
-                    <div class="col-span-8 text-slate-900">: {{ $letter->house_block }}, RT 04 / RW 02 Graha Asri Residence</div>
+                    <div class="col-span-8 text-slate-900">: {{ $letter->house_block }}, {{ $tRtRw }} {{ $tName }}</div>
                 </div>
                 <div class="grid grid-cols-12 gap-2">
                     <div class="col-span-4 font-semibold text-slate-600">Status Kependudukan</div>
-                    <div class="col-span-8 text-slate-900">: Warga Tetap RT 04</div>
+                    <div class="col-span-8 text-slate-900">: Warga Tetap {{ $tRtRw }}</div>
                 </div>
                 <div class="grid grid-cols-12 gap-2">
                     <div class="col-span-4 font-semibold text-slate-600">Keperluan</div>
@@ -98,17 +107,17 @@
             <!-- Sisi Kiri: Mengetahui & Mengesahkan Ketua RW (Tingkat Lebih Tinggi) -->
             <div class="text-left space-y-1">
                 <div class="text-xs text-slate-500 font-semibold">Mengetahui & Menyetujui:</div>
-                <div class="text-sm font-bold text-slate-900">Ketua RW 02</div>
+                <div class="text-sm font-bold text-slate-900">Ketua RW</div>
                 <div class="my-3">
                     <span class="inline-block px-2.5 py-1 border border-indigo-500 rounded text-[10px] font-bold text-indigo-700 bg-indigo-50">
                         ✓ DILEGALISASI KETUA RW
                     </span>
                 </div>
                 <div class="text-sm font-bold underline text-slate-900">
-                    Bpk. H. Rahmat Hidayat
+                    {{ $rwSigner?->name ?? 'Bpk. H. Rahmat Hidayat' }}
                 </div>
                 <div class="text-[11px] text-slate-500 font-mono">
-                    Reg RW: RW02-LEGAL-2026
+                    Reg RW: RW-LEGAL-{{ date('Y') }}
                 </div>
             </div>
 
@@ -150,10 +159,10 @@
             <!-- Sisi Kanan: Penandatangan Utama Ketua RT -->
             <div class="text-right space-y-1">
                 <div class="text-xs text-slate-500">
-                    Bekasi, {{ $letter->signed_at?->translatedFormat('d F Y') ?? date('d F Y') }}
+                    {{ $tCity }}, {{ $letter->signed_at?->translatedFormat('d F Y') ?? date('d F Y') }}
                 </div>
                 <div class="text-sm font-bold text-slate-900">
-                    Ketua RT 04 / RW 02
+                    Ketua {{ $tRtRw }}
                 </div>
                 <div class="my-3">
                     <span class="inline-block px-2.5 py-1 border border-emerald-500 rounded text-[10px] font-bold text-emerald-700 bg-emerald-50">

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('device_uid', 100)->unique();
             $table->string('secret_token', 255)->nullable();
             $table->string('ip_address', 50)->nullable();
-            $table->enum('status', ['online', 'offline', 'maintenance'])->default('online');
+            $table->enum('status', ['online', 'offline', 'maintenance'])->default('offline');
             $table->timestamp('last_ping_at')->nullable();
             $table->timestamps();
         });

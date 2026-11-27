@@ -22,9 +22,9 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-3">
-            <button @click="showAddMemberModal = true" class="px-4 py-2.5 rounded-xl font-semibold text-sm bg-pink-600 hover:bg-pink-700 text-white shadow-xs transition flex items-center gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                + Tambah Warga Posyandu
+            <button type="button" @click="showAddMemberModal = true" class="px-4 py-2.5 rounded-xl font-semibold text-sm bg-pink-600 hover:bg-pink-700 text-white shadow-xs transition-colors flex items-center gap-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                <span>Tambah Warga Posyandu</span>
             </button>
         </div>
     </div>
@@ -208,8 +208,9 @@
                             </td>
                             <td class="py-4 px-6 text-right space-x-2">
                                 <button 
+                                    type="button"
                                     @click="showRecordModal = true; selectedMemberId = '{{ $m->id }}'; selectedMemberName = '{{ $m->name }} ({{ $m->category_label }})'" 
-                                    class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300 transition"
+                                    class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300 transition-colors cursor-pointer whitespace-nowrap"
                                     title="Catat Penimbangan & Periksa"
                                 >
                                     + Catat Periksa
@@ -217,7 +218,7 @@
                                 <form action="{{ route('posyandu.members.destroy', $m->id) }}" method="POST" class="inline" onsubmit="return confirm('Hapus data warga posyandu ini?')">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 transition" title="Hapus">
+                                    <button type="submit" aria-label="Hapus warga posyandu" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 transition-colors cursor-pointer" title="Hapus">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                     </button>
                                 </form>
@@ -226,7 +227,7 @@
                     @empty
                         <tr>
                             <td colspan="6" class="py-12 text-center text-slate-400">
-                                Belum ada warga terdaftar di kategori ini. Silakan klik tombol <strong>"+ Tambah Warga Posyandu"</strong>.
+                                Belum ada warga terdaftar di kategori ini. Silakan klik tombol <strong>"Tambah Warga Posyandu"</strong>.
                             </td>
                         </tr>
                     @endforelse
@@ -261,11 +262,11 @@
     </div>
 
     <!-- MODAL 1: Tambah Warga Posyandu -->
-    <div x-show="showAddMemberModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs" x-cloak>
+    <div x-show="showAddMemberModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs overscroll-contain" x-cloak>
         <div @click.away="showAddMemberModal = false" class="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
                 <h3 class="text-lg font-bold text-slate-900 dark:text-white">Pendaftaran Warga Posyandu Baru</h3>
-                <button @click="showAddMemberModal = false" class="text-slate-400 hover:text-slate-600">&times;</button>
+                <button type="button" @click="showAddMemberModal = false" aria-label="Tutup modal" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer text-lg leading-none">&times;</button>
             </div>
 
             <form action="{{ route('posyandu.members.store') }}" method="POST" class="space-y-4 mt-4">
@@ -343,7 +344,7 @@
                     <h3 class="text-lg font-bold text-slate-900 dark:text-white">Pencatatan Pemeriksaan Posyandu</h3>
                     <p class="text-xs text-pink-600 dark:text-pink-400 font-semibold" x-text="selectedMemberName"></p>
                 </div>
-                <button @click="showRecordModal = false" class="text-slate-400 hover:text-slate-600">&times;</button>
+                <button type="button" @click="showRecordModal = false" aria-label="Tutup modal" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer text-lg leading-none">&times;</button>
             </div>
 
             <form action="{{ route('posyandu.records.store') }}" method="POST" class="space-y-4 mt-4">

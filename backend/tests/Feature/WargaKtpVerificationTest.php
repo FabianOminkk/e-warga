@@ -41,7 +41,8 @@ class WargaKtpVerificationTest extends TestCase
             'tenant_id' => $this->tenant->id,
             'name' => 'Gerbang Utama',
             'device_uid' => 'ESP32-TEST-GATE',
-            'status' => 'online',
+            'status' => 'offline',
+            'last_ping_at' => null,
         ]);
 
         $this->ketuaRw = User::create([
@@ -196,8 +197,14 @@ class WargaKtpVerificationTest extends TestCase
         $this->assertEquals($this->ketuaRw->id, $warga->verified_by_user_id);
         $this->assertNotNull($warga->verified_at);
 
-        // Now test that warga can open gate
+        // Now test that warga cannot open gate if ESP32 is offline, then succeeds once ESP32 pings online
         $this->actingAs($warga);
+        $this->postJson(route('warga.open-gate'))
+            ->assertStatus(422)
+            ->assertJson(['success' => false, 'offline' => true]);
+
+        \App\Services\RfidService::recordHeartbeat('ESP32-TEST-GATE', '127.0.0.1', $this->tenant->id, null, 'Gerbang Utama');
+
         $gateResponse = $this->postJson(route('warga.open-gate'));
         $gateResponse->assertStatus(200);
         $gateResponse->assertJson(['success' => true]);

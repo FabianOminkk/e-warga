@@ -7,6 +7,8 @@ use App\Http\Controllers\Api\IoTGateController;
 use App\Http\Controllers\Api\LetterApiController;
 use App\Http\Controllers\Api\PosyanduApiController;
 use App\Http\Controllers\Api\RegistrationDeviceController;
+use App\Http\Controllers\Api\ReportApiController;
+use App\Http\Controllers\Api\RfidController;
 use App\Http\Controllers\Api\SatpamApiController;
 use App\Http\Controllers\Api\ScheduleApiController;
 use App\Http\Controllers\Api\SystemDeploymentController;
@@ -24,6 +26,13 @@ use Illuminate\Support\Facades\Route;
 | 3. IoT Hardware & Controllers (ESP32 Smart Gate, RFID, Barcode)
 |
 */
+
+// Shared Group ESP32 RFID Endpoints (Stateless API, Bebas CSRF Protection)
+Route::prefix('rfid')->group(function () {
+    Route::post('/tap', [RfidController::class, 'tap'])->name('api.rfid.tap');
+    Route::post('/heartbeat', [RfidController::class, 'heartbeat'])->name('api.rfid.heartbeat');
+    Route::get('/status', [RfidController::class, 'status'])->name('api.rfid.status');
+});
 
 Route::prefix('v1')->group(function () {
 
@@ -74,6 +83,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/warga/visitors', [WargaApiController::class, 'createVisitor'])->name('api.warga.visitors.create');
         Route::post('/warga/panic', [WargaApiController::class, 'panicAlert'])->name('api.warga.panic');
         Route::get('/warga/bills', [WargaApiController::class, 'bills'])->name('api.warga.bills');
+        Route::post('/warga/pay-billing', [WargaApiController::class, 'payBilling'])->name('api.warga.pay-billing');
         Route::post('/warga/profile', [WargaApiController::class, 'updateProfile'])->name('api.warga.profile.update');
         Route::post('/warga/change-password', [WargaApiController::class, 'changePassword'])->name('api.warga.change-password');
         Route::post('/warga/pair-rfid', [WargaApiController::class, 'pairRfid'])->name('api.warga.pair-rfid');
@@ -101,5 +111,10 @@ Route::prefix('v1')->group(function () {
         Route::post('/letters', [LetterApiController::class, 'store'])->name('api.letters.store');
         Route::post('/letters/{id}/approve', [LetterApiController::class, 'approve'])->name('api.letters.approve');
         Route::post('/letters/{id}/reject', [LetterApiController::class, 'reject'])->name('api.letters.reject');
+
+        // 8. Laporan, Aspirasi & Pengaduan Warga
+        Route::get('/reports', [ReportApiController::class, 'index'])->name('api.reports.index');
+        Route::post('/reports', [ReportApiController::class, 'store'])->name('api.reports.store');
+        Route::post('/reports/{id}/respond', [ReportApiController::class, 'respond'])->name('api.reports.respond');
     });
 });

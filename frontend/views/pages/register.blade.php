@@ -233,7 +233,7 @@
                                     <span class="font-mono tabular-nums" x-text="ocrProgress + '%'">0%</span>
                                 </div>
                                 <div class="w-full bg-cyan-200 dark:bg-cyan-900 rounded-full h-1.5 overflow-hidden">
-                                    <div class="bg-cyan-600 h-1.5 rounded-full transition-all duration-300" :style="`width: ${ocrProgress}%`"></div>
+                                    <div class="bg-cyan-600 h-1.5 rounded-full transition-[width] duration-300" :style="`width: ${ocrProgress}%`"></div>
                                 </div>
                             </div>
 
@@ -373,6 +373,22 @@
                             </div>
 
                             <div class="space-y-1.5">
+                                <label for="reg_no_kk" class="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                                    Nomor Kartu Keluarga (No. KK - Opsional)
+                                </label>
+                                <input 
+                                    type="text" 
+                                    name="no_kk" 
+                                    id="reg_no_kk" 
+                                    inputmode="numeric"
+                                    maxlength="16"
+                                    value="{{ old('no_kk') }}"
+                                    placeholder="16 digit No. KK…" 
+                                    class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white text-sm focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden transition-colors tabular-nums font-mono font-bold tracking-wider"
+                                >
+                            </div>
+
+                            <div class="space-y-1.5 sm:col-span-2">
                                 <label for="reg_gender" class="block text-xs font-bold text-slate-700 dark:text-slate-300">
                                     Jenis Kelamin <span class="text-rose-500">*</span>
                                 </label>

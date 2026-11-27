@@ -6,14 +6,17 @@ use App\Models\Billing;
 use App\Models\GateLog;
 use App\Models\House;
 use App\Models\LetterRequest;
+use App\Models\Payment;
 use App\Models\SmartGate;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Models\Visitor;
 use App\Services\ActivityLogger;
+use App\Services\RfidService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
@@ -27,12 +30,21 @@ class WargaController extends Controller
         }
 
         $tenant = Tenant::find($user->tenant_id) ?? Tenant::getActiveTenant() ?? Tenant::first();
-        $smartGate = SmartGate::where('tenant_id', $tenant?->id)->first() ?? SmartGate::first();
+        $smartGate = RfidService::resolvePrimaryGate($tenant?->id);
+        $isGateOnline = RfidService::getGateOnlineStatus($tenant?->id)['online'];
 
         // Tagihan Warga
         $billing = null;
+        $billings = collect();
+        $latestPayment = null;
         if ($user && $user->house_id) {
-            $billing = Billing::where('house_id', $user->house_id)->latest('billing_period')->first();
+            $billings = Billing::where('house_id', $user->house_id)
+                ->with(['payments' => fn ($q) => $q->latest()])
+                ->latest('billing_period')
+                ->take(6)
+                ->get();
+            $billing = $billings->first();
+            $latestPayment = $billing?->payments?->first();
         }
 
         // Tamu Aktif Warga Ini
@@ -53,7 +65,7 @@ class WargaController extends Controller
         // Daftar Rumah di Komplek Ini (untuk form pengaturan profil warga)
         $houses = House::where('tenant_id', $tenant?->id)->orderBy('block_name')->orderBy('house_number')->get();
 
-        return view('pages.warga', compact('user', 'tenant', 'smartGate', 'billing', 'myVisitors', 'myGateLogs', 'myLetters', 'houses'));
+        return view('pages.warga', compact('user', 'tenant', 'smartGate', 'isGateOnline', 'billing', 'billings', 'latestPayment', 'myVisitors', 'myGateLogs', 'myLetters', 'houses'));
     }
 
     public function profile()
@@ -101,11 +113,34 @@ class WargaController extends Controller
             return redirect()->back()->with('error', $errorMessage);
         }
 
-        $tenant = Tenant::getActiveTenant() ?? Tenant::first();
-        $gate = SmartGate::where('tenant_id', $tenant?->id)->first() ?? SmartGate::first();
+        $tenant = Tenant::find($user->tenant_id) ?? Tenant::getActiveTenant() ?? Tenant::first();
+        $gate = RfidService::resolvePrimaryGate($tenant?->id);
+        $isGateOnline = RfidService::getGateOnlineStatus($tenant?->id)['online'];
 
-        if (!$gate) {
-            return redirect()->back()->with('error', 'Perangkat palang gerbang tidak ditemukan atau sedang offline.');
+        if (!$gate || !$isGateOnline) {
+            if ($gate) {
+                GateLog::create([
+                    'tenant_id' => $tenant?->id ?? $gate->tenant_id,
+                    'smart_gate_id' => $gate->id,
+                    'user_id' => $user->id,
+                    'access_method' => 'mobile_button',
+                    'direction' => 'entry',
+                    'status' => 'denied',
+                    'reason' => "GAGAL BUKA PORTAL: Smart Gate ESP32 sedang OFFLINE (permintaan {$user->name})",
+                    'triggered_at' => now(),
+                ]);
+            }
+
+            $offlineMsg = 'Smart Gate sedang OFFLINE! Perangkat ESP32 belum terhubung ke server/hotspot.';
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'offline' => true,
+                    'message' => $offlineMsg,
+                ], 422);
+            }
+
+            return redirect()->back()->with('error', $offlineMsg);
         }
 
         $log = GateLog::create([
@@ -168,6 +203,7 @@ class WargaController extends Controller
             'guest_type' => 'required|in:guest,courier,ride_hailing,contractor',
             'vehicle_plate' => 'nullable|string|max:20',
             'duration_hours' => 'required|integer|min:1|max:48',
+            'notes' => 'nullable|string|max:255',
         ]);
 
         $tenant = Tenant::getActiveTenant() ?? Tenant::first();
@@ -191,7 +227,12 @@ class WargaController extends Controller
             'invited_by_user_id' => $user->id,
             'guest_name' => $validated['guest_name'],
             'guest_type' => $validated['guest_type'],
-            'vehicle_plate' => $validated['vehicle_plate'],
+            'approval_status' => 'approved',
+            'approval_notes' => 'Izin Diterbitkan oleh Pemilik Rumah (Pre-Approved)',
+            'approved_at' => now(),
+            'approved_by_user_id' => $user->id,
+            'vehicle_plate' => $validated['vehicle_plate'] ?? null,
+            'notes' => $validated['notes'] ?? null,
             'qr_token' => $qrToken,
             'valid_from' => $validFrom,
             'valid_until' => $validUntil,
@@ -245,6 +286,7 @@ class WargaController extends Controller
             'name' => 'required|string|max:150',
             'phone_number' => 'required|string|max:25',
             'nik' => 'required|numeric|digits:16',
+            'no_kk' => 'nullable|digits:16',
             'birth_date' => 'required|date',
             'birth_place' => 'required|string|max:100',
             'gender' => 'required|in:male,female',
@@ -255,24 +297,33 @@ class WargaController extends Controller
             'ktp_photo' => 'nullable|image|mimes:jpeg,png,jpg,svg|max:5120',
         ], [
             'nik.digits' => 'Nomor NIK KTP wajib tepat 16 digit angka.',
+            'no_kk.digits' => 'Nomor Kartu Keluarga (KK) harus tepat 16 digit angka.',
             'nik.required' => 'Nomor KTP (NIK) wajib diisi untuk verifikasi identitas resmi.',
             'birth_date.required' => 'Tanggal lahir wajib diisi.',
             'birth_place.required' => 'Tempat lahir wajib diisi sesuai KTP.',
             'address_ktp.required' => 'Alamat domisili sesuai KTP wajib diisi.',
         ]);
 
+        $targetHouseId = $validated['house_id'] ?? $user->house_id;
+        $resolvedNoKk = !empty($validated['no_kk']) ? trim($validated['no_kk']) : ($user->no_kk ?? ($targetHouseId ? House::find($targetHouseId)?->no_kk : null));
+
         $dataToUpdate = [
             'name' => $validated['name'],
             'phone_number' => $validated['phone_number'],
             'nik' => $validated['nik'],
+            'no_kk' => $resolvedNoKk,
             'birth_date' => $validated['birth_date'],
             'birth_place' => $validated['birth_place'],
             'gender' => $validated['gender'],
             'religion' => $validated['religion'] ?? 'Islam',
             'occupation' => $validated['occupation'] ?? 'Karyawan Swasta',
             'address_ktp' => $validated['address_ktp'],
-            'house_id' => $validated['house_id'] ?? $user->house_id,
+            'house_id' => $targetHouseId,
         ];
+
+        if ($targetHouseId && !empty($validated['no_kk']) && $user->is_family_head) {
+            House::where('id', $targetHouseId)->whereNull('no_kk')->update(['no_kk' => trim($validated['no_kk'])]);
+        }
 
         // Buat RFID Tag otomatis terintegrasi dengan NIK KTP jika belum ada
         if (!$user->rfid_tag || empty($user->rfid_tag)) {
@@ -494,15 +545,20 @@ class WargaController extends Controller
 
         $tenantId = $user->tenant_id ?? 1;
 
-        // Simpan sesi pairing di cache selama 60 detik
-        \Illuminate\Support\Facades\Cache::put("rfid_pairing_tenant_{$tenantId}", [
+        $pairingPayload = [
             'user_id' => $user->id,
             'user_name' => $user->name,
+            'tenant_id' => $tenantId,
             'started_at' => now()->timestamp,
-        ], 60);
+        ];
 
-        // Hapus penanda sukses sebelumnya jika ada
-        \Illuminate\Support\Facades\Cache::forget("rfid_pairing_success_{$user->id}");
+        // Simpan sesi pairing di cache selama 60 detik (per-tenant dan global agar kompatibel dengan shared ESP32)
+        Cache::put("rfid_pairing_tenant_{$tenantId}", $pairingPayload, 60);
+        Cache::put('rfid_pairing_global', $pairingPayload, 60);
+
+        // Hapus penanda hasil/error sebelumnya jika ada
+        Cache::forget("rfid_pairing_success_{$user->id}");
+        Cache::forget("rfid_pairing_error_{$user->id}");
 
         return response()->json([
             'success' => true,
@@ -513,45 +569,45 @@ class WargaController extends Controller
 
     /**
      * Cek status konektivitas perangkat ESP32 (Online / Offline).
-     * Terhubung ke hotspot ("BIAN") jika heartbeat diterima dalam 25 detik terakhir.
+     * Mendukung heartbeat /api/rfid/heartbeat maupun /api/v1/registration-device/ping.
      */
     public function checkEsp32DeviceStatus(Request $request)
     {
         $tenantId = (int) (Auth::user()?->tenant_id ?? 1);
-        $cachedHeartbeat = \Illuminate\Support\Facades\Cache::get("esp32_heartbeat_tenant_{$tenantId}")
-            ?? \Illuminate\Support\Facades\Cache::get("esp32_heartbeat_tenant_1")
-            ?? \Illuminate\Support\Facades\Cache::get("esp32_heartbeat_global");
-        $isOnline = false;
-        $secondsAgo = null;
+        $deviceStatus = RfidService::getDeviceOnlineStatus($tenantId, RfidService::ONLINE_TTL_SECONDS);
+        $isGateOnline = RfidService::getGateOnlineStatus($tenantId, RfidService::ONLINE_TTL_SECONDS)['online'];
+        $isOnline = $deviceStatus['online'];
+        $secondsAgo = $deviceStatus['seconds_ago'];
+        $readerInfo = $deviceStatus['reader_info'];
 
-        if ($cachedHeartbeat) {
-            $secondsAgo = now()->timestamp - $cachedHeartbeat;
-            if ($secondsAgo <= 60) {
-                $isOnline = true;
-            }
-        }
+        $rfidVer = Cache::get("esp32_rfid_ver_tenant_{$tenantId}")
+            ?? Cache::get('esp32_rfid_ver_global');
+        $rfidHealthy = $rfidVer && !in_array(strtolower($rfidVer), ['0x00', '0xff', '0x0', '0xf']);
 
-        if (!$isOnline) {
-            $latestGate = \App\Models\SmartGate::whereNotNull('last_ping_at')
-                ->latest('last_ping_at')
-                ->first();
-
-            if ($latestGate && $latestGate->last_ping_at && $latestGate->last_ping_at->diffInSeconds(now()) <= 60) {
-                $isOnline = true;
-                $secondsAgo = $latestGate->last_ping_at->diffInSeconds(now());
+        $message = 'Alat ESP32 belum terhubung ke hotspot. Pastikan modul ESP32 menyala dan hotspot HP ("BIAN") aktif.';
+        if ($isOnline) {
+            if ($rfidHealthy) {
+                $message = "Alat scanner ESP32 online & sensor RFID RC522 terdeteksi (Versi {$rfidVer}). Sensor siap menerima tap kartu e-KTP fisik.";
+            } elseif ($rfidVer) {
+                $message = "Alat ESP32 online, TETAPI modul RFID RC522 terbaca {$rfidVer} (tidak terdeteksi). Pastikan kabel RST terpasang ke GPIO 22 dan pin header disolder.";
+            } else {
+                $message = 'Alat ESP32 sudah terhubung online. Sensor siap menerima tap kartu e-KTP fisik.';
             }
         }
 
         return response()->json([
             'success' => true,
             'online' => $isOnline,
+            'gate_online' => $isGateOnline,
             'status' => $isOnline ? 'online' : 'offline',
             'status_label' => $isOnline ? 'ESP32 Online (Terhubung ke Hotspot)' : 'ESP32 Offline (Belum Terhubung)',
             'hotspot_ssid' => 'BIAN',
             'last_seen_seconds_ago' => $secondsAgo,
-            'message' => $isOnline 
-                ? 'Alat ESP32 sudah terhubung ke hotspot Anda ("BIAN"). Sensor siap menerima tap kartu e-KTP.' 
-                : 'Alat ESP32 belum terhubung ke hotspot. Pastikan modul ESP32 menyala dan hotspot HP ("BIAN") aktif.',
+            'device_id' => $readerInfo['device_id'] ?? null,
+            'ip_address' => $readerInfo['ip'] ?? null,
+            'rfid_ver' => $rfidVer,
+            'rfid_healthy' => $rfidHealthy,
+            'message' => $message,
         ]);
     }
 
@@ -566,18 +622,10 @@ class WargaController extends Controller
         }
 
         $tenantId = $user->tenant_id ?? 1;
-        $pairingSuccess = \Illuminate\Support\Facades\Cache::pull("rfid_pairing_success_{$user->id}");
-
-        $cachedHeartbeat = \Illuminate\Support\Facades\Cache::get("esp32_heartbeat_tenant_{$tenantId}")
-            ?? \Illuminate\Support\Facades\Cache::get("esp32_heartbeat_tenant_1")
-            ?? \Illuminate\Support\Facades\Cache::get("esp32_heartbeat_global");
-        $isOnline = $cachedHeartbeat && (now()->timestamp - $cachedHeartbeat <= 60);
-        if (!$isOnline) {
-            $gate = \App\Models\SmartGate::whereNotNull('last_ping_at')->latest('last_ping_at')->first();
-            if ($gate && $gate->last_ping_at && $gate->last_ping_at->diffInSeconds(now()) <= 60) {
-                $isOnline = true;
-            }
-        }
+        $pairingSuccess = Cache::pull("rfid_pairing_success_{$user->id}");
+        $pairingError = Cache::pull("rfid_pairing_error_{$user->id}");
+        $deviceStatus = RfidService::getDeviceOnlineStatus($tenantId, 60);
+        $isOnline = $deviceStatus['online'];
 
         if ($pairingSuccess) {
             $user->refresh();
@@ -592,15 +640,26 @@ class WargaController extends Controller
             ]);
         }
 
-        $isWaiting = \Illuminate\Support\Facades\Cache::has("rfid_pairing_tenant_{$tenantId}");
+        if ($pairingError) {
+            return response()->json([
+                'success' => false,
+                'paired' => false,
+                'pairing_error' => true,
+                'is_online' => $isOnline,
+                'message' => $pairingError,
+            ]);
+        }
+
+        $isWaiting = Cache::has("rfid_pairing_tenant_{$tenantId}")
+            || Cache::has('rfid_pairing_global');
 
         return response()->json([
             'success' => true,
             'paired' => false,
             'is_online' => $isOnline,
             'waiting' => $isWaiting,
-            'message' => $isOnline 
-                ? 'Alat scanner ESP32 terhubung online ke hotspot. Tempelkan kartu e-KTP Anda ke alat sekarang…' 
+            'message' => $isOnline
+                ? 'Alat scanner ESP32 terhubung online. Tempelkan kartu e-KTP Anda ke alat sekarang…'
                 : 'Perhatian: Scanner ESP32 sedang Offline (Belum terhubung ke hotspot "BIAN").',
         ]);
     }
@@ -613,9 +672,376 @@ class WargaController extends Controller
         $user = Auth::user();
         if ($user) {
             $tenantId = $user->tenant_id ?? 1;
-            \Illuminate\Support\Facades\Cache::forget("rfid_pairing_tenant_{$tenantId}");
+            Cache::forget("rfid_pairing_tenant_{$tenantId}");
+            Cache::forget('rfid_pairing_global');
+            Cache::forget("rfid_pairing_error_{$user->id}");
         }
 
         return response()->json(['success' => true, 'message' => 'Sesi pairing dibatalkan.']);
+    }
+
+    /**
+     * Menu & Dashboard Smart Gate Perumahan untuk Warga.
+     */
+    public function smartGate()
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $tenant = Tenant::find($user->tenant_id) ?? Tenant::getActiveTenant() ?? Tenant::first();
+        $smartGate = RfidService::resolvePrimaryGate($tenant?->id);
+
+        // 1. Cek status konektivitas ESP32 Smart Gate (hanya ONLINE jika ESP32 gerbang terhubung)
+        $isGateOnline = RfidService::getGateOnlineStatus($tenant?->id)['online'];
+
+        // 2. Daftar Permintaan Tamu & Kurir yang Menunggu Persetujuan Manual Warga Ini
+        $pendingApprovals = Visitor::where('tenant_id', $tenant?->id)
+            ->where(function ($q) use ($user) {
+                if ($user->house_id) {
+                    $q->where('host_house_id', $user->house_id);
+                }
+                $q->orWhere('invited_by_user_id', $user->id);
+            })
+            ->where('approval_status', 'pending')
+            ->where('is_used', false)
+            ->where('valid_until', '>=', now())
+            ->with(['hostHouse', 'invitedBy'])
+            ->latest()
+            ->get();
+
+        // 3. Daftar Tamu / Kurir yang Sudah Disetujui & Masih Aktif
+        $activeVisitors = Visitor::where('tenant_id', $tenant?->id)
+            ->where(function ($q) use ($user) {
+                if ($user->house_id) {
+                    $q->where('host_house_id', $user->house_id);
+                }
+                $q->orWhere('invited_by_user_id', $user->id);
+            })
+            ->where('approval_status', 'approved')
+            ->where('valid_until', '>=', now())
+            ->with(['hostHouse', 'invitedBy', 'satpam'])
+            ->latest()
+            ->take(8)
+            ->get();
+
+        // 4. Riwayat Akses Gerbang (Tap e-KTP, Remote HP, Tiket Tamu / Kurir)
+        $gateLogs = GateLog::where('tenant_id', $tenant?->id)
+            ->where(function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+                if ($user->house_id) {
+                    $visitorIds = Visitor::where('host_house_id', $user->house_id)->pluck('id');
+                    if ($visitorIds->isNotEmpty()) {
+                        $q->orWhereIn('visitor_id', $visitorIds);
+                    }
+                }
+            })
+            ->with(['user', 'visitor'])
+            ->latest('triggered_at')
+            ->take(15)
+            ->get();
+
+        return view('pages.warga-smartgate', compact('user', 'tenant', 'smartGate', 'isGateOnline', 'pendingApprovals', 'activeVisitors', 'gateLogs'));
+    }
+
+    /**
+     * Menyetujui Izin Masuk Tamu / Kurir secara Manual dan Membuka Palang Gerbang Otomatis.
+     */
+    public function approveVisitor(Request $request, $id)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $visitor = Visitor::where('id', $id)->first();
+        if (!$visitor) {
+            return redirect()->back()->with('error', 'Data tamu / kurir tidak ditemukan.');
+        }
+
+        // Pastikan hanya warga pemilik rumah tujuan, pembuat undangan, atau pengurus yang bisa menyetujui
+        $ownsHouse = $user->house_id !== null && (int) $visitor->host_house_id === (int) $user->house_id;
+        $invitedByMe = (int) $visitor->invited_by_user_id === (int) $user->id;
+        if (!$ownsHouse && !$invitedByMe && !$user->isPengurus()) {
+            return redirect()->back()->with('error', 'Anda tidak berwenang menyetujui kunjungan untuk rumah lain.');
+        }
+
+        $notes = $request->input('notes', 'Disetujui oleh pemilik rumah');
+
+        $visitor->update([
+            'approval_status' => 'approved',
+            'approval_notes' => $notes,
+            'approved_at' => now(),
+            'approved_by_user_id' => $user->id,
+        ]);
+
+        // Picu palang gerbang terbuka otomatis secara instan jika IoT ESP32 terhubung online
+        $gate = RfidService::resolvePrimaryGate($visitor->tenant_id);
+        $isGateOnline = RfidService::getGateOnlineStatus($visitor->tenant_id)['online'];
+        $gateTriggered = false;
+
+        if ($gate && $isGateOnline) {
+            \Illuminate\Support\Facades\Cache::put("gate_remote_open_{$gate->id}", [
+                'user_name' => $user->name,
+                'reason' => "Izin Tamu/Kurir Disetujui Warga: {$visitor->guest_name} ({$visitor->guest_type_label})",
+                'time' => now()->toIso8601String(),
+            ], 15);
+            \Illuminate\Support\Facades\Cache::put("gate_remote_open_global", [
+                'user_name' => $user->name,
+                'reason' => "Izin Tamu/Kurir Disetujui Warga: {$visitor->guest_name} ({$visitor->guest_type_label})",
+                'time' => now()->toIso8601String(),
+            ], 15);
+
+            GateLog::create([
+                'tenant_id' => $visitor->tenant_id,
+                'smart_gate_id' => $gate->id,
+                'user_id' => $user->id,
+                'visitor_id' => $visitor->id,
+                'access_method' => 'mobile_button',
+                'direction' => 'entry',
+                'status' => 'granted',
+                'reason' => "Izin Masuk Disetujui Pemilik Rumah ({$user->name}) untuk {$visitor->guest_name} ({$visitor->guest_type_label})",
+                'triggered_at' => now(),
+            ]);
+            $gateTriggered = true;
+        }
+
+        ActivityLogger::log(
+            'visitor.approved',
+            "Warga {$user->name} menyetujui izin masuk tamu/kurir: {$visitor->guest_name} ({$visitor->guest_type_label})" . ($gateTriggered ? ' dan membuka palang gerbang.' : ' (perangkat ESP32 offline).'),
+            'success',
+            ['visitor_id' => $visitor->id, 'guest_name' => $visitor->guest_name, 'guest_type' => $visitor->guest_type, 'gate_online' => $isGateOnline],
+            $user,
+            $visitor
+        );
+
+        $approvalMessage = $gateTriggered
+            ? "Izin masuk untuk {$visitor->guest_name} telah disetujui! Palang gerbang otomatis dibuka via ESP32."
+            : "Izin masuk untuk {$visitor->guest_name} telah disetujui! Catatan: Smart Gate ESP32 sedang OFFLINE sehingga akses dibuka secara manual oleh Pos Satpam.";
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'gate_opened' => $gateTriggered,
+                'gate_online' => $isGateOnline,
+                'message' => $approvalMessage,
+                'visitor' => $visitor,
+            ]);
+        }
+
+        return redirect()->back()->with('success', $approvalMessage);
+    }
+
+    /**
+     * Menolak Izin Masuk Tamu / Kurir.
+     */
+    public function rejectVisitor(Request $request, $id)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $visitor = Visitor::where('id', $id)->first();
+        if (!$visitor) {
+            return redirect()->back()->with('error', 'Data tamu / kurir tidak ditemukan.');
+        }
+
+        $ownsHouse = $user->house_id !== null && (int) $visitor->host_house_id === (int) $user->house_id;
+        $invitedByMe = (int) $visitor->invited_by_user_id === (int) $user->id;
+        if (!$ownsHouse && !$invitedByMe && !$user->isPengurus()) {
+            return redirect()->back()->with('error', 'Anda tidak berwenang menolak kunjungan ini.');
+        }
+
+        $reason = $request->input('reason', 'Ditolak oleh pemilik rumah');
+
+        $visitor->update([
+            'approval_status' => 'rejected',
+            'approval_notes' => $reason,
+            'approved_at' => now(),
+            'approved_by_user_id' => $user->id,
+        ]);
+
+        $gate = SmartGate::where('tenant_id', $visitor->tenant_id)->first() ?? SmartGate::first();
+        if ($gate) {
+            GateLog::create([
+                'tenant_id' => $visitor->tenant_id,
+                'smart_gate_id' => $gate->id,
+                'user_id' => $user->id,
+                'visitor_id' => $visitor->id,
+                'access_method' => 'mobile_button',
+                'direction' => 'entry',
+                'status' => 'denied',
+                'reason' => "Izin Masuk Ditolak Warga ({$user->name}) untuk {$visitor->guest_name}: '{$reason}'",
+                'triggered_at' => now(),
+            ]);
+        }
+
+        ActivityLogger::log(
+            'visitor.rejected',
+            "Warga {$user->name} menolak izin masuk: {$visitor->guest_name} ({$reason}).",
+            'warning',
+            ['visitor_id' => $visitor->id, 'reason' => $reason],
+            $user,
+            $visitor
+        );
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Izin masuk untuk {$visitor->guest_name} telah ditolak.",
+            ]);
+        }
+
+        return redirect()->back()->with('success', "Izin masuk untuk {$visitor->guest_name} telah ditolak.");
+    }
+
+    /**
+     * Kirim konfirmasi & bukti pembayaran iuran warga ke Bendahara RT.
+     */
+    public function payBilling(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $validated = $request->validate([
+            'billing_id' => 'nullable|exists:billings,id',
+            'payment_method' => 'required|in:manual_transfer,qris,cash',
+            'amount_paid' => 'required|numeric|min:1000',
+            'proof_image' => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
+        ], [
+            'amount_paid.min' => 'Nominal pembayaran minimal Rp 1.000.',
+            'proof_image.max' => 'Ukuran berkas bukti transfer maksimal 5 MB.',
+        ]);
+
+        $tenant = Tenant::find($user->tenant_id) ?? Tenant::getActiveTenant() ?? Tenant::first();
+        $houseId = $user->house_id ?? House::where('tenant_id', $tenant?->id)->value('id');
+        if (!$houseId) {
+            return redirect()->back()->with('error', 'Unit rumah Anda belum terdaftar. Lengkapi profil rumah terlebih dahulu.');
+        }
+
+        $billing = !empty($validated['billing_id'])
+            ? Billing::where('house_id', $houseId)->findOrFail($validated['billing_id'])
+            : Billing::firstOrCreate(
+                [
+                    'tenant_id' => $tenant?->id ?? 1,
+                    'house_id' => $houseId,
+                    'billing_period' => now()->startOfMonth()->toDateString(),
+                ],
+                [
+                    'amount' => $validated['amount_paid'],
+                    'description' => 'Iuran Kebersihan, Keamanan, & Kas RT',
+                    'status' => 'unpaid',
+                    'due_date' => now()->startOfMonth()->addDays(15)->toDateString(),
+                ]
+            );
+
+        if ($billing->status === 'paid') {
+            return redirect()->back()->with('info', 'Tagihan iuran periode ini sudah berstatus LUNAS.');
+        }
+
+        $alreadyPending = Payment::where('billing_id', $billing->id)
+            ->whereNull('verified_at')
+            ->whereNull('rejection_reason')
+            ->exists();
+
+        if ($alreadyPending) {
+            return redirect()->back()->with('warning', 'Bukti pembayaran untuk periode ini sudah dikirim dan sedang menunggu verifikasi Bendahara.');
+        }
+
+        $proofPath = null;
+        if ($request->hasFile('proof_image')) {
+            $file = $request->file('proof_image');
+            $fileName = 'pay_' . $user->id . '_' . time() . '_' . Str::random(6) . '.' . $file->getClientOriginalExtension();
+            $proofPath = $file->storeAs('payments', $fileName, 'local');
+        }
+
+        $payment = Payment::create([
+            'billing_id' => $billing->id,
+            'payer_user_id' => $user->id,
+            'payment_method' => $validated['payment_method'],
+            'proof_image' => $proofPath,
+            'amount_paid' => $validated['amount_paid'],
+        ]);
+
+        $billing->update(['status' => 'pending_verification']);
+
+        ActivityLogger::log(
+            'finance.payment_submitted',
+            "Warga {$user->name} mengirim bukti pembayaran iuran Rp " . number_format((float) $validated['amount_paid'], 0, ',', '.') . '.',
+            'info',
+            ['payment_id' => $payment->id, 'method' => $validated['payment_method']],
+            $user,
+            $payment
+        );
+
+        return redirect()->back()->with('success', 'Konfirmasi & bukti pembayaran iuran berhasil dikirim ke Bendahara RT untuk diverifikasi!');
+    }
+
+    /**
+     * Halaman E-Kwitansi resmi pembayaran iuran yang telah lunas.
+     */
+    public function showReceipt(int $billingId)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $billing = Billing::with(['house', 'tenant', 'payments.payer', 'payments.verifier'])->findOrFail($billingId);
+        $isOwner = $user->house_id && (int) $user->house_id === (int) $billing->house_id;
+        if (!$isOwner && !$user->isPengurus()) {
+            abort(403, 'Anda tidak berwenang mengakses kwitansi unit rumah lain.');
+        }
+
+        if ($billing->status !== 'paid') {
+            return redirect()->route('warga.index')->with('warning', 'E-Kwitansi hanya tersedia untuk tagihan yang sudah lunas diverifikasi.');
+        }
+
+        $tenant = $billing->tenant ?? Tenant::find($billing->tenant_id) ?? Tenant::first();
+        $payment = $billing->payments->whereNotNull('verified_at')->sortByDesc('verified_at')->first()
+            ?? $billing->payments->sortByDesc('id')->first();
+
+        return view('pages.payment-receipt', compact('user', 'tenant', 'billing', 'payment'));
+    }
+
+    /**
+     * Menampilkan gambar bukti transfer secara aman untuk pembayar & pengurus kas.
+     */
+    public function showPaymentProof(int $id)
+    {
+        $currentUser = Auth::user();
+        if (!$currentUser) {
+            return redirect()->route('login');
+        }
+
+        $payment = Payment::with('billing')->findOrFail($id);
+        $isPayer = (int) $payment->payer_user_id === (int) $currentUser->id;
+        $isSameHouse = $currentUser->house_id && $payment->billing && (int) $payment->billing->house_id === (int) $currentUser->house_id;
+        $isFinanceOfficer = in_array($currentUser->role, ['super_admin', 'ketua_rw', 'ketua_rt', 'bendahara', 'sekretaris', 'pengurus_rt']);
+
+        if (!$isPayer && !$isSameHouse && !$isFinanceOfficer) {
+            abort(403, 'Akses ditolak: Anda tidak berwenang melihat bukti pembayaran ini.');
+        }
+
+        $proofPath = $payment->proof_image;
+        if (!$proofPath) {
+            abort(404, 'Bukti pembayaran tidak dilampirkan.');
+        }
+
+        if (\Illuminate\Support\Facades\Storage::disk('local')->exists($proofPath)) {
+            return response()->file(\Illuminate\Support\Facades\Storage::disk('local')->path($proofPath));
+        }
+        if (file_exists(storage_path('app/' . $proofPath))) {
+            return response()->file(storage_path('app/' . $proofPath));
+        }
+        if (file_exists(public_path($proofPath))) {
+            return response()->file(public_path($proofPath));
+        }
+
+        abort(404, 'Berkas bukti transfer tidak ditemukan.');
     }
 }

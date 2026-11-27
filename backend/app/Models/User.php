@@ -22,6 +22,7 @@ class User extends Authenticatable
         'role',
         'is_family_head',
         'nik',
+        'no_kk',
         'ktp_photo',
         'birth_date',
         'birth_place',
@@ -104,6 +105,22 @@ class User extends Authenticatable
     public function posyanduMembers(): HasMany
     {
         return $this->hasMany(PosyanduMember::class);
+    }
+
+    public function citizenReports(): HasMany
+    {
+        return $this->hasMany(CitizenReport::class);
+    }
+
+    public function getMaskedNoKkAttribute(): string
+    {
+        if (!$this->no_kk) {
+            return 'Belum Diisi';
+        }
+        if (strlen($this->no_kk) < 8) {
+            return $this->no_kk;
+        }
+        return substr($this->no_kk, 0, 6) . '******' . substr($this->no_kk, -4);
     }
 
     public function isSuperAdmin(): bool

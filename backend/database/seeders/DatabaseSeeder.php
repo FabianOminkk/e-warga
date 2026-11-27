@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Billing;
 use App\Models\CashBook;
+use App\Models\CitizenReport;
 use App\Models\GateLog;
 use App\Models\House;
 use App\Models\LetterRequest;
@@ -59,6 +60,7 @@ class DatabaseSeeder extends Seeder
             'tenant_id' => $tenant->id,
             'block_name' => 'Blok A',
             'house_number' => '01',
+            'no_kk' => '3275011001750001',
             'full_address' => 'Jl. Melati Mas I No. 01',
             'occupancy_status' => 'occupied',
         ]);
@@ -67,6 +69,7 @@ class DatabaseSeeder extends Seeder
             'tenant_id' => $tenant->id,
             'block_name' => 'Blok A',
             'house_number' => '02',
+            'no_kk' => '3275011902890005',
             'full_address' => 'Jl. Melati Mas I No. 02',
             'occupancy_status' => 'occupied',
         ]);
@@ -75,6 +78,7 @@ class DatabaseSeeder extends Seeder
             'tenant_id' => $tenant->id,
             'block_name' => 'Blok B',
             'house_number' => '05',
+            'no_kk' => '3275014408900003',
             'full_address' => 'Jl. Melati Mas V No. 05',
             'occupancy_status' => 'occupied',
         ]);
@@ -83,6 +87,7 @@ class DatabaseSeeder extends Seeder
             'tenant_id' => $tenant->id,
             'block_name' => 'Blok C',
             'house_number' => '12',
+            'no_kk' => '3275012903820001',
             'full_address' => 'Jl. Melati Mas IX No. 12',
             'occupancy_status' => 'occupied',
         ]);
@@ -94,6 +99,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Bpk. H. Rahmat Hidayat (Ketua RW 02)',
             'phone_number' => '08110000008',
             'email' => 'ketuarw@ewarga.id',
+            'no_kk' => '3275011001750001',
             'password' => $defaultStaffPassword,
             'role' => 'ketua_rw',
             'is_family_head' => true,
@@ -106,6 +112,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Bpk. H. Sutrisno (Ketua RT 04)',
             'phone_number' => '08110000002',
             'email' => 'ketuart@ewarga.id',
+            'no_kk' => '3275011001750001',
             'password' => $defaultStaffPassword,
             'role' => 'ketua_rt',
             'is_family_head' => true,
@@ -118,6 +125,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Ibu Farida (Sekretaris RT)',
             'phone_number' => '08110000003',
             'email' => 'sekretaris@ewarga.id',
+            'no_kk' => '3275011001780002',
             'password' => $defaultStaffPassword,
             'role' => 'sekretaris',
             'is_family_head' => true,
@@ -130,6 +138,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Bpk. Joko Wardoyo (Bendahara RT)',
             'phone_number' => '08110000004',
             'email' => 'bendahara@ewarga.id',
+            'no_kk' => '3275011001790003',
             'password' => $defaultStaffPassword,
             'role' => 'bendahara',
             'is_family_head' => true,
@@ -159,6 +168,7 @@ class DatabaseSeeder extends Seeder
             'role' => 'warga',
             'is_family_head' => true,
             'nik' => '3275011205820001',
+            'no_kk' => '3275012903820001',
             'ktp_photo' => 'uploads/ktp/sample_ktp_bambang.svg',
             'birth_date' => '1982-05-12',
             'birth_place' => 'Kota Bandung',
@@ -184,6 +194,7 @@ class DatabaseSeeder extends Seeder
             'role' => 'warga',
             'is_family_head' => false,
             'nik' => '3275015507850002',
+            'no_kk' => '3275012903820001',
             'ktp_photo' => 'uploads/ktp/sample_ktp_bambang.svg',
             'birth_date' => '1985-07-15',
             'birth_place' => 'Kota Bandung',
@@ -210,6 +221,7 @@ class DatabaseSeeder extends Seeder
             'role' => 'warga',
             'is_family_head' => true,
             'nik' => '3275014408900003',
+            'no_kk' => '3275014408900003',
             'ktp_photo' => 'uploads/ktp/sample_ktp_siti.svg',
             'birth_date' => '1990-08-24',
             'birth_place' => 'Kota Cimahi',
@@ -261,15 +273,15 @@ class DatabaseSeeder extends Seeder
             'rfid_card_uid' => 'RFID-BAMBANG-01',
         ]);
 
-        // 7. Perangkat Gerbang Pintar (Smart Gate)
+        // 7. Perangkat Gerbang Pintar (Smart Gate) — default offline hingga ESP32 terhubung
         $smartGate = SmartGate::create([
             'tenant_id' => $tenant->id,
             'name' => 'Gerbang Utama Pos Timur',
             'device_uid' => 'ESP32-GATE-MELATI-01',
             'secret_token' => Str::random(32),
-            'ip_address' => '192.168.1.200',
-            'status' => 'online',
-            'last_ping_at' => now(),
+            'ip_address' => null,
+            'status' => 'offline',
+            'last_ping_at' => null,
         ]);
 
         // 8. Riwayat Log Gerbang
@@ -347,6 +359,71 @@ class DatabaseSeeder extends Seeder
             'amount_paid' => 150000.00,
             'verified_by_user_id' => $bendahara->id,
             'verified_at' => Carbon::now()->subDays(2),
+        ]);
+
+        // Tagihan Belum Bayar (Rumah Ibu Siti) & Menunggu Verifikasi Bendahara (Rumah Bpk. Hendra)
+        Billing::create([
+            'tenant_id' => $tenant->id,
+            'house_id' => $houseB5->id,
+            'billing_period' => Carbon::now()->startOfMonth(),
+            'amount' => 150000.00,
+            'description' => 'Iuran Keamanan, Kebersihan, & Kas Lingkungan RT',
+            'status' => 'unpaid',
+            'due_date' => Carbon::now()->startOfMonth()->addDays(15),
+        ]);
+
+        $billingHendra = Billing::create([
+            'tenant_id' => $tenant->id,
+            'house_id' => $houseA2->id,
+            'billing_period' => Carbon::now()->startOfMonth(),
+            'amount' => 150000.00,
+            'description' => 'Iuran Keamanan, Kebersihan, & Kas Lingkungan RT',
+            'status' => 'pending_verification',
+            'due_date' => Carbon::now()->startOfMonth()->addDays(15),
+        ]);
+
+        Payment::create([
+            'billing_id' => $billingHendra->id,
+            'payer_user_id' => $wargaHendra->id,
+            'payment_method' => 'qris',
+            'proof_image' => 'uploads/ktp/sample_ktp_bambang.svg',
+            'amount_paid' => 150000.00,
+            'verified_by_user_id' => null,
+            'verified_at' => null,
+        ]);
+
+        // Laporan / Aspirasi / Pengaduan Warga Contoh
+        CitizenReport::create([
+            'tenant_id' => $tenant->id,
+            'user_id' => $wargaBambang->id,
+            'house_id' => $houseC12->id,
+            'report_code' => 'ADU-202611-001',
+            'type' => 'kerusakan_fasilitas',
+            'category' => 'Penerangan Jalan (PJU)',
+            'title' => 'Lampu PJU Tikungan Blok C Padam Sejak Kemarin Malam',
+            'description' => 'Lampu penerangan jalan umum di pertigaan Blok C No. 12 padam total sehingga cukup gelap saat malam dan mengganggu visibilitas kendaraan.',
+            'location' => 'Pertigaan Blok C No. 12',
+            'priority' => 'high',
+            'status' => 'in_progress',
+            'is_anonymous' => false,
+            'handled_by_user_id' => $ketuaRt->id,
+            'official_response' => 'Teknisi listrik lingkungan sudah dijadwalkan mengganti MCB dan lampu LED sore ini pukul 16.00 WIB.',
+            'responded_at' => Carbon::now()->subHours(4),
+        ]);
+
+        CitizenReport::create([
+            'tenant_id' => $tenant->id,
+            'user_id' => $wargaSiti->id,
+            'house_id' => $houseB5->id,
+            'report_code' => 'ASP-202611-002',
+            'type' => 'aspirasi',
+            'category' => 'Kebersihan & Bank Sampah',
+            'title' => 'Usulan Penambahan Tempat Sampah Terpilah di Taman Bermain',
+            'description' => 'Mengusulkan pengadaan dua pasang tempat sampah organik dan anorganik di area taman bermain Blok B agar kebersihan lebih terjaga.',
+            'location' => 'Taman Bermain Blok B',
+            'priority' => 'medium',
+            'status' => 'pending',
+            'is_anonymous' => false,
         ]);
 
         // 11. Tiket Tamu Contoh
@@ -601,6 +678,7 @@ class DatabaseSeeder extends Seeder
             'tenant_id' => $desaTenant->id,
             'block_name' => 'RT 02',
             'house_number' => '14',
+            'no_kk' => '3404071504800001',
             'full_address' => 'Dusun Sukamaju RT 02 / RW 04 No. 14',
             'occupancy_status' => 'occupied',
         ]);
@@ -611,6 +689,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Bpk. Sugeng (Ketua RT Desa)',
             'phone_number' => '08120000002',
             'email' => 'pakrt.desa@ewarga.id',
+            'no_kk' => '3404071504800001',
             'password' => $defaultStaffPassword,
             'role' => 'ketua_rt',
             'is_family_head' => true,

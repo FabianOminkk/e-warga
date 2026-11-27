@@ -112,9 +112,11 @@
             <div class="text-center py-12 text-slate-400 dark:text-slate-500">
                 <span class="text-4xl block mb-2">📅</span>
                 <p class="text-sm font-semibold">Belum ada jadwal penugasan keamanan untuk bulan ini.</p>
-                <button @click="openAddModal = true" class="mt-3 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline">
-                    + Tambahkan Jadwal Pertama Sekarang
-                </button>
+                @if(in_array(auth()->user()?->role ?? '', ['super_admin', 'ketua_rw', 'ketua_rt', 'satpam']))
+                    <button type="button" @click="openAddModal = true" class="mt-3 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer">
+                        + Tambahkan Jadwal Pertama Sekarang
+                    </button>
+                @endif
             </div>
         @else
             <div class="overflow-x-auto -mx-2 sm:mx-0 px-2 sm:px-0">
@@ -170,13 +172,13 @@
                                         <!-- Tombol Absen Hadir -->
                                         <form action="{{ route('schedules.checkin', $s->id) }}" method="POST" class="inline">
                                             @csrf
-                                            <button type="submit" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] rounded-lg shadow-xs transition" title="Catat kehadiran petugas di pos">
+                                            <button type="submit" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] rounded-lg shadow-xs transition-colors cursor-pointer whitespace-nowrap" title="Catat kehadiran petugas di pos">
                                                 ✅ Hadir
                                             </button>
                                         </form>
 
                                         <!-- Tombol Ajukan Tukar Jadwal -->
-                                        <button @click="openSwapModal = true; selectedScheduleId = '{{ $s->id }}'; selectedOfficerName = '{{ $s->officer->name ?? 'Petugas' }}'" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-[11px] rounded-lg transition" title="Ajukan penggantian/tukar shift dinas">
+                                        <button type="button" @click="openSwapModal = true; selectedScheduleId = '{{ $s->id }}'; selectedOfficerName = '{{ $s->officer->name ?? 'Petugas' }}'" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-[11px] rounded-lg transition-colors cursor-pointer whitespace-nowrap" title="Ajukan penggantian/tukar shift dinas">
                                             🔄 Tukar
                                         </button>
                                     @endif
@@ -190,11 +192,11 @@
     </div>
 
     <!-- MODAL 1: Tambah Jadwal Dinas Baru -->
-    <div x-show="openAddModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs">
-        <div @click.away="openAddModal = false" class="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 border border-slate-200 dark:border-slate-800">
+    <div x-show="openAddModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs overscroll-contain">
+        <div @click.away="openAddModal = false" class="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl space-y-4 border border-slate-200 dark:border-slate-800">
             <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
                 <h3 class="font-extrabold text-slate-900 dark:text-white text-base">Tambah Jadwal Keamanan Baru</h3>
-                <button @click="openAddModal = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 font-bold">&times;</button>
+                <button type="button" @click="openAddModal = false" aria-label="Tutup modal" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-bold text-lg leading-none cursor-pointer">&times;</button>
             </div>
 
             <form action="{{ route('schedules.store') }}" method="POST" class="space-y-4">
@@ -202,20 +204,20 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Tipe Jadwal</label>
-                        <select name="schedule_type" class="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 outline-hidden font-bold">
+                        <select name="schedule_type" class="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden font-bold">
                             <option value="satpam_shift">🛡️ Shift Satpam (Cluster)</option>
                             <option value="ronda_warga">🔦 Ronda Warga (Kampung)</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Tanggal Tugas</label>
-                        <input type="date" name="duty_date" value="{{ now()->format('Y-m-d') }}" required class="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 outline-hidden font-bold">
+                        <input type="date" name="duty_date" value="{{ now()->format('Y-m-d') }}" required class="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden font-bold tabular-nums">
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Pilih Petugas Satpam / Warga</label>
-                    <select name="user_id" required class="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 outline-hidden">
+                    <select name="user_id" required class="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden">
                         <optgroup label="Petugas Satpam Pos:">
                             @foreach($satpamUsers as $sat)
                                 <option value="{{ $sat->id }}">{{ $sat->name }} (Satpam)</option>
@@ -231,39 +233,39 @@
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Nama Shift / Regu</label>
-                    <input type="text" name="shift_name" placeholder="Misal: Shift Pagi (Pos Timur) atau Regu Ronda Malam Kamis" required class="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 outline-hidden">
+                    <input type="text" name="shift_name" placeholder="Misal: Shift Pagi (Pos Timur) atau Regu Ronda Malam Kamis…" required class="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden">
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Jam Mulai</label>
-                        <input type="time" name="start_time" value="15:00" required class="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 outline-hidden font-mono">
+                        <input type="time" name="start_time" value="15:00" required class="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden font-mono tabular-nums">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Jam Selesai</label>
-                        <input type="time" name="end_time" value="23:00" required class="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 outline-hidden font-mono">
+                        <input type="time" name="end_time" value="23:00" required class="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden font-mono tabular-nums">
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Catatan Tugas (Opsional)</label>
-                    <textarea name="notes" rows="2" placeholder="Titik patroli / perlengkapan…" class="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 outline-hidden"></textarea>
+                    <textarea name="notes" rows="2" placeholder="Titik patroli / perlengkapan…" class="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden"></textarea>
                 </div>
 
                 <div class="pt-2 flex gap-3">
-                    <button type="button" @click="openAddModal = false" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold text-xs transition">Batal</button>
-                    <button type="submit" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-md transition">Simpan Jadwal</button>
+                    <button type="button" @click="openAddModal = false" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold text-xs transition-colors cursor-pointer">Batal</button>
+                    <button type="submit" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-md transition-colors cursor-pointer">Simpan Jadwal</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- MODAL 2: Ajukan Tukar Jadwal -->
-    <div x-show="openSwapModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs">
-        <div @click.away="openSwapModal = false" class="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-slate-200 dark:border-slate-800">
+    <div x-show="openSwapModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs overscroll-contain">
+        <div @click.away="openSwapModal = false" class="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl space-y-4 border border-slate-200 dark:border-slate-800">
             <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
                 <h3 class="font-extrabold text-slate-900 dark:text-white text-base">Ajukan Tukar Jadwal Dinas</h3>
-                <button @click="openSwapModal = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 font-bold">&times;</button>
+                <button type="button" @click="openSwapModal = false" aria-label="Tutup modal" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-bold text-lg leading-none cursor-pointer">&times;</button>
             </div>
 
             <p class="text-xs text-slate-500 dark:text-slate-400">
@@ -274,7 +276,7 @@
                 @csrf
                 <div>
                     <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Pilih Rekan Pengganti</label>
-                    <select name="replacement_user_id" required class="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 outline-hidden">
+                    <select name="replacement_user_id" required class="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden">
                         @foreach($wargaUsers as $w)
                             <option value="{{ $w->id }}">{{ $w->name }} ({{ $w->house?->block_and_number ?? 'Warga' }})</option>
                         @endforeach
@@ -286,12 +288,12 @@
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Alasan Penukaran</label>
-                    <input type="text" name="notes" placeholder="Dinas luar kota / acara keluarga…" required class="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 outline-hidden">
+                    <input type="text" name="notes" placeholder="Dinas luar kota / acara keluarga…" required class="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden">
                 </div>
 
                 <div class="pt-2 flex gap-3">
-                    <button type="button" @click="openSwapModal = false" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold text-xs transition">Batal</button>
-                    <button type="submit" class="flex-1 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold text-xs shadow-md transition">Konfirmasi Tukar</button>
+                    <button type="button" @click="openSwapModal = false" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold text-xs transition-colors cursor-pointer">Batal</button>
+                    <button type="submit" class="flex-1 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold text-xs shadow-md transition-colors cursor-pointer">Konfirmasi Tukar</button>
                 </div>
             </form>
         </div>

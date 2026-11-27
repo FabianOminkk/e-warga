@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - name: Checkout Source Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup PHP Environment
         uses: shivammathur/setup-php@v2
@@ -32,12 +32,12 @@ jobs:
           COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js Environment
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Cache Composer Dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: backend/vendor
           key: composer-${{ runner.os }}-${{ hashFiles('backend/composer.lock') }}
@@ -103,15 +103,17 @@ jobs:
               set -e
               cd '$APP_DIR'
 
-              # 1. Deteksi file yang berubah
-              CHANGED=\$(git diff --name-only HEAD origin/main 2>/dev/null || echo 'all')
-
-              # 2. Sinkronisasi kode secepat kilat
+              # 1. Fetch update terbaru terlebih dahulu sebelum menghitung file yang berubah
               git config core.fileMode false
               git fetch origin main --quiet
+
+              # 2. Deteksi file yang berubah antara HEAD VPS saat ini dengan origin/main
+              CHANGED=\$(git diff --name-only HEAD origin/main 2>/dev/null || echo 'all')
+
+              # 3. Sinkronisasi kode secepat kilat tanpa bentrok file lokal
               git reset --hard origin/main --quiet
 
-              # 3. Pastikan symlink dan .env siap
+              # 4. Pastikan symlink dan .env siap
               if [ ! -f backend/.env ] && [ -f .env ]; then
                 cp .env backend/.env
               fi
@@ -119,7 +121,7 @@ jobs:
                 ln -s backend/public public
               fi
 
-              # 4. Jalankan dependensi hanya jika berkas terkait berubah
+              # 5. Jalankan dependensi & migrasi bila terkait berubah (atau asset build belum tersedia)
               if echo \"\$CHANGED\" | grep -q 'backend/composer.lock'; then
                 echo '📦 Update Composer...'
                 cd backend && composer install --no-dev --optimize-autoloader --no-interaction --quiet && cd ..
@@ -130,12 +132,17 @@ jobs:
                 cd backend && php artisan migrate --force --quiet && cd ..
               fi
 
-              if echo \"\$CHANGED\" | grep -qE 'frontend/|package.json'; then
+              if [ ! -d 'frontend/node_modules' ] || echo \"\$CHANGED\" | grep -qE 'frontend/package(-lock)?\.json'; then
+                echo '📦 Install Frontend Dependencies...'
+                cd frontend && npm ci --prefer-offline --no-audit --silent && cd ..
+              fi
+
+              if [ ! -f 'backend/public/build/manifest.json' ] || echo \"\$CHANGED\" | grep -qE 'frontend/|package\.json'; then
                 echo '🎨 Rebuild Vite Assets...'
                 cd frontend && npm run build --silent && cd ..
               fi
 
-              # 5. Refresh cache super cepat
+              # 6. Refresh cache super cepat
               cd backend
               php artisan optimize:clear --quiet
               php artisan config:cache --quiet
@@ -143,7 +150,7 @@ jobs:
               php artisan view:cache --quiet
               cd ..
 
-              # 6. Permission kilat
+              # 7. Permission kilat
               chown -R unique-monsters-ewarga:unique-monsters-ewarga . 2>/dev/null || true
               chmod -R 775 backend/storage backend/bootstrap/cache backend/public/build 2>/dev/null || true
             "

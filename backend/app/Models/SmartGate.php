@@ -11,6 +11,10 @@ class SmartGate extends Model
 {
     use HasFactory;
 
+    protected $attributes = [
+        'status' => 'offline',
+    ];
+
     protected $fillable = [
         'tenant_id',
         'name',
@@ -24,6 +28,26 @@ class SmartGate extends Model
     protected $casts = [
         'last_ping_at' => 'datetime',
     ];
+
+    protected $appends = [
+        'is_online',
+    ];
+
+    public function isOnline(int $ttlSeconds = 30): bool
+    {
+        if ($this->status === 'maintenance') {
+            return false;
+        }
+
+        return $this->last_ping_at !== null
+            && $this->last_ping_at->greaterThanOrEqualTo(now()->subSeconds($ttlSeconds))
+            && $this->last_ping_at->lessThanOrEqualTo(now()->addSeconds(15));
+    }
+
+    public function getIsOnlineAttribute(): bool
+    {
+        return $this->isOnline();
+    }
 
     public function tenant(): BelongsTo
     {

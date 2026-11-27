@@ -251,12 +251,25 @@ PROMPT;
         // 8. SAMPAH / KEBERSIHAN
         if (str_contains($q, 'sampah') || str_contains($q, 'bersih') || str_contains($q, 'truk') || str_contains($q, 'got')) {
             return [
-                'reply' => "Jadwal Pengangkutan Sampah & Kebersihan **{$tenantName}**:\n\n• **Pengambilan Sampah Rumah**: Setiap hari **Selasa, Kamis, dan Sabtu** pagi mulai pukul 07:30 WIB.\n• **Kerja Bakti Lingkungan**: Diselenggarakan setiap hari Minggu pertama di awal bulan.\n• Harap menempatkan kantong sampah tertutup di tempat sampah depan pagar rumah masing-masing sebelum truk pengangkut berkeliling.",
+                'reply' => "Jadwal Pengangkutan Sampah & Kebersihan **{$tenantName}**:\n\n• **Pengambilan Sampah Rumah**: Setiap hari **Selasa, Kamis, dan Sabtu** pagi mulai pukul 07:30 WIB.\n• **Kerja Bakti Lingkungan**: Diselenggarakan setiap hari Minggu pertama di awal bulan.\n• Jika ada got tersumbat atau tumpukan sampah, Anda dapat langsung mengirimkan laporan berfoto lewat menu **Laporan & Aspirasi Warga**.",
                 'mode' => 'smart_engine',
                 'actions' => [
-                    ['label' => 'Lihat Transparansi Biaya Kebersihan ➔', 'url' => route('dashboard'), 'color' => 'emerald'],
+                    ['label' => 'Kirim Laporan Kebersihan ➔', 'url' => route('reports.index'), 'color' => 'emerald'],
+                    ['label' => 'Lihat Transparansi Biaya Kebersihan ➔', 'url' => route('dashboard'), 'color' => 'blue'],
                 ],
-                'suggestions' => ['Berapa iuran sampah bulanan?', 'Bagaimana melapor got tersumbat?', 'Cara buka gerbang?'],
+                'suggestions' => ['Berapa iuran sampah bulanan?', 'Cara mengirim laporan atau aspirasi warga?', 'Cara buka gerbang?'],
+            ];
+        }
+
+        // 8B. LAPORAN / ASPIRASI / PENGADUAN WARGA
+        if (str_contains($q, 'lapor') || str_contains($q, 'aduan') || str_contains($q, 'pengaduan') || str_contains($q, 'aspirasi') || str_contains($q, 'keluhan') || str_contains($q, 'rusak') || str_contains($q, 'lampu')) {
+            return [
+                'reply' => "Layanan **Laporan, Pengaduan, & Aspirasi Warga** di **{$tenantName}**:\n\n1. Buka menu **Laporan & Aspirasi** dari sidebar atau chip cepat di HP.\n2. Klik **+ Kirim Laporan / Aspirasi**, pilih kategori (Kerusakan Fasilitas, Kebersihan, Keamanan, atau Usulan Program), lalu unggah foto lokasi bila perlu.\n3. Pengurus RT/RW akan menindaklanjuti dan memberikan tanggapan status (*Menunggu* ➔ *Diproses* ➔ *Selesai*) secara transparan.",
+                'mode' => 'smart_engine',
+                'actions' => [
+                    ['label' => 'Buka Menu Laporan & Aspirasi ➔', 'url' => route('reports.index'), 'color' => 'emerald'],
+                ],
+                'suggestions' => ['Cara mengirim bukti bayar iuran?', 'Cara ajukan surat pengantar RT?', 'Cara pantau Smart Gate?'],
             ];
         }
 
@@ -296,6 +309,9 @@ PROMPT;
         if (str_contains($q, 'posyandu') || str_contains($q, 'balita') || str_contains($q, 'stunting')) {
             $actions[] = ['label' => 'Buka Posyandu Digital ➔', 'url' => route('posyandu.index'), 'color' => 'emerald'];
         }
+        if (str_contains($q, 'lapor') || str_contains($q, 'aduan') || str_contains($q, 'aspirasi') || str_contains($q, 'keluhan')) {
+            $actions[] = ['label' => 'Kirim Laporan & Aspirasi ➔', 'url' => route('reports.index'), 'color' => 'amber'];
+        }
 
         if (empty($actions)) {
             $actions[] = ['label' => 'Ke Portal Warga ➔', 'url' => route('warga.index'), 'color' => 'emerald'];
@@ -312,10 +328,10 @@ PROMPT;
         return [
             '🚪 Bagaimana cara membuka palang gerbang?',
             '💳 Bagaimana cara membayar iuran bulanan?',
+            '📣 Bagaimana cara mengirim laporan atau aspirasi warga?',
             '📜 Bagaimana cara mengajukan surat pengantar?',
             '🚨 Bagaimana cara memanggil bantuan darurat satpam?',
             '👶 Kapan jadwal posyandu dan penimbangan balita?',
-            '👮 Jam berapa jadwal ronda malam ini?',
         ];
     }
 

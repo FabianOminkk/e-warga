@@ -30,3 +30,11 @@ Strictly enforce these principles across all UI development, styling, and copywr
 ## 3. Theming & Dark Mode
 - Include `color-scheme: light dark` in root/html so native browser scrollbars, inputs, and system popups adhere cleanly to the active theme.
 - Ensure `<meta name="theme-color">` dynamically harmonizes with light/dark page backgrounds.
+
+
+<auto-deploy-workflow>
+# Automatic Web Sync & Anti-Conflict Policy
+- **Finalized Firmware Protection:** NEVER modify or commit `firmware/*.ino` files unless the user explicitly asks to edit firmware. Always exclude `firmware/` and `scratch/` when staging commits (`git add -A -- . ':!scratch' ':!firmware' ':!*.log'`).
+- **Auto-Sync to Live Web:** Whenever a coding task or bugfix in this workspace is completed AND passes verification (`php -l`, `npm run build`, and regression/checklist checks), automatically sync changes to production via `scripts/auto-sync-web.ps1` (or `git fetch origin main` -> `git commit` -> `git pull --rebase --autostash origin main` -> `git push origin main`), which triggers GitHub Actions `.github/workflows/deploy.yml` to deploy automatically to `e-warga.unique-monsters.my.id`.
+- **Conflict Prevention:** Never force-push (`--force`). Always rebase/sync with `origin/main` before pushing, and never push unverified or half-finished code edits.
+</auto-deploy-workflow>

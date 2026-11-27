@@ -246,6 +246,15 @@
                         </div>
                     </a>
 
+                    <!-- Sekretaris RT -->
+                    <a href="{{ route('quick.login', 'sekretaris') }}" class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition">
+                        <span class="text-base">🗂️</span>
+                        <div>
+                            <div class="text-xs font-bold text-slate-800 dark:text-slate-200">Sekretaris RT</div>
+                            <div class="text-[10px] text-slate-400">Ibu Farida</div>
+                        </div>
+                    </a>
+
                     <!-- Bendahara RT -->
                     <a href="{{ route('quick.login', 'bendahara') }}" class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-emerald-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition">
                         <span class="text-base">💰</span>

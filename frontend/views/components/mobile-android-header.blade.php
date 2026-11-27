@@ -82,12 +82,17 @@
             </div>
 
             <!-- Status IoT Lingkungan Bar Tipis -->
+            @php
+                $mobileGateOnline = \App\Services\RfidService::getGateOnlineStatus($tenant?->id)['online'];
+            @endphp
             <div class="pt-3 border-t border-white/10 grid grid-cols-2 gap-2 text-[11px]">
                 <div class="flex items-center gap-2 bg-white/5 backdrop-blur-xs rounded-xl px-2.5 py-1.5 border border-white/5">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 live-beacon"></span>
+                    <span class="w-2 h-2 rounded-full {{ $mobileGateOnline ? 'bg-emerald-400 live-beacon' : 'bg-rose-500' }}"></span>
                     <div class="truncate">
                         <span class="text-slate-400 text-[10px] block">Palang Gerbang:</span>
-                        <span class="font-bold text-white text-[11px]">Aktif & Normal</span>
+                        <span class="font-bold text-[11px] {{ $mobileGateOnline ? 'text-white' : 'text-rose-300' }}">
+                            {{ $mobileGateOnline ? 'Online • Aktif' : 'Offline (ESP32 Putus)' }}
+                        </span>
                     </div>
                 </div>
 
@@ -148,6 +153,26 @@
                 <span class="text-base">📜</span>
                 <span>Surat RT</span>
             </a>
+
+            <!-- Quick Chip 4B: Laporan & Aspirasi Warga -->
+            <a 
+                href="{{ route('reports.index') }}" 
+                class="min-h-[44px] flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-bold shadow-xs shrink-0 hover:bg-rose-50 dark:hover:bg-rose-950/60 transition-transform active:scale-95 touch-press"
+            >
+                <span class="text-base">📣</span>
+                <span>Aduan &amp; Aspirasi</span>
+            </a>
+
+            @if(in_array($user?->role ?? '', ['super_admin', 'ketua_rw', 'ketua_rt', 'sekretaris', 'bendahara', 'pengurus_rt']))
+                <!-- Quick Chip 4C: Data Warga & KK (Pengurus) -->
+                <a 
+                    href="{{ route('residents.index') }}" 
+                    class="min-h-[44px] flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-bold shadow-xs shrink-0 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 transition-transform active:scale-95 touch-press"
+                >
+                    <span class="text-base">👨‍👩‍👧‍👦</span>
+                    <span>Warga &amp; KK</span>
+                </a>
+            @endif
 
             <!-- Quick Chip 5: Posyandu Digital -->
             <a 

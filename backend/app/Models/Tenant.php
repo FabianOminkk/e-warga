@@ -117,5 +117,10 @@ class Tenant extends Model
     {
         return $this->hasMany(LetterRequest::class);
     }
+
+    public function citizenReports(): HasMany
+    {
+        return $this->hasMany(CitizenReport::class);
+    }
 }
 

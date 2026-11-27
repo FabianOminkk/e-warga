@@ -83,8 +83,13 @@ class LetterApiController extends BaseApiController
      */
     public function approve(Request $request, int $id): JsonResponse
     {
+        $signer = $request->user() ?? Auth::user();
+        if ($signer && !in_array($signer->role, ['super_admin', 'ketua_rw', 'ketua_rt', 'sekretaris', 'pengurus_rt'])) {
+            return $this->error('Akses ditolak: Hanya pengurus RT/RW yang berwenang menyetujui surat pengantar.', null, 403);
+        }
+
         $letter = LetterRequest::findOrFail($id);
-        $signer = $request->user() ?? Auth::user() ?? User::where('role', 'ketua_rt')->first();
+        $signer = $signer ?? User::where('role', 'ketua_rt')->first();
 
         $romans = [1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI', 7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII'];
         $currentMonthRoman = $romans[(int)date('n')] ?? 'XI';
@@ -113,12 +118,17 @@ class LetterApiController extends BaseApiController
      */
     public function reject(Request $request, int $id): JsonResponse
     {
+        $signer = $request->user() ?? Auth::user();
+        if ($signer && !in_array($signer->role, ['super_admin', 'ketua_rw', 'ketua_rt', 'sekretaris', 'pengurus_rt'])) {
+            return $this->error('Akses ditolak: Hanya pengurus RT/RW yang berwenang menolak pengajuan surat.', null, 403);
+        }
+
         $validated = $request->validate([
             'rejection_reason' => 'required|string|max:500',
         ]);
 
         $letter = LetterRequest::findOrFail($id);
-        $signer = $request->user() ?? Auth::user() ?? User::where('role', 'ketua_rt')->first();
+        $signer = $signer ?? User::where('role', 'ketua_rt')->first();
 
         $letter->update([
             'status'           => 'rejected',

@@ -24,20 +24,30 @@
         </div>
 
         <!-- Action Buttons -->
+        @php
+            $err500Url = auth()->check()
+                ? match(Auth::user()->role) {
+                    'super_admin' => route('superadmin.index'),
+                    'warga' => route('warga.index'),
+                    'satpam' => route('satpam.console'),
+                    default => route('dashboard'),
+                }
+                : route('home');
+        @endphp
         <div class="pt-4 flex flex-wrap items-center justify-center gap-3">
             <button 
                 type="button" 
                 onclick="window.location.reload()" 
-                class="px-5 py-3 rounded-2xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-extrabold text-xs shadow-xs transition flex items-center gap-2 cursor-pointer"
+                class="px-5 py-3 rounded-2xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-extrabold text-xs shadow-xs transition-colors flex items-center gap-2 cursor-pointer"
             >
                 <span>🔄 Muat Ulang Halaman</span>
             </button>
 
             <a 
-                href="{{ route('dashboard') }}" 
-                class="px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-lg shadow-emerald-600/20 transition flex items-center gap-2 cursor-pointer"
+                href="{{ $err500Url }}" 
+                class="px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-lg shadow-emerald-600/20 transition-colors flex items-center gap-2 cursor-pointer"
             >
-                <span>🏠 Kembali ke Dashboard Aman ➔</span>
+                <span>🏠 Kembali ke Halaman Utama ➔</span>
             </a>
         </div>
 

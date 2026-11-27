@@ -85,26 +85,48 @@
                         </div>
                     </div>
 
-                    <!-- NIK KTP (16 Digit Wajib) -->
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1.5">
-                            Nomor Induk Kependudukan (NIK - Wajib 16 Digit) <span class="text-rose-500">*</span>
-                        </label>
-                        <input 
-                            type="text" 
-                            inputmode="numeric"
-                            name="nik" 
-                            maxlength="16" 
-                            minlength="16"
-                            pattern="\d{16}"
-                            value="{{ old('nik', $user->nik) }}" 
-                            placeholder="Contoh: 3275011205820001" 
-                            required 
-                            class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-base focus:border-emerald-500 outline-hidden font-mono tracking-widest font-black"
-                        >
-                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-                            NIK KTP ini akan dihubungkan secara otomatis dengan chip RFID / E-KTP untuk membuka palang portal komplek.
-                        </p>
+                    <!-- NIK KTP (16 Digit Wajib) & Nomor KK -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1.5">
+                                Nomor Induk Kependudukan (NIK - Wajib 16 Digit) <span class="text-rose-500">*</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                inputmode="numeric"
+                                name="nik" 
+                                maxlength="16" 
+                                minlength="16"
+                                pattern="\d{16}"
+                                value="{{ old('nik', $user->nik) }}" 
+                                placeholder="Contoh: 3275011205820001…" 
+                                required 
+                                class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-base focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden font-mono tracking-widest font-black tabular-nums"
+                            >
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                                Dihubungkan ke chip RFID / E-KTP untuk akses palang portal.
+                            </p>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1.5">
+                                Nomor Kartu Keluarga (No. KK - 16 Digit)
+                            </label>
+                            <input 
+                                type="text" 
+                                inputmode="numeric"
+                                name="no_kk" 
+                                maxlength="16" 
+                                minlength="16"
+                                pattern="\d{16}"
+                                value="{{ old('no_kk', $user->no_kk ?? $user->house?->no_kk) }}" 
+                                placeholder="Contoh: 3275012903820001…" 
+                                class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-base focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden font-mono tracking-widest font-bold tabular-nums"
+                            >
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                                Untuk pendataan anggota keluarga & pengelompokan rumah.
+                            </p>
+                        </div>
                     </div>
 
                     <!-- Tempat & Tanggal Lahir -->
@@ -180,7 +202,7 @@
                             <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1.5">
                                 Unit Rumah Tinggal di Komplek
                             </label>
-                            <select name="house_id" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:border-emerald-500 outline-hidden font-semibold">
+                            <select name="house_id" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden font-semibold">
                                 @foreach($houses as $h)
                                     <option value="{{ $h->id }}" {{ old('house_id', $user->house_id) == $h->id ? 'selected' : '' }}>
                                         {{ $h->block_and_number }} ({{ $h->full_address }})
@@ -196,7 +218,7 @@
                                 type="file" 
                                 name="ktp_photo" 
                                 accept="image/*" 
-                                class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 dark:file:bg-emerald-950 dark:file:text-emerald-300"
+                                class="w-full text-xs text-slate-500 cursor-pointer file:cursor-pointer file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 dark:file:bg-emerald-950 dark:file:text-emerald-300"
                             >
                         </div>
                     </div>
@@ -210,8 +232,8 @@
                             name="address_ktp" 
                             rows="2" 
                             required 
-                            placeholder="Tuliskan alamat lengkap beserta RT/RW, Kelurahan, dan Kota sesuai KTP Anda" 
-                            class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:border-emerald-500 outline-hidden leading-relaxed"
+                            placeholder="Tuliskan alamat lengkap beserta RT/RW, Kelurahan, dan Kota sesuai KTP Anda…" 
+                            class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden leading-relaxed"
                         >{{ old('address_ktp', $user->address_ktp) }}</textarea>
                     </div>
 
@@ -257,10 +279,18 @@
                 @endif
 
                 <div class="space-y-2.5 text-xs">
-                    <div>
-                        <div class="text-[10px] text-blue-300 font-bold uppercase">Nomor Induk Kependudukan (NIK)</div>
-                        <div class="font-mono text-sm font-black tracking-wider text-amber-300">
-                            {{ $user->nik ?? 'BELUM DILENGKAPI' }}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div>
+                            <div class="text-[10px] text-blue-300 font-bold uppercase">Nomor Induk Kependudukan (NIK)</div>
+                            <div class="font-mono text-sm font-black tracking-wider text-amber-300 tabular-nums truncate">
+                                {{ $user->nik ?? 'BELUM DILENGKAPI' }}
+                            </div>
+                        </div>
+                        <div>
+                            <div class="text-[10px] text-blue-300 font-bold uppercase">Nomor Kartu Keluarga (KK)</div>
+                            <div class="font-mono text-sm font-black tracking-wider text-cyan-300 tabular-nums truncate">
+                                {{ $user->no_kk ?? $user->house?->no_kk ?? 'BELUM DIISI' }}
+                            </div>
                         </div>
                     </div>
 
@@ -271,7 +301,7 @@
                         </div>
                         <div>
                             <div class="text-[10px] text-blue-300 font-bold uppercase">Tempat/Tgl Lahir</div>
-                            <div class="font-semibold text-slate-200 truncate">
+                            <div class="font-semibold text-slate-200 truncate tabular-nums">
                                 {{ $user->birth_place ?? '-' }}, {{ $user->birth_date ? $user->birth_date->format('d/m/Y') : '-' }}
                             </div>
                         </div>
@@ -372,15 +402,15 @@
                     @csrf
                     <div>
                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Password Saat Ini</label>
-                        <input type="password" name="current_password" required class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-base focus:border-emerald-500 outline-hidden">
+                        <input type="password" name="current_password" required class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-base focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Password Baru (Min 6 Karakter)</label>
-                        <input type="password" name="new_password" required minlength="6" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-base focus:border-emerald-500 outline-hidden">
+                        <input type="password" name="new_password" required minlength="6" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-base focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Konfirmasi Password Baru</label>
-                        <input type="password" name="new_password_confirmation" required minlength="6" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-base focus:border-emerald-500 outline-hidden">
+                        <input type="password" name="new_password_confirmation" required minlength="6" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-base focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-hidden">
                     </div>
                     <button type="submit" :disabled="isChanging" class="w-full min-h-[48px] py-3.5 bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white rounded-2xl font-extrabold text-sm shadow-xs transition-transform active:scale-95 flex items-center justify-center gap-2 cursor-pointer touch-press">
                         <span x-show="isChanging" class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
